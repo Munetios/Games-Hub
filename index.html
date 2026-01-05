@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #667eea 0%,
+          #764ba2 50%,
+          #f093fb 100%
+        );
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+      }
+      .game-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-decoration: none;
+      }
+      .game-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      }
+      .game-icon {
+        font-size: 3.5rem;
+        margin-bottom: 0.75rem;
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+      .floating {
+        animation: float 3s ease-in-out infinite;
+      }
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .slide-in {
+        animation: slideIn 0.5s ease-out forwards;
+      }
+      .category-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+      }
+      .search-box {
+        transition: all 0.3s ease;
+      }
+      .search-box:focus {
+        transform: scale(1.05);
+      }
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+      }
+      .modal.active {
+        display: flex;
+      }
+      .modal-content {
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+      <div class="modal-content liquid-glass p-8">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-3xl font-bold text-white">
+            <span class="material-symbols-outlined align-middle">settings</span>
+            Settings
+          </h2>
+          <button
+            id="closeSettings"
+            class="text-white text-3xl hover:scale-110 transition"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="space-y-6 text-white">
+          <div>
+            <h3 class="text-xl font-semibold mb-3">
+              <span class="material-symbols-outlined align-middle"
+                >volume_up</span
+              >
+              Audio
+            </h3>
+            <label class="flex items-center justify-between mb-2">
+              <span>Background Music</span>
+              <input type="checkbox" id="musicToggle" class="w-6 h-6" checked />
+            </label>
+            <label class="flex items-center justify-between">
+              <span>Sound Effects</span>
+              <input type="checkbox" id="soundToggle" class="w-6 h-6" checked />
+            </label>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-semibold mb-3">
+              <span class="material-symbols-outlined align-middle"
+                >palette</span
+              >
+              Theme
+            </h3>
+            <select
+              id="themeSelector"
+              class="w-full p-3 rounded-lg bg-white/20 text-white border border-white/30 font-semibold"
+              onchange="applyTheme(this.value)"
+            >
+              <option value="default">🌅 Default (Purple)</option>
+              <option value="sunset">🌇 Sunset</option>
+              <option value="ocean">🌊 Ocean</option>
+              <option value="forest">🌲 Forest</option>
+              <option value="neon">💜 Neon</option>
+              <option value="midnight">🌙 Midnight</option>
+              <option value="fire">🔥 Fire</option>
+            </select>
+          </div>
+
+          <div>
+            <h3 class="text-xl font-semibold mb-3">
+              <span class="material-symbols-outlined align-middle">info</span>
+              About
+            </h3>
+            <p class="text-sm">Munetios Games Hub v2.0</p>
+            <p class="text-sm opacity-70">40+ Games & Counting!</p>
+          </div>
+
+          <button
+            id="clearData"
+            class="w-full bg-red-500/30 hover:bg-red-500/50 text-white font-bold py-3 px-6 rounded-lg transition"
+          >
+            <span class="material-symbols-outlined align-middle">delete</span>
+            Clear All High Scores
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Confirm Modal -->
+    <div id="confirmModal" class="modal">
+      <div class="liquid-glass p-8" style="max-width: 450px; width: 90%">
+        <h2 class="text-2xl font-bold text-white mb-4" id="confirmTitle">
+          Confirm Action
+        </h2>
+        <p class="text-white mb-6" id="confirmMessage">
+          Are you sure you want to proceed?
+        </p>
+        <div class="flex gap-4">
+          <button
+            id="confirmYes"
+            class="flex-1 bg-red-500/40 hover:bg-red-500/60 text-white font-bold py-3 px-6 rounded-lg transition"
+          >
+            <span class="material-symbols-outlined align-middle">check</span>
+            Yes
+          </button>
+          <button
+            id="confirmNo"
+            class="flex-1 bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-6 rounded-lg transition"
+          >
+            <span class="material-symbols-outlined align-middle">close</span>
+            No
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Help Center Modal -->
+    <div id="helpModal" class="modal">
+      <div
+        class="liquid-glass p-8"
+        style="max-width: 900px; width: 95%; max-height: 90vh; overflow-y: auto"
+      >
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-3xl font-bold text-white">
+            <span class="material-symbols-outlined align-middle">help</span>
+            Games Help Center
+          </h2>
+          <button
+            id="closeHelp"
+            class="text-white text-3xl hover:scale-110 transition"
+          >
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div class="mb-6">
+          <div class="flex gap-4 mb-4">
+            <input
+              type="text"
+              id="helpSearch"
+              placeholder="Search games..."
+              class="flex-1 px-4 py-2 rounded-lg bg-white/20 text-white placeholder-white/70 border border-white/30 outline-none"
+            />
+            <select
+              id="helpThemeSelector"
+              class="px-4 py-2 rounded-lg bg-white/20 text-white border border-white/30"
+              onchange="applyTheme(this.value)"
+            >
+              <option value="">🎨 Quick Theme</option>
+              <option value="default">🌅 Default</option>
+              <option value="sunset">🌇 Sunset</option>
+              <option value="ocean">🌊 Ocean</option>
+              <option value="forest">🌲 Forest</option>
+              <option value="neon">💜 Neon</option>
+              <option value="midnight">🌙 Midnight</option>
+              <option value="fire">🔥 Fire</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="helpContent" class="space-y-4">
+          <!-- Snake -->
+          <div class="game-help liquid-glass p-4" data-game="snake">
+            <h3 class="text-2xl font-bold text-white mb-2">🐍 Snake</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p>
+                <strong>Controls:</strong> Arrow Keys / WASD, Space to Pause
+              </p>
+              <p>
+                <strong>Objective:</strong> Eat food to grow longer without
+                hitting walls or yourself
+              </p>
+              <p>
+                <strong>Tips:</strong> Use custom maps, avoid corners when long,
+                plan your route ahead
+              </p>
+              <p>
+                <strong>Features:</strong> Custom map editor, multiple
+                difficulty levels, power-ups
+              </p>
+            </div>
+          </div>
+
+          <!-- Pac-Man -->
+          <div class="game-help liquid-glass p-4" data-game="pacman">
+            <h3 class="text-2xl font-bold text-white mb-2">👻 Pac-Man</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p><strong>Controls:</strong> Arrow Keys to move</p>
+              <p>
+                <strong>Objective:</strong> Eat all dots while avoiding ghosts.
+                Eat power pellets to chase ghosts
+              </p>
+              <p>
+                <strong>Tips:</strong> Plan escape routes, use corners to lose
+                ghosts, save power pellets for emergencies
+              </p>
+              <p>
+                <strong>Features:</strong> Classic ghost AI, power mode,
+                multiple levels
+              </p>
+            </div>
+          </div>
+
+          <!-- Chess -->
+          <div class="game-help liquid-glass p-4" data-game="chess">
+            <h3 class="text-2xl font-bold text-white mb-2">♟️ Chess</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p><strong>Controls:</strong> Click to select and move pieces</p>
+              <p><strong>Objective:</strong> Checkmate opponent's king</p>
+              <p>
+                <strong>Tips:</strong> Control the center, develop pieces early,
+                protect your king
+              </p>
+              <p>
+                <strong>Features:</strong> Player vs AI mode, legal move
+                validation, check detection
+              </p>
+            </div>
+          </div>
+
+          <!-- Tetris -->
+          <div class="game-help liquid-glass p-4" data-game="tetris">
+            <h3 class="text-2xl font-bold text-white mb-2">🧱 Tetris</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p>
+                <strong>Controls:</strong> ← → to move, ↑ to rotate, ↓ to drop
+                faster
+              </p>
+              <p>
+                <strong>Objective:</strong> Complete horizontal lines to clear
+                them and score points
+              </p>
+              <p>
+                <strong>Tips:</strong> Leave space for I-pieces, avoid creating
+                holes, plan ahead
+              </p>
+              <p>
+                <strong>Features:</strong> Classic gameplay, ghost piece
+                preview, increasing difficulty
+              </p>
+            </div>
+          </div>
+
+          <!-- Solitaire -->
+          <div class="game-help liquid-glass p-4" data-game="solitaire">
+            <h3 class="text-2xl font-bold text-white mb-2">♠️ Solitaire</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p><strong>Controls:</strong> Click to select/move cards</p>
+              <p>
+                <strong>Objective:</strong> Move all cards to foundations (Ace
+                to King by suit)
+              </p>
+              <p>
+                <strong>Tips:</strong> Expose face-down cards first, build
+                foundations evenly, plan moves carefully
+              </p>
+              <p>
+                <strong>Features:</strong> Full Klondike rules, move counter,
+                timer, win detection
+              </p>
+            </div>
+          </div>
+
+          <!-- 2048 -->
+          <div class="game-help liquid-glass p-4" data-game="2048">
+            <h3 class="text-2xl font-bold text-white mb-2">🔢 2048</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p><strong>Controls:</strong> Arrow Keys or Swipe</p>
+              <p><strong>Objective:</strong> Combine tiles to reach 2048</p>
+              <p>
+                <strong>Tips:</strong> Keep highest tile in corner, build in one
+                direction, plan several moves ahead
+              </p>
+              <p>
+                <strong>Features:</strong> Undo feature, score tracking, smooth
+                animations
+              </p>
+            </div>
+          </div>
+
+          <!-- Minesweeper -->
+          <div class="game-help liquid-glass p-4" data-game="minesweeper">
+            <h3 class="text-2xl font-bold text-white mb-2">💣 Minesweeper</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p>
+                <strong>Controls:</strong> Left-click to reveal, Right-click to
+                flag
+              </p>
+              <p>
+                <strong>Objective:</strong> Reveal all safe cells without
+                clicking mines
+              </p>
+              <p>
+                <strong>Tips:</strong> Numbers show adjacent mines, flag
+                suspicious cells, start with corners
+              </p>
+              <p>
+                <strong>Features:</strong> Multiple difficulty levels, timer,
+                mine counter
+              </p>
+            </div>
+          </div>
+
+          <!-- Checkers -->
+          <div class="game-help liquid-glass p-4" data-game="checkers">
+            <h3 class="text-2xl font-bold text-white mb-2">🔴 Checkers</h3>
+            <div class="text-white/90 text-sm space-y-2">
+              <p><strong>Controls:</strong> Click to select and move pieces</p>
+              <p>
+                <strong>Objective:</strong> Capture all opponent pieces or block
+                all moves
+              </p>
+              <p>
+                <strong>Tips:</strong> Kings are powerful, control center, force
+                trades when ahead
+              </p>
+              <p>
+                <strong>Features:</strong> AI opponent, forced jumps, king
+                promotion
+              </p>
+            </div>
+          </div>
+
+          <div class="text-center text-white/70 text-sm mt-6 p-4">
+            <p>💡 Tip: Customize your experience with themes in Settings!</p>
+            <p class="mt-2">🎮 More games and features coming soon!</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Navigation Bar -->
+    <div class="topbar liquid-glass">
+      <div
+        class="max-w-7xl mx-auto px-4 md:px-8 py-4 flex items-center justify-between"
+      >
+        <div class="flex items-center gap-4">
+          <span class="material-symbols-outlined text-white text-4xl"
+            >gamepad</span
+          >
+          <h1 class="hidden md:block text-3xl font-bold text-white">
+            Munetios Games
+          </h1>
+        </div>
+        <div class="flex items-center gap-3">
+          <input
+            type="text"
+            id="searchBox"
+            placeholder="Search games..."
+            class="search-box px-4 py-2 rounded-2xl bg-white/20 text-white placeholder-white/70 border border-white/30 outline-none"
+          />
+          <span
+            id="helpBtn"
+            class="material-symbols-outlined text-white text-3xl cursor-pointer hover:scale-110 transition"
+            title="Help & How to Play"
+            >help</span
+          >
+          <span
+            id="settingsBtn"
+            class="material-symbols-outlined text-white text-3xl cursor-pointer hover:scale-110 transition"
+            title="Settings"
+            >settings</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 md:px-8 py-8">
+      <!-- Hero Section -->
+      <div class="liquid-glass text-center p-8 md:p-12 mb-8 slide-in">
+        <h2 class="text-4xl md:text-6xl font-bold text-white mb-4 floating">
+          🎮 Ultimate Gaming Hub
+        </h2>
+        <p class="text-lg md:text-xl text-white/90 mb-2">
+          32+ Classic & Modern Games - All Free to Play!
+        </p>
+        <p class="text-base md:text-lg text-white/80">
+          Advanced features • Custom maps • High scores • AI opponents •
+          Multiplayer modes
+        </p>
+      </div>
+
+      <!-- Games Grid -->
+      <div
+        id="gamesGrid"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8"
+      >
+        <!-- Snake Game -->
+        <a
+          href="snake.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🐍</div>
+          <h2 class="text-2xl font-bold mb-2">Snake</h2>
+          <p class="text-white/80 text-sm">Advanced snake with custom maps</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- 2048 -->
+        <a
+          href="2048.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🔢</div>
+          <h2 class="text-2xl font-bold mb-2">2048</h2>
+          <p class="text-white/80 text-sm">Merge tiles with undo feature</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Tetris -->
+        <a
+          href="https://tetris.munetios.com"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🧱</div>
+          <h2 class="text-2xl font-bold mb-2">Tetris</h2>
+          <p class="text-white/80 text-sm">Stack blocks and clear lines</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Pac-Man -->
+        <a
+          href="pacman.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">👻</div>
+          <h2 class="text-2xl font-bold mb-2">Pac-Man</h2>
+          <p class="text-white/80 text-sm">Advanced AI & power-ups</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Space Invaders -->
+        <a
+          href="spaceinvaders.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="action"
+        >
+          <div class="game-icon">👾</div>
+          <h2 class="text-2xl font-bold mb-2">Space Invaders</h2>
+          <p class="text-white/80 text-sm">Boss levels & power-ups</p>
+          <span class="category-badge bg-red-500/30">Action</span>
+        </a>
+
+        <!-- Breakout -->
+        <a
+          href="breakout.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🎯</div>
+          <h2 class="text-2xl font-bold mb-2">Breakout</h2>
+          <p class="text-white/80 text-sm">Break all the bricks</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Chess -->
+        <a
+          href="chess.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">♔</div>
+          <h2 class="text-2xl font-bold mb-2">Chess</h2>
+          <p class="text-white/80 text-sm">AI opponent & multiplayer</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Checkers -->
+        <a
+          href="checkers.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">⚫</div>
+          <h2 class="text-2xl font-bold mb-2">Checkers</h2>
+          <p class="text-white/80 text-sm">Classic board game</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Tic-Tac-Toe -->
+        <a
+          href="tictactoe.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">⭕</div>
+          <h2 class="text-2xl font-bold mb-2">Tic-Tac-Toe</h2>
+          <p class="text-white/80 text-sm">Unbeatable AI mode</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Memory Match -->
+        <a
+          href="memory.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🧠</div>
+          <h2 class="text-2xl font-bold mb-2">Memory Match</h2>
+          <p class="text-white/80 text-sm">Test your memory skills</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Connect Four -->
+        <a
+          href="connectfour.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">🔴</div>
+          <h2 class="text-2xl font-bold mb-2">Connect Four</h2>
+          <p class="text-white/80 text-sm">Strategic dropping game</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Sokoban -->
+        <a
+          href="sokoban.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">📦</div>
+          <h2 class="text-2xl font-bold mb-2">Sokoban</h2>
+          <p class="text-white/80 text-sm">Push boxes to targets</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Asteroids -->
+        <a
+          href="asteroids.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="action"
+        >
+          <div class="game-icon">☄️</div>
+          <h2 class="text-2xl font-bold mb-2">Asteroids</h2>
+          <p class="text-white/80 text-sm">Shoot space rocks</p>
+          <span class="category-badge bg-red-500/30">Action</span>
+        </a>
+
+        <!-- Simon Says -->
+        <a
+          href="simon.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🎨</div>
+          <h2 class="text-2xl font-bold mb-2">Simon Says</h2>
+          <p class="text-white/80 text-sm">Follow the pattern</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Whack-a-Mole -->
+        <a
+          href="whackamole.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🔨</div>
+          <h2 class="text-2xl font-bold mb-2">Whack-a-Mole</h2>
+          <p class="text-white/80 text-sm">Fast reflexes needed</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Tower Defense -->
+        <a
+          href="towerdefense.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">🗼</div>
+          <h2 class="text-2xl font-bold mb-2">Tower Defense</h2>
+          <p class="text-white/80 text-sm">Defend your base</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Hangman -->
+        <a
+          href="hangman.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🎯</div>
+          <h2 class="text-2xl font-bold mb-2">Hangman</h2>
+          <p class="text-white/80 text-sm">Guess the word</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Sliding Puzzle -->
+        <a
+          href="slidingpuzzle.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🧩</div>
+          <h2 class="text-2xl font-bold mb-2">Sliding Puzzle</h2>
+          <p class="text-white/80 text-sm">15-piece puzzle</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Reversi -->
+        <a
+          href="reversi.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">⚫</div>
+          <h2 class="text-2xl font-bold mb-2">Reversi</h2>
+          <p class="text-white/80 text-sm">Othello board game</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Color Match -->
+        <a
+          href="colormatch.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🎨</div>
+          <h2 class="text-2xl font-bold mb-2">Color Match</h2>
+          <p class="text-white/80 text-sm">Fast color matching</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Brick Breaker -->
+        <a
+          href="brickbreaker.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🧱</div>
+          <h2 class="text-2xl font-bold mb-2">Brick Breaker</h2>
+          <p class="text-white/80 text-sm">Break all the bricks</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Number Puzzle -->
+        <a
+          href="numberpuzzle.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🔢</div>
+          <h2 class="text-2xl font-bold mb-2">Number Puzzle</h2>
+          <p class="text-white/80 text-sm">Math challenges</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Reaction Time -->
+        <a
+          href="reactiontime.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">⚡</div>
+          <h2 class="text-2xl font-bold mb-2">Reaction Time</h2>
+          <p class="text-white/80 text-sm">Test your reflexes</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Doodle Jump -->
+        <a
+          href="doodlejump.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🦘</div>
+          <h2 class="text-2xl font-bold mb-2">Doodle Jump</h2>
+          <p class="text-white/80 text-sm">Jump on platforms</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Word Hunt -->
+        <a
+          href="wordhunt.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">📝</div>
+          <h2 class="text-2xl font-bold mb-2">Word Hunt</h2>
+          <p class="text-white/80 text-sm">Find words in the grid</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Flappy Bird -->
+        <a
+          href="flappybird.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🐦</div>
+          <h2 class="text-2xl font-bold mb-2">Flappy Bird</h2>
+          <p class="text-white/80 text-sm">Tap to fly through pipes</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Minesweeper -->
+        <a
+          href="minesweeper.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">💣</div>
+          <h2 class="text-2xl font-bold mb-2">Minesweeper</h2>
+          <p class="text-white/80 text-sm">Clear the minefield</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Sudoku -->
+        <a
+          href="sudoku.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🔢</div>
+          <h2 class="text-2xl font-bold mb-2">Sudoku</h2>
+          <p class="text-white/80 text-sm">Solve number puzzles</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Pong -->
+        <a
+          href="pong.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🏓</div>
+          <h2 class="text-2xl font-bold mb-2">Pong</h2>
+          <p class="text-white/80 text-sm">Classic paddle game</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Maze -->
+        <a
+          href="https://www.munetios.com/maze/maze.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🌀</div>
+          <h2 class="text-2xl font-bold mb-2">Maze</h2>
+          <p class="text-white/80 text-sm">Navigate the labyrinth</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Tic-Tac-Toe -->
+        <a
+          href="tictactoe.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">❌⭕</div>
+          <h2 class="text-2xl font-bold mb-2">Tic-Tac-Toe</h2>
+          <p class="text-white/80 text-sm">Classic Xs and Os with AI</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Connect Four -->
+        <a
+          href="connectfour.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">🔴🟡</div>
+          <h2 class="text-2xl font-bold mb-2">Connect Four</h2>
+          <p class="text-white/80 text-sm">Connect 4 in a row to win</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Checkers -->
+        <a
+          href="checkers.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="strategy"
+        >
+          <div class="game-icon">🔴⚫</div>
+          <h2 class="text-2xl font-bold mb-2">Checkers</h2>
+          <p class="text-white/80 text-sm">Classic checkers with AI</p>
+          <span class="category-badge bg-blue-500/30">Strategy</span>
+        </a>
+
+        <!-- Asteroids -->
+        <a
+          href="asteroids.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🚀</div>
+          <h2 class="text-2xl font-bold mb-2">Asteroids</h2>
+          <p class="text-white/80 text-sm">Destroy asteroids and survive</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Simon Says -->
+        <a
+          href="simonsays.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🎨</div>
+          <h2 class="text-2xl font-bold mb-2">Simon Says</h2>
+          <p class="text-white/80 text-sm">Memory color sequence game</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Whack-a-Mole -->
+        <a
+          href="whackamole.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="arcade"
+        >
+          <div class="game-icon">🔨</div>
+          <h2 class="text-2xl font-bold mb-2">Whack-a-Mole</h2>
+          <p class="text-white/80 text-sm">Quick reflexes mole game</p>
+          <span class="category-badge bg-green-500/30">Arcade</span>
+        </a>
+
+        <!-- Memory Match -->
+        <a
+          href="memorymatch.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">🧠</div>
+          <h2 class="text-2xl font-bold mb-2">Memory Match</h2>
+          <p class="text-white/80 text-sm">Find matching pairs</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Sokoban -->
+        <a
+          href="sokoban.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="puzzle"
+        >
+          <div class="game-icon">📦</div>
+          <h2 class="text-2xl font-bold mb-2">Sokoban</h2>
+          <p class="text-white/80 text-sm">Push boxes to goals</p>
+          <span class="category-badge bg-purple-500/30">Puzzle</span>
+        </a>
+
+        <!-- Blackjack -->
+        <a
+          href="blackjack.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="cards"
+        >
+          <div class="game-icon">🃏</div>
+          <h2 class="text-2xl font-bold mb-2">Blackjack</h2>
+          <p class="text-white/80 text-sm">Classic 21 card game</p>
+          <span class="category-badge bg-red-500/30">Cards</span>
+        </a>
+
+        <!-- Solitaire -->
+        <a
+          href="solitaire.html"
+          class="game-card liquid-glass p-6 text-center text-white"
+          data-category="cards"
+        >
+          <div class="game-icon">♠️</div>
+          <h2 class="text-2xl font-bold mb-2">Solitaire</h2>
+          <p class="text-white/80 text-sm">Classic card patience game</p>
+          <span class="category-badge bg-red-500/30">Cards</span>
+        </a>
+      </div>
+
+      <!-- Footer -->
+      <div class="liquid-glass text-center p-6 mt-8">
+        <p class="text-white/90 text-lg font-semibold mb-2">
+          🎮 40+ Amazing Games & Counting!
+        </p>
+        <p class="text-white/70 text-sm">
+          All games feature advanced mechanics, custom options, and high scores
+        </p>
+      </div>
+    </div>
+
+    <script>
+      // Settings Modal
+      const settingsModal = document.getElementById("settingsModal");
+      const settingsBtn = document.getElementById("settingsBtn");
+      const closeSettings = document.getElementById("closeSettings");
+      const clearDataBtn = document.getElementById("clearData");
+      const musicToggle = document.getElementById("musicToggle");
+      const soundToggle = document.getElementById("soundToggle");
+
+      // Help Modal
+      const helpModal = document.getElementById("helpModal");
+      const helpBtn = document.getElementById("helpBtn");
+      const closeHelp = document.getElementById("closeHelp");
+      const helpSearch = document.getElementById("helpSearch");
+
+      // Load settings
+      const settings = {
+        music: localStorage.getItem("globalMusicEnabled") !== "false",
+        sound: localStorage.getItem("globalSoundEnabled") !== "false",
+      };
+
+      // Theme System
+      const themes = {
+        default:
+          "linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)",
+        sunset: "linear-gradient(135deg, #ff6e7f 0%, #bfe9ff 100%)",
+        ocean: "linear-gradient(135deg, #0052D4 0%, #4364F7 50%, #6FB1FC 100%)",
+        forest: "linear-gradient(135deg, #134E5E 0%, #71B280 100%)",
+        neon: "linear-gradient(135deg, #f953c6 0%, #b91d73 50%, #7b4397 100%)",
+        midnight: "linear-gradient(135deg, #000428 0%, #004e92 100%)",
+        fire: "linear-gradient(135deg, #f12711 0%, #f5af19 100%)",
+      };
+
+      function applyTheme(themeName) {
+        document.body.style.background = themes[themeName] || themes.default;
+        localStorage.setItem("selectedTheme", themeName);
+
+        // Visual feedback
+        const themeSelector = document.getElementById("themeSelector");
+        themeSelector.style.transform = "scale(1.05)";
+        setTimeout(() => {
+          themeSelector.style.transform = "scale(1)";
+        }, 200);
+      }
+
+      function loadTheme() {
+        const savedTheme = localStorage.getItem("selectedTheme") || "default";
+        document.getElementById("themeSelector").value = savedTheme;
+        applyTheme(savedTheme);
+      }
+
+      // Load theme on startup
+      loadTheme();
+
+      musicToggle.checked = settings.music;
+      soundToggle.checked = settings.sound;
+
+      settingsBtn.addEventListener("click", () => {
+        settingsModal.classList.add("active");
+      });
+
+      closeSettings.addEventListener("click", () => {
+        settingsModal.classList.remove("active");
+      });
+
+      settingsModal.addEventListener("click", (e) => {
+        if (e.target === settingsModal) {
+          settingsModal.classList.remove("active");
+        }
+      });
+
+      // Help Modal Handlers
+      helpBtn.addEventListener("click", () => {
+        helpModal.classList.add("active");
+      });
+
+      closeHelp.addEventListener("click", () => {
+        helpModal.classList.remove("active");
+      });
+
+      helpModal.addEventListener("click", (e) => {
+        if (e.target === helpModal) {
+          helpModal.classList.remove("active");
+        }
+      });
+
+      // Help Search
+      helpSearch.addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const gameHelps = document.querySelectorAll(".game-help");
+
+        gameHelps.forEach((help) => {
+          const gameName = help.dataset.game;
+          const text = help.textContent.toLowerCase();
+
+          if (text.includes(searchTerm) || gameName.includes(searchTerm)) {
+            help.style.display = "block";
+          } else {
+            help.style.display = "none";
+          }
+        });
+      });
+
+      musicToggle.addEventListener("change", () => {
+        localStorage.setItem("globalMusicEnabled", musicToggle.checked);
+      });
+
+      soundToggle.addEventListener("change", () => {
+        localStorage.setItem("globalSoundEnabled", soundToggle.checked);
+      });
+
+      clearDataBtn.addEventListener("click", () => {
+        showConfirm(
+          "Clear All High Scores?",
+          "Are you sure you want to clear all high scores? This cannot be undone!",
+          () => {
+            // Clear all game-related localStorage
+            const keys = Object.keys(localStorage);
+            keys.forEach((key) => {
+              if (
+                key.includes("High") ||
+                key.includes("Best") ||
+                key.includes("Score") ||
+                key.includes("Wins")
+              ) {
+                localStorage.removeItem(key);
+              }
+            });
+            showToast("✅ All high scores cleared!", 2500);
+            settingsModal.classList.remove("active");
+          }
+        );
+      });
+
+      // Custom Confirm Modal
+      function showConfirm(title, message, onConfirm) {
+        const confirmModal = document.getElementById("confirmModal");
+        const confirmTitle = document.getElementById("confirmTitle");
+        const confirmMessage = document.getElementById("confirmMessage");
+        const confirmYes = document.getElementById("confirmYes");
+        const confirmNo = document.getElementById("confirmNo");
+
+        confirmTitle.textContent = title;
+        confirmMessage.textContent = message;
+        confirmModal.classList.add("active");
+
+        const handleYes = () => {
+          confirmModal.classList.remove("active");
+          if (onConfirm) onConfirm();
+          cleanup();
+        };
+
+        const handleNo = () => {
+          confirmModal.classList.remove("active");
+          cleanup();
+        };
+
+        const cleanup = () => {
+          confirmYes.removeEventListener("click", handleYes);
+          confirmNo.removeEventListener("click", handleNo);
+        };
+
+        confirmYes.addEventListener("click", handleYes);
+        confirmNo.addEventListener("click", handleNo);
+      }
+
+      // Toast Notification
+      function showToast(message, duration = 2500) {
+        const toast = document.createElement("div");
+        toast.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          z-index: 3000;
+          animation: slideIn 0.3s ease-out;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.animation = "slideOut 0.3s ease-in forwards";
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      // Search functionality
+      const searchBox = document.getElementById("searchBox");
+      const gamesGrid = document.getElementById("gamesGrid");
+      const gameCards = gamesGrid.querySelectorAll(".game-card");
+
+      searchBox.addEventListener("input", (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+
+        gameCards.forEach((card) => {
+          const title = card.querySelector("h2").textContent.toLowerCase();
+          const description = card.querySelector("p").textContent.toLowerCase();
+          const category = card.dataset.category;
+
+          if (
+            title.includes(searchTerm) ||
+            description.includes(searchTerm) ||
+            category.includes(searchTerm)
+          ) {
+            card.style.display = "block";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      });
+
+      // Add staggered animation to cards
+      gameCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.05}s`;
+        card.classList.add("slide-in");
+      });
+    </script>
+  </body>
+</html>

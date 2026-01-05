@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Brick Breaker - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <style>
+      body {
+        font-family: sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      canvas {
+        border: 3px solid white;
+        border-radius: 8px;
+        background: #000;
+        display: block;
+        margin: 20px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="max-w-3xl mx-auto">
+      <div class="liquid-glass p-6 text-center mb-4">
+        <h1 class="text-4xl font-bold text-white mb-4">🧱 Brick Breaker</h1>
+        <div class="text-white text-xl">
+          Score: <span id="score">0</span> | Lives: <span id="lives">3</span>
+        </div>
+      </div>
+      <canvas id="c" width="800" height="600"></canvas>
+      <div class="text-center mt-4">
+        <a
+          href="index.html"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition inline-block"
+          >← Back</a
+        >
+      </div>
+    </div>
+    <script>
+      const c = document.getElementById("c"),
+        ctx = c.getContext("2d");
+      let x = 400,
+        y = 550,
+        dx = 3,
+        dy = -3,
+        px = 350,
+        pw = 100,
+        score = 0,
+        lives = 3;
+      const bricks = [];
+      for (let r = 0; r < 5; r++)
+        for (let co = 0; co < 10; co++)
+          bricks.push({ x: co * 80 + 5, y: r * 30 + 30, w: 75, h: 25, v: 1 });
+      function draw() {
+        ctx.fillStyle = "#000";
+        ctx.fillRect(0, 0, 800, 600);
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(px, 580, pw, 10);
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fill();
+        bricks.forEach((b, i) => {
+          if (b.v) {
+            ctx.fillStyle = [
+              "#FF6B6B",
+              "#4ECDC4",
+              "#45B7D1",
+              "#FFA07A",
+              "#98D8C8",
+            ][(b.y / 30) % 5 | 0];
+            ctx.fillRect(b.x, b.y, b.w, b.h);
+            if (x > b.x && x < b.x + b.w && y > b.y && y < b.y + b.h) {
+              b.v = 0;
+              dy = -dy;
+              score += 10;
+              document.getElementById("score").textContent = score;
+            }
+          }
+        });
+        x += dx;
+        y += dy;
+        if (x < 8 || x > 792) dx = -dx;
+        if (y < 8) dy = -dy;
+        if (y > 575 && x > px && x < px + pw) dy = -dy;
+        if (y > 600) {
+          lives--;
+          document.getElementById("lives").textContent = lives;
+          if (lives <= 0) {
+            alert("Game Over! Score: " + score);
+            location.reload();
+          }
+          x = 400;
+          y = 550;
+          dx = 3;
+          dy = -3;
+        }
+        if (bricks.every((b) => !b.v)) {
+          alert("You Win! Score: " + score);
+          location.reload();
+        }
+      }
+      c.onmousemove = (e) => (px = e.offsetX - pw / 2);
+      setInterval(draw, 16);
+    </script>
+  </body>
+</html>

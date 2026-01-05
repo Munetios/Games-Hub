@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sokoban - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      body {
+          font-family: 'Google Sans Flex', system-ui, sans-serif;
+          background: linear-gradient(135deg, #4776E6 0%, #8E54E9 100%);
+          min-height: 100vh;
+      }
+      #gameBoard {
+          display: grid;
+          gap: 2px;
+          background: #333;
+          padding: 10px;
+          border-radius: 8px;
+          margin: 2rem auto;
+      }
+      .cell {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-center;
+          font-size: 1.5rem;
+          background: #ddd;
+      }
+      .wall { background: #555; }
+      .floor { background: #eee; }
+      .goal { background: #90EE90; }
+      .toast {
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #667eea, #764ba2);
+          color: white;
+          padding: 1rem 1.5rem;
+          border-radius: 12px;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+          z-index: 1000;
+          animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+          from { transform: translateX(400px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+      }
+      .toast.hiding {
+          animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+          from { transform: translateX(0); opacity: 1; }
+          to { transform: translateX(400px); opacity: 0; }
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-4">
+    <div class="liquid-glass p-8 max-w-3xl">
+      <h1 class="text-4xl font-bold text-white mb-4 text-center">📦 Sokoban</h1>
+      <div class="flex justify-around text-white text-lg mb-4">
+        <span>Level: <span id="level" class="font-bold">1</span></span>
+        <span>Moves: <span id="moves" class="font-bold">0</span></span>
+      </div>
+      <div id="gameBoard"></div>
+      <div class="text-center mt-4">
+        <button
+          id="resetBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition mr-2"
+        >
+          <span class="material-symbols-outlined align-middle">refresh</span>
+          Reset
+        </button>
+        <button
+          id="nextBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          <span class="material-symbols-outlined align-middle">skip_next</span>
+          Next Level
+        </button>
+      </div>
+      <div class="mt-4 text-white text-sm text-center">
+        <p>Arrow Keys or WASD to Move | Push boxes to goals</p>
+        <a
+          href="index.html"
+          class="text-white/80 hover:text-white underline mt-2 inline-block"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      const levels = [
+        {
+          grid: ["########", "#......#", "#.@$*..#", "#......#", "########"],
+        },
+        {
+          grid: ["########", "#......#", "#.$@$*.#", "#......#", "########"],
+        },
+        {
+          grid: [
+            "##########",
+            "#........#",
+            "#.$$$.*..#",
+            "#...@....#",
+            "#........#",
+            "##########",
+          ],
+        },
+      ];
+
+      let currentLevel = 0;
+      let moves = 0;
+      let player = { x: 0, y: 0 };
+      let boxes = [];
+      let goals = [];
+      let walls = [];
+      let grid = [];
+
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      function loadLevel() {
+        const level = levels[currentLevel];
+        grid = level.grid;
+        boxes = [];
+        goals = [];
+        walls = [];
+        moves = 0;
+
+        document.getElementById("level").textContent = currentLevel + 1;
+        document.getElementById("moves").textContent = moves;
+
+        for (let y = 0; y < grid.length; y++) {
+          for (let x = 0; x < grid[y].length; x++) {
+            const char = grid[y][x];
+            if (char === "@") player = { x, y };
+            if (char === "$") boxes.push({ x, y });
+            if (char === "*" || char === ".") goals.push({ x, y });
+            if (char === "#") walls.push({ x, y });
+          }
+        }
+
+        renderBoard();
+      }
+
+      function renderBoard() {
+        const board = document.getElementById("gameBoard");
+        board.innerHTML = "";
+        board.style.gridTemplateColumns = `repeat(${grid[0].length}, 40px)`;
+        board.style.gridTemplateRows = `repeat(${grid.length}, 40px)`;
+
+        for (let y = 0; y < grid.length; y++) {
+          for (let x = 0; x < grid[y].length; x++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+
+            const char = grid[y][x];
+            if (char === "#") {
+              cell.classList.add("wall");
+              cell.textContent = "🧱";
+            } else {
+              cell.classList.add("floor");
+              if (goals.some((g) => g.x === x && g.y === y)) {
+                cell.classList.add("goal");
+              }
+
+              if (player.x === x && player.y === y) {
+                cell.textContent = "🚶";
+              } else if (boxes.some((b) => b.x === x && b.y === y)) {
+                const onGoal = goals.some((g) => g.x === x && g.y === y);
+                cell.textContent = onGoal ? "✅" : "📦";
+              } else if (goals.some((g) => g.x === x && g.y === y)) {
+                cell.textContent = "🎯";
+              }
+            }
+
+            board.appendChild(cell);
+          }
+        }
+      }
+
+      function move(dx, dy) {
+        const newX = player.x + dx;
+        const newY = player.y + dy;
+
+        if (walls.some((w) => w.x === newX && w.y === newY)) return;
+
+        const box = boxes.find((b) => b.x === newX && b.y === newY);
+        if (box) {
+          const boxNewX = newX + dx;
+          const boxNewY = newY + dy;
+
+          if (walls.some((w) => w.x === boxNewX && w.y === boxNewY)) return;
+          if (boxes.some((b) => b.x === boxNewX && b.y === boxNewY)) return;
+
+          box.x = boxNewX;
+          box.y = boxNewY;
+        }
+
+        player.x = newX;
+        player.y = newY;
+        moves++;
+        document.getElementById("moves").textContent = moves;
+
+        renderBoard();
+        checkWin();
+      }
+
+      function checkWin() {
+        const allBoxesOnGoals = boxes.every((box) =>
+          goals.some((goal) => goal.x === box.x && goal.y === box.y)
+        );
+
+        if (allBoxesOnGoals) {
+          showToast(
+            `🎉 Level ${currentLevel + 1} Complete in ${moves} moves!`,
+            3000
+          );
+          if (currentLevel < levels.length - 1) {
+            setTimeout(() => {
+              currentLevel++;
+              loadLevel();
+            }, 2000);
+          } else {
+            setTimeout(() => {
+              showToast("🏆 You completed all levels!", 4000);
+            }, 2000);
+          }
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowUp" || e.key === "w" || e.key === "W") move(0, -1);
+        if (e.key === "ArrowDown" || e.key === "s" || e.key === "S") move(0, 1);
+        if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A")
+          move(-1, 0);
+        if (e.key === "ArrowRight" || e.key === "d" || e.key === "D")
+          move(1, 0);
+      });
+
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        loadLevel();
+        showToast("🔄 Level Reset", 1500);
+      });
+
+      document.getElementById("nextBtn").addEventListener("click", () => {
+        if (currentLevel < levels.length - 1) {
+          currentLevel++;
+          loadLevel();
+          showToast(`⏭ Level ${currentLevel + 1}`, 1500);
+        } else {
+          currentLevel = 0;
+          loadLevel();
+          showToast("🔄 Back to Level 1", 1500);
+        }
+      });
+
+      loadLevel();
+    </script>
+  </body>
+</html>

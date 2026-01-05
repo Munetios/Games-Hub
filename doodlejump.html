@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Doodle Jump - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <style>
+      body {
+        font-family: sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      canvas {
+        border: 3px solid white;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #87ceeb, #e0f6ff);
+        display: block;
+        margin: 20px auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="max-w-3xl mx-auto">
+      <div class="liquid-glass p-6 text-center mb-4">
+        <h1 class="text-4xl font-bold text-white mb-4">🦘 Doodle Jump</h1>
+        <div class="text-white text-xl">
+          Score: <span id="score">0</span> | High: <span id="high">0</span>
+        </div>
+      </div>
+      <canvas id="c" width="400" height="600"></canvas>
+      <div class="text-center mt-4 text-white text-sm">
+        Use Arrow Keys or A/D to Move
+      </div>
+      <div class="text-center mt-2">
+        <a
+          href="index.html"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition inline-block"
+          >← Back</a
+        >
+      </div>
+    </div>
+    <script>
+      const c = document.getElementById("c"),
+        ctx = c.getContext("2d");
+      let px = 200,
+        py = 500,
+        vx = 0,
+        vy = 0,
+        score = 0,
+        high = parseInt(localStorage.getItem("doodleHigh") || "0");
+      const plats = [];
+      for (let i = 0; i < 8; i++)
+        plats.push({ x: Math.random() * 340, y: i * 75 + 50, w: 60, h: 10 });
+      document.getElementById("high").textContent = high;
+      function draw() {
+        ctx.fillStyle = "#87CEEB";
+        ctx.fillRect(0, 0, 400, 600);
+        ctx.fillStyle = "#8B4513";
+        plats.forEach((p) => ctx.fillRect(p.x, p.y, p.w, p.h));
+        ctx.fillStyle = "#FF6B6B";
+        ctx.fillRect(px - 15, py - 15, 30, 30);
+        vy += 0.5;
+        py += vy;
+        px += vx;
+        if (px < 0) px = 400;
+        if (px > 400) px = 0;
+        if (vy > 0)
+          plats.forEach((p) => {
+            if (px > p.x && px < p.x + p.w && py > p.y && py < p.y + p.h + 10) {
+              vy = -12;
+              score = Math.max(score, Math.floor((500 - py) / 10));
+              document.getElementById("score").textContent = score;
+            }
+          });
+        if (vy < 0 && py < 200) {
+          plats.forEach((p) => (p.y += 5));
+          if (py < 100) py = 100;
+        }
+        plats.forEach((p, i) => {
+          if (p.y > 600) {
+            plats[i] = { x: Math.random() * 340, y: -10, w: 60, h: 10 };
+          }
+        });
+        if (py > 600) {
+          if (score > high) {
+            high = score;
+            localStorage.setItem("doodleHigh", high);
+            document.getElementById("high").textContent = high;
+          }
+          alert("Game Over! Score: " + score);
+          location.reload();
+        }
+        requestAnimationFrame(draw);
+      }
+      document.onkeydown = (e) => {
+        if (e.key === "ArrowLeft" || e.key === "a") vx = -5;
+        if (e.key === "ArrowRight" || e.key === "d") vx = 5;
+      };
+      document.onkeyup = (e) => {
+        if (
+          e.key === "ArrowLeft" ||
+          e.key === "ArrowRight" ||
+          e.key === "a" ||
+          e.key === "d"
+        )
+          vx = 0;
+      };
+      draw();
+    </script>
+  </body>
+</html>

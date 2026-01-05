@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tic-Tac-Toe - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+      }
+      .cell {
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+      }
+      .cell:hover:not(.taken) {
+        background: rgba(255, 255, 255, 0.2);
+        transform: scale(1.05);
+      }
+      .cell.x {
+        color: #667eea;
+      }
+      .cell.o {
+        color: #f093fb;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-4">
+    <div class="liquid-glass p-8 max-w-lg">
+      <h1 class="text-4xl font-bold text-white mb-6 text-center">
+        ❌⭕ Tic-Tac-Toe
+      </h1>
+
+      <div class="text-center mb-6">
+        <div class="text-white text-xl mb-2">
+          Current Turn: <span id="turn" class="font-bold">X</span>
+        </div>
+        <div class="text-white/80 text-sm">
+          X Wins: <span id="xWins">0</span> | O Wins:
+          <span id="oWins">0</span> | Draws: <span id="draws">0</span>
+        </div>
+      </div>
+
+      <div id="board" class="grid grid-cols-3 gap-2 mb-6 mx-auto w-fit"></div>
+
+      <div class="flex gap-4 justify-center mb-4">
+        <button
+          id="resetBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          Reset Game
+        </button>
+        <button
+          id="aiBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          Play vs AI
+        </button>
+      </div>
+
+      <div class="text-center">
+        <a href="index.html" class="text-white/80 hover:text-white underline"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      const boardElement = document.getElementById("board");
+      const turnElement = document.getElementById("turn");
+      let board = ["", "", "", "", "", "", "", "", ""];
+      let currentPlayer = "X";
+      let gameActive = true;
+      let aiMode = false;
+      let xWins = parseInt(localStorage.getItem("tttXWins")) || 0;
+      let oWins = parseInt(localStorage.getItem("tttOWins")) || 0;
+      let draws = parseInt(localStorage.getItem("tttDraws")) || 0;
+
+      document.getElementById("xWins").textContent = xWins;
+      document.getElementById("oWins").textContent = oWins;
+      document.getElementById("draws").textContent = draws;
+
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      const winPatterns = [
+        [0, 1, 2],
+        [3, 4, 5],
+        [6, 7, 8],
+        [0, 3, 6],
+        [1, 4, 7],
+        [2, 5, 8],
+        [0, 4, 8],
+        [2, 4, 6],
+      ];
+
+      function createBoard() {
+        boardElement.innerHTML = "";
+        for (let i = 0; i < 9; i++) {
+          const cell = document.createElement("div");
+          cell.className = "cell rounded-lg";
+          cell.dataset.index = i;
+          cell.addEventListener("click", handleCellClick);
+          boardElement.appendChild(cell);
+        }
+        updateBoard();
+      }
+
+      function updateBoard() {
+        const cells = document.querySelectorAll(".cell");
+        cells.forEach((cell, index) => {
+          const value = board[index];
+          cell.textContent = value;
+          cell.className = "cell rounded-lg";
+          if (value) {
+            cell.classList.add("taken", value.toLowerCase());
+          }
+        });
+        turnElement.textContent = currentPlayer;
+      }
+
+      function handleCellClick(e) {
+        const index = parseInt(e.target.dataset.index);
+
+        if (board[index] !== "" || !gameActive) return;
+
+        makeMove(index);
+
+        if (aiMode && gameActive && currentPlayer === "O") {
+          setTimeout(aiMove, 500);
+        }
+      }
+
+      function makeMove(index) {
+        board[index] = currentPlayer;
+        updateBoard();
+
+        if (checkWin()) {
+          showToast(`🎉 ${currentPlayer} Wins!`, 3000);
+          gameActive = false;
+
+          if (currentPlayer === "X") {
+            xWins++;
+            localStorage.setItem("tttXWins", xWins);
+            document.getElementById("xWins").textContent = xWins;
+          } else {
+            oWins++;
+            localStorage.setItem("tttOWins", oWins);
+            document.getElementById("oWins").textContent = oWins;
+          }
+          return;
+        }
+
+        if (board.every((cell) => cell !== "")) {
+          showToast("🤝 Draw!", 3000);
+          gameActive = false;
+          draws++;
+          localStorage.setItem("tttDraws", draws);
+          document.getElementById("draws").textContent = draws;
+          return;
+        }
+
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        updateBoard();
+      }
+
+      function checkWin() {
+        return winPatterns.some((pattern) => {
+          return pattern.every((index) => board[index] === currentPlayer);
+        });
+      }
+
+      function aiMove() {
+        // Simple AI: Try to win, block opponent, or pick random
+        const emptyCells = board
+          .map((cell, i) => (cell === "" ? i : null))
+          .filter((i) => i !== null);
+
+        // Try to win
+        for (let i of emptyCells) {
+          board[i] = "O";
+          if (checkWin()) {
+            board[i] = "";
+            makeMove(i);
+            return;
+          }
+          board[i] = "";
+        }
+
+        // Block opponent
+        for (let i of emptyCells) {
+          board[i] = "X";
+          currentPlayer = "X";
+          if (checkWin()) {
+            currentPlayer = "O";
+            board[i] = "";
+            makeMove(i);
+            return;
+          }
+          currentPlayer = "O";
+          board[i] = "";
+        }
+
+        // Pick center or random
+        if (emptyCells.includes(4)) {
+          makeMove(4);
+        } else {
+          const randomIndex =
+            emptyCells[Math.floor(Math.random() * emptyCells.length)];
+          makeMove(randomIndex);
+        }
+      }
+
+      function resetGame() {
+        board = ["", "", "", "", "", "", "", "", ""];
+        currentPlayer = "X";
+        gameActive = true;
+        updateBoard();
+        showToast("🔄 Game Reset", 1500);
+      }
+
+      function toggleAI() {
+        aiMode = !aiMode;
+        resetGame();
+        if (aiMode) {
+          showToast("🤖 AI Mode Enabled", 2000);
+        } else {
+          showToast("👥 Two Player Mode", 2000);
+        }
+      }
+
+      document.getElementById("resetBtn").addEventListener("click", resetGame);
+      document.getElementById("aiBtn").addEventListener("click", toggleAI);
+
+      createBoard();
+    </script>
+  </body>
+</html>

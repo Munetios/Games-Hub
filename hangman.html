@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hangman - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      .letter-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .letter-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.4);
+        transform: scale(1.1);
+      }
+      .letter-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+      .word-display {
+        font-size: 36px;
+        letter-spacing: 10px;
+        font-weight: bold;
+        min-height: 60px;
+      }
+      .hangman-svg {
+        stroke: white;
+        stroke-width: 3;
+        fill: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="max-w-4xl mx-auto">
+      <div class="liquid-glass p-8 mb-6">
+        <h1 class="text-4xl font-bold text-white text-center mb-4">
+          🎯 Hangman
+        </h1>
+        <div class="flex justify-around text-white text-lg mb-4">
+          <div>Wins: <span id="wins" class="font-bold">0</span></div>
+          <div>Losses: <span id="losses" class="font-bold">0</span></div>
+          <div>Wrong: <span id="wrong" class="font-bold">0</span>/6</div>
+        </div>
+      </div>
+
+      <div class="liquid-glass p-8 mb-6">
+        <svg width="200" height="250" class="mx-auto">
+          <!-- Gallows -->
+          <line x1="10" y1="230" x2="150" y2="230" class="hangman-svg" />
+          <line x1="50" y1="230" x2="50" y2="20" class="hangman-svg" />
+          <line x1="50" y1="20" x2="130" y2="20" class="hangman-svg" />
+          <line x1="130" y1="20" x2="130" y2="50" class="hangman-svg" />
+
+          <!-- Head -->
+          <circle
+            id="head"
+            cx="130"
+            cy="70"
+            r="20"
+            class="hangman-svg"
+            style="display: none"
+          />
+          <!-- Body -->
+          <line
+            id="body"
+            x1="130"
+            y1="90"
+            x2="130"
+            y2="150"
+            class="hangman-svg"
+            style="display: none"
+          />
+          <!-- Left Arm -->
+          <line
+            id="leftArm"
+            x1="130"
+            y1="110"
+            x2="100"
+            y2="130"
+            class="hangman-svg"
+            style="display: none"
+          />
+          <!-- Right Arm -->
+          <line
+            id="rightArm"
+            x1="130"
+            y1="110"
+            x2="160"
+            y2="130"
+            class="hangman-svg"
+            style="display: none"
+          />
+          <!-- Left Leg -->
+          <line
+            id="leftLeg"
+            x1="130"
+            y1="150"
+            x2="110"
+            y2="190"
+            class="hangman-svg"
+            style="display: none"
+          />
+          <!-- Right Leg -->
+          <line
+            id="rightLeg"
+            x1="130"
+            y1="150"
+            x2="150"
+            y2="190"
+            class="hangman-svg"
+            style="display: none"
+          />
+        </svg>
+      </div>
+
+      <div class="liquid-glass p-8 mb-6">
+        <div id="wordDisplay" class="word-display text-white text-center"></div>
+        <div
+          id="hint"
+          class="text-white text-center mt-4 text-sm opacity-70"
+        ></div>
+      </div>
+
+      <div class="liquid-glass p-8 mb-6">
+        <div
+          id="keyboard"
+          class="grid grid-cols-7 gap-2 max-w-md mx-auto"
+        ></div>
+      </div>
+
+      <div class="text-center">
+        <button
+          onclick="newGame()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition mr-2"
+        >
+          <span class="material-symbols-outlined align-middle">refresh</span>
+          New Word
+        </button>
+        <a
+          href="index.html"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition inline-block"
+        >
+          ← Back
+        </a>
+      </div>
+    </div>
+
+    <script>
+      const words = [
+        { word: "JAVASCRIPT", hint: "Programming language" },
+        { word: "COMPUTER", hint: "Electronic device" },
+        { word: "KEYBOARD", hint: "Input device" },
+        { word: "MONITOR", hint: "Display screen" },
+        { word: "INTERNET", hint: "World Wide Web" },
+        { word: "PUZZLE", hint: "Brain teaser" },
+        { word: "ADVENTURE", hint: "Exciting journey" },
+        { word: "MOUNTAIN", hint: "High landform" },
+        { word: "OCEAN", hint: "Large body of water" },
+        { word: "GALAXY", hint: "Star system" },
+        { word: "RAINBOW", hint: "Colorful arc" },
+        { word: "DIAMOND", hint: "Precious gem" },
+        { word: "THUNDER", hint: "Storm sound" },
+        { word: "WIZARD", hint: "Magic user" },
+        { word: "DRAGON", hint: "Mythical creature" },
+        { word: "CASTLE", hint: "Medieval fortress" },
+        { word: "TREASURE", hint: "Hidden riches" },
+        { word: "PHOENIX", hint: "Rebirth bird" },
+      ];
+
+      let currentWord = "";
+      let guessedLetters = [];
+      let wrongCount = 0;
+      let wins = parseInt(localStorage.getItem("hangmanWins") || "0");
+      let losses = parseInt(localStorage.getItem("hangmanLosses") || "0");
+
+      const bodyParts = [
+        "head",
+        "body",
+        "leftArm",
+        "rightArm",
+        "leftLeg",
+        "rightLeg",
+      ];
+
+      function init() {
+        document.getElementById("wins").textContent = wins;
+        document.getElementById("losses").textContent = losses;
+
+        const keyboard = document.getElementById("keyboard");
+        for (let i = 65; i <= 90; i++) {
+          const letter = String.fromCharCode(i);
+          const btn = document.createElement("button");
+          btn.textContent = letter;
+          btn.className = "letter-btn";
+          btn.onclick = () => guessLetter(letter, btn);
+          keyboard.appendChild(btn);
+        }
+
+        newGame();
+      }
+
+      function newGame() {
+        const wordData = words[Math.floor(Math.random() * words.length)];
+        currentWord = wordData.word;
+        guessedLetters = [];
+        wrongCount = 0;
+
+        document.getElementById("hint").textContent = `Hint: ${wordData.hint}`;
+        document.getElementById("wrong").textContent = "0";
+
+        // Reset keyboard
+        document.querySelectorAll(".letter-btn").forEach((btn) => {
+          btn.disabled = false;
+          btn.style.background = "rgba(255,255,255,0.2)";
+        });
+
+        // Hide body parts
+        bodyParts.forEach((part) => {
+          document.getElementById(part).style.display = "none";
+        });
+
+        updateDisplay();
+      }
+
+      function guessLetter(letter, btn) {
+        btn.disabled = true;
+        guessedLetters.push(letter);
+
+        if (currentWord.includes(letter)) {
+          btn.style.background = "rgba(34, 197, 94, 0.5)";
+          updateDisplay();
+          checkWin();
+        } else {
+          btn.style.background = "rgba(239, 68, 68, 0.5)";
+          wrongCount++;
+          document.getElementById("wrong").textContent = wrongCount;
+
+          if (wrongCount <= bodyParts.length) {
+            document.getElementById(bodyParts[wrongCount - 1]).style.display =
+              "block";
+          }
+
+          if (wrongCount >= 6) {
+            setTimeout(() => {
+              alert(`Game Over! The word was: ${currentWord}`);
+              losses++;
+              localStorage.setItem("hangmanLosses", losses);
+              document.getElementById("losses").textContent = losses;
+              newGame();
+            }, 500);
+          }
+        }
+      }
+
+      function updateDisplay() {
+        const display = currentWord
+          .split("")
+          .map((letter) => (guessedLetters.includes(letter) ? letter : "_"))
+          .join(" ");
+        document.getElementById("wordDisplay").textContent = display;
+      }
+
+      function checkWin() {
+        if (
+          currentWord
+            .split("")
+            .every((letter) => guessedLetters.includes(letter))
+        ) {
+          setTimeout(() => {
+            alert(`🎉 You Won! The word was: ${currentWord}`);
+            wins++;
+            localStorage.setItem("hangmanWins", wins);
+            document.getElementById("wins").textContent = wins;
+            newGame();
+          }, 500);
+        }
+      }
+
+      init();
+    </script>
+  </body>
+</html>

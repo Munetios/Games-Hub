@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connect Four - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        min-height: 100vh;
+      }
+      .cell {
+        width: 70px;
+        height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        margin: 3px;
+      }
+      .cell:hover {
+        background: rgba(255, 255, 255, 0.3);
+      }
+      .cell.red {
+        background: #e74c3c;
+      }
+      .cell.yellow {
+        background: #f39c12;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-4">
+    <div class="liquid-glass p-8 max-w-2xl">
+      <h1 class="text-4xl font-bold text-white mb-6 text-center">
+        🔴🟡 Connect Four
+      </h1>
+
+      <div class="text-center mb-6">
+        <div class="text-white text-xl mb-2">
+          Current Turn: <span id="turn" class="font-bold">🔴 Red</span>
+        </div>
+        <div class="text-white/80 text-sm">
+          Red Wins: <span id="redWins">0</span> | Yellow Wins:
+          <span id="yellowWins">0</span> | Draws: <span id="draws">0</span>
+        </div>
+      </div>
+
+      <div
+        id="board"
+        class="bg-blue-600/30 p-4 rounded-lg mx-auto w-fit mb-6"
+      ></div>
+
+      <div class="flex gap-4 justify-center mb-4">
+        <button
+          id="resetBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          New Game
+        </button>
+      </div>
+
+      <div class="text-center">
+        <a href="index.html" class="text-white/80 hover:text-white underline"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      const ROWS = 6;
+      const COLS = 7;
+      const boardElement = document.getElementById("board");
+      const turnElement = document.getElementById("turn");
+
+      let board = Array(ROWS)
+        .fill()
+        .map(() => Array(COLS).fill(null));
+      let currentPlayer = "red";
+      let gameActive = true;
+      let redWins = parseInt(localStorage.getItem("c4RedWins")) || 0;
+      let yellowWins = parseInt(localStorage.getItem("c4YellowWins")) || 0;
+      let draws = parseInt(localStorage.getItem("c4Draws")) || 0;
+
+      document.getElementById("redWins").textContent = redWins;
+      document.getElementById("yellowWins").textContent = yellowWins;
+      document.getElementById("draws").textContent = draws;
+
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      function createBoard() {
+        boardElement.innerHTML = "";
+        boardElement.style.display = "grid";
+        boardElement.style.gridTemplateColumns = `repeat(${COLS}, 70px)`;
+        boardElement.style.gridTemplateRows = `repeat(${ROWS}, 70px)`;
+
+        for (let row = 0; row < ROWS; row++) {
+          for (let col = 0; col < COLS; col++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.dataset.row = row;
+            cell.dataset.col = col;
+            cell.addEventListener("click", () => handleColumnClick(col));
+            boardElement.appendChild(cell);
+          }
+        }
+        updateBoard();
+      }
+
+      function updateBoard() {
+        const cells = document.querySelectorAll(".cell");
+        cells.forEach((cell) => {
+          const row = parseInt(cell.dataset.row);
+          const col = parseInt(cell.dataset.col);
+          const value = board[row][col];
+
+          cell.className = "cell";
+          if (value) {
+            cell.classList.add(value);
+          }
+        });
+
+        turnElement.innerHTML =
+          currentPlayer === "red" ? "🔴 Red" : "🟡 Yellow";
+      }
+
+      function handleColumnClick(col) {
+        if (!gameActive) return;
+
+        // Find lowest empty row in column
+        for (let row = ROWS - 1; row >= 0; row--) {
+          if (board[row][col] === null) {
+            board[row][col] = currentPlayer;
+            updateBoard();
+
+            if (checkWin(row, col)) {
+              const winner = currentPlayer === "red" ? "🔴 Red" : "🟡 Yellow";
+              showToast(`🎉 ${winner} Wins!`, 3000);
+              gameActive = false;
+
+              if (currentPlayer === "red") {
+                redWins++;
+                localStorage.setItem("c4RedWins", redWins);
+                document.getElementById("redWins").textContent = redWins;
+              } else {
+                yellowWins++;
+                localStorage.setItem("c4YellowWins", yellowWins);
+                document.getElementById("yellowWins").textContent = yellowWins;
+              }
+              return;
+            }
+
+            if (board.every((row) => row.every((cell) => cell !== null))) {
+              showToast("🤝 Draw!", 3000);
+              gameActive = false;
+              draws++;
+              localStorage.setItem("c4Draws", draws);
+              document.getElementById("draws").textContent = draws;
+              return;
+            }
+
+            currentPlayer = currentPlayer === "red" ? "yellow" : "red";
+            updateBoard();
+            return;
+          }
+        }
+      }
+
+      function checkWin(row, col) {
+        const directions = [
+          [
+            [0, 1],
+            [0, -1],
+          ], // Horizontal
+          [
+            [1, 0],
+            [-1, 0],
+          ], // Vertical
+          [
+            [1, 1],
+            [-1, -1],
+          ], // Diagonal /
+          [
+            [1, -1],
+            [-1, 1],
+          ], // Diagonal \
+        ];
+
+        for (let [dir1, dir2] of directions) {
+          let count = 1;
+          count += countInDirection(row, col, dir1[0], dir1[1]);
+          count += countInDirection(row, col, dir2[0], dir2[1]);
+
+          if (count >= 4) return true;
+        }
+
+        return false;
+      }
+
+      function countInDirection(row, col, rowDir, colDir) {
+        let count = 0;
+        let r = row + rowDir;
+        let c = col + colDir;
+
+        while (
+          r >= 0 &&
+          r < ROWS &&
+          c >= 0 &&
+          c < COLS &&
+          board[r][c] === currentPlayer
+        ) {
+          count++;
+          r += rowDir;
+          c += colDir;
+        }
+
+        return count;
+      }
+
+      function resetGame() {
+        board = Array(ROWS)
+          .fill()
+          .map(() => Array(COLS).fill(null));
+        currentPlayer = "red";
+        gameActive = true;
+        updateBoard();
+        showToast("🔄 New Game Started", 1500);
+      }
+
+      document.getElementById("resetBtn").addEventListener("click", resetGame);
+
+      createBoard();
+    </script>
+  </body>
+</html>

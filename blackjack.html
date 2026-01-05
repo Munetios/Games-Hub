@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blackjack - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+        background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+        min-height: 100vh;
+      }
+      .card {
+        width: 80px;
+        height: 120px;
+        background: white;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 5px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+      .card.red {
+        color: #dc2626;
+      }
+      .card.black {
+        color: #000;
+      }
+      .card.back {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+      }
+      .hand {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        min-height: 140px;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-4">
+    <div class="liquid-glass p-8 max-w-3xl w-full">
+      <h1 class="text-4xl font-bold text-white mb-4 text-center">
+        🃏 Blackjack
+      </h1>
+      <div class="text-white text-center mb-4">
+        <p class="text-2xl mb-2">
+          Chips: <span id="chips" class="font-bold">1000</span>
+        </p>
+        <p>Bet: <span id="bet" class="font-bold">0</span></p>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="text-white text-xl mb-2">
+          Dealer <span id="dealerScore" class="font-bold"></span>
+        </h2>
+        <div id="dealerHand" class="hand bg-white/10 p-4 rounded-lg"></div>
+      </div>
+
+      <div class="mb-6">
+        <h2 class="text-white text-xl mb-2">
+          Player <span id="playerScore" class="font-bold"></span>
+        </h2>
+        <div id="playerHand" class="hand bg-white/10 p-4 rounded-lg"></div>
+      </div>
+
+      <div class="text-center mb-4">
+        <button
+          id="betBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition mr-2"
+        >
+          <span class="material-symbols-outlined align-middle">payments</span>
+          Bet $50
+        </button>
+        <button
+          id="dealBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition mr-2"
+          disabled
+        >
+          <span class="material-symbols-outlined align-middle">play_arrow</span>
+          Deal
+        </button>
+        <button
+          id="hitBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition mr-2"
+          disabled
+        >
+          <span class="material-symbols-outlined align-middle">add</span> Hit
+        </button>
+        <button
+          id="standBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+          disabled
+        >
+          <span class="material-symbols-outlined align-middle">pan_tool</span>
+          Stand
+        </button>
+      </div>
+
+      <div class="text-center">
+        <a href="index.html" class="text-white/80 hover:text-white underline"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      let deck = [];
+      let playerHand = [];
+      let dealerHand = [];
+      let chips = parseInt(localStorage.getItem("blackjackChips")) || 1000;
+      let bet = 0;
+      let gameActive = false;
+
+      const suits = ["♠", "♥", "♦", "♣"];
+      const values = [
+        "A",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "7",
+        "8",
+        "9",
+        "10",
+        "J",
+        "Q",
+        "K",
+      ];
+
+      document.getElementById("chips").textContent = chips;
+
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      function createDeck() {
+        deck = [];
+        for (let suit of suits) {
+          for (let value of values) {
+            const color = suit === "♥" || suit === "♦" ? "red" : "black";
+            deck.push({ suit, value, color });
+          }
+        }
+        deck.sort(() => Math.random() - 0.5);
+      }
+
+      function getCardValue(card) {
+        if (card.value === "A") return 11;
+        if (["K", "Q", "J"].includes(card.value)) return 10;
+        return parseInt(card.value);
+      }
+
+      function calculateScore(hand) {
+        let score = 0;
+        let aces = 0;
+
+        for (let card of hand) {
+          score += getCardValue(card);
+          if (card.value === "A") aces++;
+        }
+
+        while (score > 21 && aces > 0) {
+          score -= 10;
+          aces--;
+        }
+
+        return score;
+      }
+
+      function renderHand(hand, elementId, hideFirst = false) {
+        const element = document.getElementById(elementId);
+        element.innerHTML = "";
+
+        hand.forEach((card, index) => {
+          const cardDiv = document.createElement("div");
+          if (hideFirst && index === 0) {
+            cardDiv.className = "card back";
+            cardDiv.textContent = "🂠";
+          } else {
+            cardDiv.className = `card ${card.color}`;
+            cardDiv.innerHTML = `${card.value}<br>${card.suit}`;
+          }
+          element.appendChild(cardDiv);
+        });
+      }
+
+      function updateScores(revealDealer = false) {
+        const playerScore = calculateScore(playerHand);
+        document.getElementById("playerScore").textContent = `(${playerScore})`;
+
+        if (revealDealer) {
+          const dealerScore = calculateScore(dealerHand);
+          document.getElementById(
+            "dealerScore"
+          ).textContent = `(${dealerScore})`;
+        } else {
+          document.getElementById("dealerScore").textContent = "";
+        }
+      }
+
+      function placeBet() {
+        if (chips < 50) {
+          showToast("💰 Not enough chips!", 2000);
+          return;
+        }
+        bet += 50;
+        chips -= 50;
+        document.getElementById("chips").textContent = chips;
+        document.getElementById("bet").textContent = bet;
+        document.getElementById("dealBtn").disabled = false;
+        localStorage.setItem("blackjackChips", chips);
+      }
+
+      function deal() {
+        if (bet === 0) return;
+
+        createDeck();
+        playerHand = [deck.pop(), deck.pop()];
+        dealerHand = [deck.pop(), deck.pop()];
+        gameActive = true;
+
+        renderHand(playerHand, "playerHand");
+        renderHand(dealerHand, "dealerHand", true);
+        updateScores();
+
+        document.getElementById("betBtn").disabled = true;
+        document.getElementById("dealBtn").disabled = true;
+        document.getElementById("hitBtn").disabled = false;
+        document.getElementById("standBtn").disabled = false;
+
+        if (calculateScore(playerHand) === 21) {
+          showToast("🎉 Blackjack!", 2000);
+          stand();
+        }
+      }
+
+      function hit() {
+        playerHand.push(deck.pop());
+        renderHand(playerHand, "playerHand");
+        updateScores();
+
+        if (calculateScore(playerHand) > 21) {
+          bust();
+        }
+      }
+
+      function stand() {
+        renderHand(dealerHand, "dealerHand");
+
+        while (calculateScore(dealerHand) < 17) {
+          dealerHand.push(deck.pop());
+          renderHand(dealerHand, "dealerHand");
+        }
+
+        updateScores(true);
+        checkWinner();
+      }
+
+      function bust() {
+        updateScores(true);
+        renderHand(dealerHand, "dealerHand");
+        showToast("💥 Bust! You lose!", 3000);
+        endRound();
+      }
+
+      function checkWinner() {
+        const playerScore = calculateScore(playerHand);
+        const dealerScore = calculateScore(dealerHand);
+
+        if (dealerScore > 21) {
+          chips += bet * 2;
+          showToast("🎉 Dealer busts! You win!", 3000);
+        } else if (playerScore > dealerScore) {
+          chips += bet * 2;
+          showToast("🎉 You win!", 3000);
+        } else if (playerScore === dealerScore) {
+          chips += bet;
+          showToast("🤝 Push!", 2000);
+        } else {
+          showToast("😔 Dealer wins!", 2000);
+        }
+
+        endRound();
+      }
+
+      function endRound() {
+        gameActive = false;
+        bet = 0;
+        document.getElementById("chips").textContent = chips;
+        document.getElementById("bet").textContent = bet;
+        document.getElementById("betBtn").disabled = false;
+        document.getElementById("dealBtn").disabled = true;
+        document.getElementById("hitBtn").disabled = true;
+        document.getElementById("standBtn").disabled = true;
+        localStorage.setItem("blackjackChips", chips);
+      }
+
+      document.getElementById("betBtn").addEventListener("click", placeBet);
+      document.getElementById("dealBtn").addEventListener("click", deal);
+      document.getElementById("hitBtn").addEventListener("click", hit);
+      document.getElementById("standBtn").addEventListener("click", stand);
+    </script>
+  </body>
+</html>

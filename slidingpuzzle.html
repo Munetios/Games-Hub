@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sliding Puzzle - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", sans-serif;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+      #puzzle {
+        display: grid;
+        grid-template-columns: repeat(4, 100px);
+        grid-template-rows: repeat(4, 100px);
+        gap: 5px;
+        margin: 20px auto;
+        width: 420px;
+      }
+      .tile {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 36px;
+        font-weight: bold;
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+      .tile:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
+      }
+      .empty {
+        background: rgba(255, 255, 255, 0.1);
+        cursor: default;
+      }
+      .empty:hover {
+        transform: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="max-w-2xl mx-auto">
+      <div class="liquid-glass p-8 text-center mb-6">
+        <h1 class="text-4xl font-bold text-white mb-4">🧩 Sliding Puzzle</h1>
+        <div class="flex justify-around text-white text-lg">
+          <div>Moves: <span id="moves" class="font-bold">0</span></div>
+          <div>Time: <span id="time" class="font-bold">0:00</span></div>
+          <div>Best: <span id="best" class="font-bold">-</span></div>
+        </div>
+      </div>
+
+      <div class="liquid-glass p-8 text-center">
+        <div id="puzzle"></div>
+        <div class="mt-6">
+          <button
+            onclick="shuffle()"
+            class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition mr-2"
+          >
+            <span class="material-symbols-outlined align-middle">shuffle</span>
+            Shuffle
+          </button>
+          <button
+            onclick="newGame()"
+            class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition mr-2"
+          >
+            <span class="material-symbols-outlined align-middle">refresh</span>
+            New Game
+          </button>
+          <a
+            href="index.html"
+            class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition inline-block"
+          >
+            ← Back
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let tiles = [];
+      let emptyIndex = 15;
+      let moves = 0;
+      let seconds = 0;
+      let timerInterval = null;
+      let bestMoves = parseInt(
+        localStorage.getItem("slidingPuzzleBest") || "999"
+      );
+
+      function init() {
+        document.getElementById("best").textContent =
+          bestMoves === 999 ? "-" : bestMoves;
+        newGame();
+      }
+
+      function newGame() {
+        tiles = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, null];
+        emptyIndex = 15;
+        moves = 0;
+        seconds = 0;
+        document.getElementById("moves").textContent = "0";
+        document.getElementById("time").textContent = "0:00";
+        clearInterval(timerInterval);
+        shuffle();
+      }
+
+      function shuffle() {
+        // Shuffle with valid moves
+        for (let i = 0; i < 100; i++) {
+          const validMoves = getValidMoves();
+          const randomMove =
+            validMoves[Math.floor(Math.random() * validMoves.length)];
+          [tiles[emptyIndex], tiles[randomMove]] = [
+            tiles[randomMove],
+            tiles[emptyIndex],
+          ];
+          emptyIndex = randomMove;
+        }
+        render();
+        startTimer();
+      }
+
+      function getValidMoves() {
+        const moves = [];
+        const row = Math.floor(emptyIndex / 4);
+        const col = emptyIndex % 4;
+
+        if (row > 0) moves.push(emptyIndex - 4); // Up
+        if (row < 3) moves.push(emptyIndex + 4); // Down
+        if (col > 0) moves.push(emptyIndex - 1); // Left
+        if (col < 3) moves.push(emptyIndex + 1); // Right
+
+        return moves;
+      }
+
+      function moveTile(index) {
+        const validMoves = getValidMoves();
+        if (validMoves.includes(index)) {
+          [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+          emptyIndex = index;
+          moves++;
+          document.getElementById("moves").textContent = moves;
+          render();
+          checkWin();
+        }
+      }
+
+      function render() {
+        const puzzle = document.getElementById("puzzle");
+        puzzle.innerHTML = "";
+        tiles.forEach((tile, index) => {
+          const div = document.createElement("div");
+          div.className = tile ? "tile" : "tile empty";
+          div.textContent = tile || "";
+          if (tile) div.onclick = () => moveTile(index);
+          puzzle.appendChild(div);
+        });
+      }
+
+      function checkWin() {
+        const isWin = tiles.every((tile, i) => tile === null || tile === i + 1);
+        if (isWin) {
+          clearInterval(timerInterval);
+          setTimeout(() => {
+            alert(`🎉 You Won!\nMoves: ${moves}\nTime: ${formatTime(seconds)}`);
+            if (moves < bestMoves) {
+              bestMoves = moves;
+              localStorage.setItem("slidingPuzzleBest", bestMoves);
+              document.getElementById("best").textContent = bestMoves;
+              alert(`🏆 New Best Score: ${bestMoves} moves!`);
+            }
+          }, 300);
+        }
+      }
+
+      function startTimer() {
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          seconds++;
+          document.getElementById("time").textContent = formatTime(seconds);
+        }, 1000);
+      }
+
+      function formatTime(sec) {
+        const mins = Math.floor(sec / 60);
+        const secs = sec % 60;
+        return `${mins}:${secs.toString().padStart(2, "0")}`;
+      }
+
+      init();
+    </script>
+  </body>
+</html>

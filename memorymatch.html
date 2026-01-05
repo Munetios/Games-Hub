@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Memory Match - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        min-height: 100vh;
+      }
+      .memory-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 100px);
+        grid-template-rows: repeat(4, 100px);
+        gap: 10px;
+        margin: 2rem auto;
+      }
+      .card {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        transform-style: preserve-3d;
+        position: relative;
+      }
+      .card .front,
+      .card .back {
+        position: absolute;
+        backface-visibility: hidden;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+      }
+      .card .back {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+      }
+      .card .front {
+        background: white;
+        transform: rotateY(180deg);
+      }
+      .card.flipped {
+        transform: rotateY(180deg);
+      }
+      .card.matched {
+        opacity: 0.6;
+        pointer-events: none;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-4">
+    <div class="liquid-glass p-8 max-w-2xl">
+      <h1 class="text-4xl font-bold text-white mb-4 text-center">
+        🧠 Memory Match
+      </h1>
+      <div class="flex justify-around text-white text-lg mb-4">
+        <span>Moves: <span id="moves" class="font-bold">0</span></span>
+        <span>Matches: <span id="matches" class="font-bold">0/8</span></span>
+        <span>Best: <span id="bestMoves" class="font-bold">∞</span></span>
+      </div>
+      <div class="memory-grid" id="gameGrid"></div>
+      <div class="text-center">
+        <button
+          id="resetBtn"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition"
+        >
+          <span class="material-symbols-outlined align-middle">refresh</span>
+          New Game
+        </button>
+      </div>
+      <div class="mt-4 text-center">
+        <a href="index.html" class="text-white/80 hover:text-white underline"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      const emojis = ["🎮", "🎯", "🎨", "🎭", "🎪", "🎸", "🎹", "🎺"];
+      let cards = [];
+      let flippedCards = [];
+      let matchedPairs = 0;
+      let moves = 0;
+      let bestMoves = localStorage.getItem("memoryBestMoves") || Infinity;
+
+      if (bestMoves !== Infinity) {
+        document.getElementById("bestMoves").textContent = bestMoves;
+      }
+
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      function createBoard() {
+        const grid = document.getElementById("gameGrid");
+        grid.innerHTML = "";
+
+        cards = shuffle([...emojis, ...emojis]);
+
+        cards.forEach((emoji, index) => {
+          const card = document.createElement("div");
+          card.className = "card";
+          card.dataset.index = index;
+          card.dataset.emoji = emoji;
+
+          card.innerHTML = `
+                    <div class="back">?</div>
+                    <div class="front">${emoji}</div>
+                `;
+
+          card.addEventListener("click", () => flipCard(card));
+          grid.appendChild(card);
+        });
+      }
+
+      function flipCard(card) {
+        if (
+          flippedCards.length === 2 ||
+          card.classList.contains("flipped") ||
+          card.classList.contains("matched")
+        ) {
+          return;
+        }
+
+        card.classList.add("flipped");
+        flippedCards.push(card);
+
+        if (flippedCards.length === 2) {
+          moves++;
+          document.getElementById("moves").textContent = moves;
+          checkMatch();
+        }
+      }
+
+      function checkMatch() {
+        const [card1, card2] = flippedCards;
+
+        if (card1.dataset.emoji === card2.dataset.emoji) {
+          card1.classList.add("matched");
+          card2.classList.add("matched");
+          matchedPairs++;
+          document.getElementById("matches").textContent = `${matchedPairs}/8`;
+          showToast("✅ Match!", 1500);
+          flippedCards = [];
+
+          if (matchedPairs === 8) {
+            setTimeout(() => {
+              if (moves < bestMoves) {
+                bestMoves = moves;
+                localStorage.setItem("memoryBestMoves", bestMoves);
+                document.getElementById("bestMoves").textContent = bestMoves;
+                showToast(`🏆 New Best: ${moves} moves!`, 4000);
+              } else {
+                showToast(`🎉 You Won in ${moves} moves!`, 4000);
+              }
+            }, 500);
+          }
+        } else {
+          setTimeout(() => {
+            card1.classList.remove("flipped");
+            card2.classList.remove("flipped");
+            flippedCards = [];
+          }, 1000);
+        }
+      }
+
+      function resetGame() {
+        matchedPairs = 0;
+        moves = 0;
+        flippedCards = [];
+        document.getElementById("moves").textContent = "0";
+        document.getElementById("matches").textContent = "0/8";
+        createBoard();
+        showToast("🔄 New Game Started", 2000);
+      }
+
+      document.getElementById("resetBtn").addEventListener("click", resetGame);
+      createBoard();
+    </script>
+  </body>
+</html>

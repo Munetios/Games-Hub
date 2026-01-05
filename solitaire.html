@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solitaire (Klondike) - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+        background: linear-gradient(
+          135deg,
+          #0f2027 0%,
+          #203a43 50%,
+          #2c5364 100%
+        );
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .card {
+        width: 80px;
+        height: 112px;
+        background: white;
+        border-radius: 8px;
+        border: 2px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        padding: 8px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        transition: all 0.2s;
+        user-select: none;
+        position: absolute;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+      }
+
+      .card.red {
+        color: #dc2626;
+      }
+
+      .card.black {
+        color: #1f2937;
+      }
+
+      .card.back {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: transparent;
+        cursor: default;
+      }
+
+      .card.selected {
+        border: 3px solid #3b82f6;
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+      }
+
+      .pile {
+        width: 80px;
+        min-height: 112px;
+        border: 2px dashed rgba(255, 255, 255, 0.3);
+        border-radius: 8px;
+        position: relative;
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .pile.can-drop {
+        border-color: #22c55e;
+        background: rgba(34, 197, 94, 0.2);
+      }
+
+      .pile-container {
+        display: inline-block;
+        margin: 0 10px;
+        position: relative;
+      }
+
+      .tableau {
+        min-height: 400px;
+      }
+
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+
+      .win-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+      }
+
+      .win-modal.hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Win Modal -->
+    <div id="winModal" class="win-modal hidden">
+      <div class="liquid-glass p-8 text-center">
+        <h2 class="text-5xl font-bold text-white mb-4">🎉 You Win! 🎉</h2>
+        <p class="text-xl text-white mb-4">
+          Moves: <span id="finalMoves">0</span>
+        </p>
+        <p class="text-xl text-white mb-6">
+          Time: <span id="finalTime">0:00</span>
+        </p>
+        <button
+          onclick="newGame()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-lg transition"
+        >
+          Play Again
+        </button>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto">
+      <div class="liquid-glass p-6 mb-6">
+        <div class="flex justify-between items-center">
+          <h1 class="text-4xl font-bold text-white">♠️ Solitaire</h1>
+          <div class="flex gap-4 items-center">
+            <div class="text-white">
+              <span class="font-bold">Moves:</span>
+              <span id="moves">0</span>
+            </div>
+            <div class="text-white">
+              <span class="font-bold">Time:</span>
+              <span id="timer">0:00</span>
+            </div>
+            <button
+              onclick="newGame()"
+              class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+            >
+              <span class="material-symbols-outlined align-middle"
+                >refresh</span
+              >
+              New Game
+            </button>
+            <a
+              href="index.html"
+              class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+            >
+              ← Back
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top Row: Stock, Waste, and Foundations -->
+      <div class="liquid-glass p-6 mb-6">
+        <div class="flex justify-between">
+          <div class="flex gap-6">
+            <div class="pile-container">
+              <div
+                id="stock"
+                class="pile cursor-pointer"
+                onclick="drawFromStock()"
+              ></div>
+              <div class="text-white text-center mt-2 text-sm">Stock</div>
+            </div>
+            <div class="pile-container">
+              <div id="waste" class="pile"></div>
+              <div class="text-white text-center mt-2 text-sm">Waste</div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <div class="pile-container">
+              <div id="foundation-0" class="pile" data-suit="♠"></div>
+              <div class="text-white text-center mt-2 text-sm">♠</div>
+            </div>
+            <div class="pile-container">
+              <div id="foundation-1" class="pile" data-suit="♥"></div>
+              <div class="text-white text-center mt-2 text-sm">♥</div>
+            </div>
+            <div class="pile-container">
+              <div id="foundation-2" class="pile" data-suit="♦"></div>
+              <div class="text-white text-center mt-2 text-sm">♦</div>
+            </div>
+            <div class="pile-container">
+              <div id="foundation-3" class="pile" data-suit="♣"></div>
+              <div class="text-white text-center mt-2 text-sm">♣</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tableau -->
+      <div class="liquid-glass p-6">
+        <div class="flex justify-center gap-4">
+          <div class="pile-container">
+            <div id="tableau-0" class="pile tableau"></div>
+          </div>
+          <div class="pile-container">
+            <div id="tableau-1" class="pile tableau"></div>
+          </div>
+          <div class="pile-container">
+            <div id="tableau-2" class="pile tableau"></div>
+          </div>
+          <div class="pile-container">
+            <div id="tableau-3" class="pile tableau"></div>
+          </div>
+          <div class="pile-container">
+            <div id="tableau-4" class="pile tableau"></div>
+          </div>
+          <div class="pile-container">
+            <div id="tableau-5" class="pile tableau"></div>
+          </div>
+          <div class="pile-container">
+            <div id="tableau-6" class="pile tableau"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Game State
+      let stock = [];
+      let waste = [];
+      let foundations = [[], [], [], []];
+      let tableau = [[], [], [], [], [], [], []];
+      let selectedCard = null;
+      let selectedPile = null;
+      let moves = 0;
+      let seconds = 0;
+      let timerInterval = null;
+
+      // Card suits mapping
+      const suitOrder = { "♠": 0, "♥": 1, "♦": 2, "♣": 3 };
+
+      function showToast(message, duration = 2000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      function createDeck() {
+        const suits = ["♠", "♥", "♦", "♣"];
+        const values = [
+          "A",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "9",
+          "10",
+          "J",
+          "Q",
+          "K",
+        ];
+        const deck = [];
+
+        for (let suit of suits) {
+          for (let i = 0; i < values.length; i++) {
+            const value = values[i];
+            const color = suit === "♥" || suit === "♦" ? "red" : "black";
+            deck.push({
+              suit,
+              value,
+              color,
+              rank: i + 1,
+              faceUp: false,
+            });
+          }
+        }
+
+        // Shuffle
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+
+        return deck;
+      }
+
+      function newGame() {
+        // Hide win modal
+        document.getElementById("winModal").classList.add("hidden");
+
+        // Reset state
+        const deck = createDeck();
+        stock = [];
+        waste = [];
+        foundations = [[], [], [], []];
+        tableau = [[], [], [], [], [], [], []];
+        moves = 0;
+        seconds = 0;
+        selectedCard = null;
+        selectedPile = null;
+
+        // Deal to tableau
+        for (let i = 0; i < 7; i++) {
+          for (let j = i; j < 7; j++) {
+            const card = deck.pop();
+            card.faceUp = i === j; // Only last card face up
+            tableau[j].push(card);
+          }
+        }
+
+        // Rest to stock
+        stock = deck;
+
+        // Start timer
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          seconds++;
+          updateTimer();
+        }, 1000);
+
+        updateDisplay();
+        showToast("🎴 New Game Started!");
+      }
+
+      function updateTimer() {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        document.getElementById("timer").textContent = `${mins}:${secs
+          .toString()
+          .padStart(2, "0")}`;
+      }
+
+      function updateDisplay() {
+        document.getElementById("moves").textContent = moves;
+
+        // Clear all piles
+        document.getElementById("stock").innerHTML = "";
+        document.getElementById("waste").innerHTML = "";
+        for (let i = 0; i < 4; i++) {
+          document.getElementById(`foundation-${i}`).innerHTML = "";
+        }
+        for (let i = 0; i < 7; i++) {
+          document.getElementById(`tableau-${i}`).innerHTML = "";
+        }
+
+        // Render stock
+        if (stock.length > 0) {
+          const stockDiv = document.getElementById("stock");
+          const cardEl = createCardElement(
+            { suit: "", value: "", color: "black", faceUp: false },
+            -1,
+            "stock"
+          );
+          stockDiv.appendChild(cardEl);
+        }
+
+        // Render waste
+        if (waste.length > 0) {
+          const wasteDiv = document.getElementById("waste");
+          const card = waste[waste.length - 1];
+          const cardEl = createCardElement(card, waste.length - 1, "waste");
+          wasteDiv.appendChild(cardEl);
+        }
+
+        // Render foundations
+        for (let i = 0; i < 4; i++) {
+          if (foundations[i].length > 0) {
+            const foundDiv = document.getElementById(`foundation-${i}`);
+            const card = foundations[i][foundations[i].length - 1];
+            const cardEl = createCardElement(
+              card,
+              foundations[i].length - 1,
+              `foundation-${i}`
+            );
+            foundDiv.appendChild(cardEl);
+          }
+        }
+
+        // Render tableau
+        for (let i = 0; i < 7; i++) {
+          const tabDiv = document.getElementById(`tableau-${i}`);
+          tableau[i].forEach((card, index) => {
+            const cardEl = createCardElement(card, index, `tableau-${i}`);
+            cardEl.style.top = `${index * 25}px`;
+            tabDiv.appendChild(cardEl);
+          });
+        }
+      }
+
+      function createCardElement(card, index, pileId) {
+        const cardEl = document.createElement("div");
+        cardEl.className = `card ${card.color}`;
+        cardEl.dataset.pile = pileId;
+        cardEl.dataset.index = index;
+
+        if (!card.faceUp) {
+          cardEl.classList.add("back");
+          cardEl.innerHTML = `<span class="material-symbols-outlined text-4xl text-white">playing_cards</span>`;
+        } else {
+          cardEl.innerHTML = `
+                    <div>${card.value}</div>
+                    <div class="text-center flex-1 flex items-center justify-center">${card.suit}</div>
+                    <div class="self-end">${card.value}</div>
+                `;
+
+          // Add click handler for face-up cards
+          cardEl.addEventListener("click", () =>
+            handleCardClick(card, pileId, index)
+          );
+        }
+
+        return cardEl;
+      }
+
+      function drawFromStock() {
+        if (stock.length === 0) {
+          // Reset stock from waste
+          if (waste.length === 0) return;
+          stock = waste.reverse();
+          stock.forEach((c) => (c.faceUp = false));
+          waste = [];
+          showToast("♻️ Stock Reset");
+        } else {
+          const card = stock.pop();
+          card.faceUp = true;
+          waste.push(card);
+        }
+        moves++;
+        updateDisplay();
+      }
+
+      function handleCardClick(card, pileId, index) {
+        // If selecting a card
+        if (!selectedCard) {
+          const pile = getPile(pileId);
+          
+          // Can only select from waste (top) or tableau (face-up sequences)
+          if (pileId === "waste" && index === pile.length - 1) {
+            selectedCard = card;
+            selectedPile = pileId;
+            selectedCardIndex = index;
+          } else if (pileId.startsWith("tableau")) {
+            // Can select any face-up card in tableau
+            if (card.faceUp) {
+              selectedCard = card;
+              selectedPile = pileId;
+              selectedCardIndex = index;
+            }
+          } else if (pileId.startsWith("foundation")) {
+            // Can move from foundation back to tableau
+            if (index === pile.length - 1) {
+              selectedCard = card;
+              selectedPile = pileId;
+              selectedCardIndex = index;
+            }
+          }
+        } else {
+          // Trying to place selected card
+          tryPlaceCard(pileId);
+        }
+        updateDisplay();
+      }
+
+      function getPile(pileId) {
+        if (pileId === "stock") return stock;
+        if (pileId === "waste") return waste;
+        if (pileId.startsWith("foundation"))
+          return foundations[parseInt(pileId.split("-")[1])];
+        if (pileId.startsWith("tableau"))
+          return tableau[parseInt(pileId.split("-")[1])];
+        return [];
+      }
+
+      function tryPlaceCard(targetPileId) {
+        const sourcePile = getPile(selectedPile);
+        const targetPile = getPile(targetPileId);
+
+        // Get cards to move (for tableau, can move multiple)
+        const cardsToMove =
+          selectedPile.startsWith("tableau") && selectedCardIndex < sourcePile.length - 1
+            ? sourcePile.slice(selectedCardIndex)
+            : [selectedCard];
+
+        // Check if move is valid
+        if (targetPileId.startsWith("foundation")) {
+          const foundIndex = parseInt(targetPileId.split("-")[1]);
+          if (isValidFoundationMove(cardsToMove[0], foundIndex)) {
+            // Move to foundation
+            sourcePile.splice(selectedCardIndex);
+            foundations[foundIndex].push(cardsToMove[0]);
+
+            // Flip next card in source pile if tableau
+            if (
+              selectedPile.startsWith("tableau") &&
+              sourcePile.length > 0
+            ) {
+              sourcePile[sourcePile.length - 1].faceUp = true;
+            }
+
+            moves++;
+            selectedCard = null;
+            updateDisplay();
+            checkWin();
+            return;
+          }
+        } else if (targetPileId.startsWith("tableau")) {
+          const tabIndex = parseInt(targetPileId.split("-")[1]);
+          if (isValidTableauMove(cardsToMove, tabIndex)) {
+            // Move to tableau
+            sourcePile.splice(selectedCardIndex, cardsToMove.length);
+            tableau[tabIndex].push(...cardsToMove);
+
+            // Flip next card in source pile
+            if (
+              selectedPile.startsWith("tableau") &&
+              sourcePile.length > 0
+            ) {
+              sourcePile[sourcePile.length - 1].faceUp = true;
+            } else if (selectedPile === "waste" && waste.length > 0) {
+              waste[waste.length - 1].faceUp = true;
+            }
+
+            moves++;
+            selectedCard = null;
+            updateDisplay();
+            return;
+          }
+        }
+
+        // Invalid move
+        showToast("❌ Invalid Move");
+        selectedCard = null;
+        updateDisplay();
+      }
+
+      function isValidFoundationMove(card, foundIndex) {
+        const foundation = foundations[foundIndex];
+        const requiredSuit = ["♠", "♥", "♦", "♣"][foundIndex];
+
+        if (card.suit !== requiredSuit) return false;
+
+        if (foundation.length === 0) {
+          return card.value === "A";
+        } else {
+          const topCard = foundation[foundation.length - 1];
+          return card.rank === topCard.rank + 1;
+        }
+      }
+
+      function isValidTableauMove(cards, tabIndex) {
+        const tableau_pile = tableau[tabIndex];
+        const firstCard = cards[0];
+
+        if (tableau_pile.length === 0) {
+          // Empty pile - only King can be placed
+          return firstCard.value === "K";
+        } else {
+          const topCard = tableau_pile[tableau_pile.length - 1];
+          // Must alternate colors and descend in rank
+          return (
+            topCard.color !== firstCard.color &&
+            firstCard.rank === topCard.rank - 1
+          );
+        }
+      }
+
+      function checkWin() {
+        const totalInFoundations = foundations.reduce(
+          (sum, f) => sum + f.length,
+          0
+        );
+        if (totalInFoundations === 52) {
+          clearInterval(timerInterval);
+          document.getElementById("finalMoves").textContent = moves;
+          document.getElementById("finalTime").textContent =
+            document.getElementById("timer").textContent;
+          document.getElementById("winModal").classList.remove("hidden");
+          showToast("🎉 Congratulations! You Win!");
+        }
+      }
+
+      // Handle clicks on empty piles
+      for (let i = 0; i < 4; i++) {
+        document
+          .getElementById(`foundation-${i}`)
+          .addEventListener("click", () => {
+            if (selectedCard) tryPlaceCard(`foundation-${i}`);
+          });
+      }
+
+      for (let i = 0; i < 7; i++) {
+        document.getElementById(`tableau-${i}`).addEventListener("click", () => {
+          if (selectedCard) tryPlaceCard(`tableau-${i}`);
+        });
+      }
+
+      // Start new game on load
+      newGame();
+    </script>
+  </body>
+</html>

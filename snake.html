@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ultra Advanced Snake - Munetios Games Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      #game-board {
+        background: rgba(0, 0, 0, 0.9);
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      }
+      .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .modal.hidden {
+        display: none;
+      }
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 0.25rem;
+      }
+      .btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #764ba2, #667eea);
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.5rem;
+        max-width: 200px;
+        margin: 1rem auto;
+      }
+      .control-btn {
+        font-size: 1.5rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: none;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .control-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
+      #up {
+        grid-column: 2;
+      }
+      #left {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+      #down {
+        grid-column: 2;
+        grid-row: 2;
+      }
+      #right {
+        grid-column: 3;
+        grid-row: 2;
+      }
+      .map-preview {
+        width: 150px;
+        height: 150px;
+        background: rgba(0, 0, 0, 0.5);
+        border-radius: 8px;
+        display: inline-block;
+        margin: 0.5rem;
+        cursor: pointer;
+        transition: all 0.3s;
+        position: relative;
+      }
+      .map-preview:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
+      }
+      .map-preview.selected {
+        border: 3px solid #667eea;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Main Menu -->
+    <div id="mainMenu" class="modal">
+      <div class="liquid-glass p-8 max-w-md text-center">
+        <h1 class="text-5xl font-bold text-white mb-6">🐍 Ultra Snake</h1>
+        <p class="text-white/80 mb-8">
+          Advanced features • Custom maps • Power-ups
+        </p>
+        <button
+          class="btn btn-primary w-full mb-3 text-xl py-4"
+          onclick="startGame()"
+        >
+          ▶ Play Game
+        </button>
+        <button class="btn w-full mb-3" onclick="showSettings()">
+          ⚙ Settings
+        </button>
+        <button class="btn w-full mb-3" onclick="showMapEditor()">
+          🗺 Custom Maps
+        </button>
+        <button class="btn w-full" onclick="showLeaderboard()">
+          🏆 Leaderboard
+        </button>
+        <a href="index.html" class="btn w-full mt-4 inline-block"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <!-- Settings Menu -->
+    <div id="settingsMenu" class="modal hidden">
+      <div class="liquid-glass p-8 max-w-lg">
+        <h2 class="text-3xl font-bold text-white mb-6">⚙ Settings</h2>
+        <div class="text-white space-y-4">
+          <div>
+            <label class="block mb-2">Difficulty:</label>
+            <select
+              id="difficulty"
+              class="w-full p-2 rounded bg-white/20 text-white border border-white/30"
+            >
+              <option value="easy">Easy</option>
+              <option value="normal" selected>Normal</option>
+              <option value="hard">Hard</option>
+              <option value="insane">Insane</option>
+            </select>
+          </div>
+          <div>
+            <label class="block mb-2">Board Size:</label>
+            <select
+              id="boardSize"
+              class="w-full p-2 rounded bg-white/20 text-white border border-white/30"
+            >
+              <option value="16">Small (16x16)</option>
+              <option value="24" selected>Medium (24x24)</option>
+              <option value="32">Large (32x32)</option>
+            </select>
+          </div>
+          <div>
+            <label class="flex items-center">
+              <input type="checkbox" id="soundEnabled" checked class="mr-2" />
+              Enable Sound Effects
+            </label>
+          </div>
+          <div>
+            <label class="flex items-center">
+              <input type="checkbox" id="musicEnabled" class="mr-2" />
+              Enable Background Music
+            </label>
+          </div>
+          <div>
+            <label class="flex items-center">
+              <input type="checkbox" id="wallsEnabled" class="mr-2" />
+              Enable Walls (Game Over on Hit)
+            </label>
+          </div>
+        </div>
+        <div class="mt-6">
+          <button class="btn btn-primary mr-2" onclick="saveSettings()">
+            Save
+          </button>
+          <button class="btn" onclick="hideSettings()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Map Selector -->
+    <div id="mapSelector" class="modal hidden">
+      <div
+        class="liquid-glass p-8 max-w-4xl overflow-y-auto"
+        style="max-height: 90vh"
+      >
+        <h2 class="text-3xl font-bold text-white mb-6">🗺 Select Map</h2>
+        <div id="mapList" class="grid grid-cols-3 gap-4"></div>
+        <div class="mt-6">
+          <button class="btn btn-primary mr-2" onclick="loadSelectedMap()">
+            Load Map
+          </button>
+          <button class="btn mr-2" onclick="showCustomMapEditor()">
+            Create New
+          </button>
+          <button class="btn" onclick="hideMapEditor()">Back</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Map Editor -->
+    <div id="customMapEditor" class="modal hidden">
+      <div
+        class="liquid-glass p-8 max-w-4xl overflow-y-auto"
+        style="max-height: 90vh"
+      >
+        <h2 class="text-3xl font-bold text-white mb-4">🎨 Custom Map Editor</h2>
+        <div class="mb-4">
+          <input
+            type="text"
+            id="customMapName"
+            placeholder="Enter map name"
+            class="w-full p-2 rounded bg-white/20 text-white border border-white/30"
+          />
+        </div>
+        <div class="mb-4 text-white text-sm">
+          <p><strong>Click cells to place/remove walls</strong></p>
+          <p>🟦 Empty • 🟥 Wall</p>
+        </div>
+        <canvas
+          id="mapEditorCanvas"
+          width="480"
+          height="480"
+          style="
+            border: 2px solid white;
+            border-radius: 8px;
+            cursor: crosshair;
+            background: rgba(0, 0, 0, 0.9);
+          "
+        ></canvas>
+        <div class="mt-6">
+          <button class="btn btn-primary mr-2" onclick="saveCustomMap()">
+            Save Map
+          </button>
+          <button class="btn mr-2" onclick="clearEditorGrid()">
+            Clear All
+          </button>
+          <button class="btn" onclick="hideCustomMapEditor()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Container -->
+    <div
+      id="gameContainer"
+      class="liquid-glass p-8 hidden"
+      style="max-width: 700px; width: 100%"
+    >
+      <div class="flex justify-between items-center mb-4">
+        <button class="btn" onclick="showMainMenu()">☰ Menu</button>
+        <h1 class="text-3xl font-bold text-white">🐍 Snake</h1>
+        <button class="btn" onclick="togglePause()">⏸ Pause</button>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 text-white text-center mb-4">
+        <div class="bg-white/10 p-2 rounded">
+          <div class="text-xs opacity-70">Score</div>
+          <div class="text-xl font-bold" id="score">0</div>
+        </div>
+        <div class="bg-white/10 p-2 rounded">
+          <div class="text-xs opacity-70">Level</div>
+          <div class="text-xl font-bold" id="level">1</div>
+        </div>
+        <div class="bg-white/10 p-2 rounded">
+          <div class="text-xs opacity-70">High</div>
+          <div class="text-xl font-bold" id="highScore">0</div>
+        </div>
+        <div class="bg-white/10 p-2 rounded">
+          <div class="text-xs opacity-70">Length</div>
+          <div class="text-xl font-bold" id="snakeLength">1</div>
+        </div>
+      </div>
+
+      <div class="text-white text-sm text-center mb-2" id="powerupStatus"></div>
+
+      <canvas id="game-board" width="480" height="480"></canvas>
+
+      <div class="controls">
+        <button class="control-btn" id="up">▲</button>
+        <button class="control-btn" id="left">◀</button>
+        <button class="control-btn" id="down">▼</button>
+        <button class="control-btn" id="right">▶</button>
+      </div>
+
+      <div class="text-white text-xs text-center opacity-70">
+        <p>Arrow Keys / WASD • Space: Pause • ESC: Menu</p>
+      </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio
+      id="bg-music"
+      src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3"
+      loop
+    ></audio>
+    <audio id="eat-sound" preload="auto">
+      <source
+        src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1+vVjjMEB0uR1vjZkDQFCU2R1fjZkDQFCU2R1fjZkDQFCU2R1fjZkDQFCU2R1fjZkDQFCU2R1fjZkDQFCU2R1fjZkDQFCU2R1fjZkA=="
+        type="audio/wav"
+      />
+    </audio>
+
+    <script>
+      const canvas = document.getElementById("game-board");
+      const ctx = canvas.getContext("2d");
+
+      // Toast notification function
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
+      // Load settings from localStorage
+      function loadSettings() {
+        const saved = localStorage.getItem("snakeSettings");
+        if (saved) {
+          return JSON.parse(saved);
+        }
+        return {
+          difficulty: "normal",
+          musicEnabled: true,
+          soundEnabled: true,
+          boardSize: 24,
+          wallsEnabled: false,
+        };
+      }
+
+      // Save settings to localStorage
+      function saveSettingsToStorage() {
+        localStorage.setItem("snakeSettings", JSON.stringify(settings));
+      }
+
+      // Game settings
+      let settings = loadSettings();
+
+      let boardSize = 24;
+      let tileSize = 20;
+      let snake,
+        direction,
+        nextDirection,
+        food,
+        score,
+        level,
+        gameInterval,
+        gameOver,
+        isPaused;
+      let obstacles = [],
+        powerups = [],
+        activePowerup = null,
+        powerupTimer = 0;
+      let highScore = localStorage.getItem("snakeHighScore") || 0;
+      let gameSpeed = 120,
+        isMuted = false,
+        invincible = false,
+        scoreMultiplier = 1;
+      let selectedMap = null;
+
+      // Predefined maps
+      const maps = [
+        { name: "Classic", obstacles: [] },
+        { name: "Maze", obstacles: generateMazeObstacles() },
+        { name: "Corners", obstacles: generateCornerObstacles() },
+        { name: "Cross", obstacles: generateCrossObstacles() },
+      ];
+
+      function generateMazeObstacles() {
+        const obs = [];
+        for (let i = 5; i < 20; i++) {
+          if (i % 2 === 0) {
+            obs.push({ x: i, y: 8 }, { x: i, y: 16 });
+          }
+        }
+        return obs;
+      }
+
+      function generateCornerObstacles() {
+        const obs = [];
+        for (let i = 0; i < 5; i++) {
+          obs.push(
+            { x: i, y: i },
+            { x: 23 - i, y: i },
+            { x: i, y: 23 - i },
+            { x: 23 - i, y: 23 - i }
+          );
+        }
+        return obs;
+      }
+
+      function generateCrossObstacles() {
+        const obs = [];
+        for (let i = 8; i < 16; i++) {
+          obs.push({ x: i, y: 12 }, { x: 12, y: i });
+        }
+        return obs;
+      }
+
+      function showMainMenu() {
+        document.getElementById("gameContainer").classList.add("hidden");
+        document.getElementById("mainMenu").classList.remove("hidden");
+        if (gameInterval) clearInterval(gameInterval);
+      }
+
+      function showSettings() {
+        document.getElementById("mainMenu").classList.add("hidden");
+        document.getElementById("settingsMenu").classList.remove("hidden");
+      }
+
+      function hideSettings() {
+        document.getElementById("settingsMenu").classList.add("hidden");
+        document.getElementById("mainMenu").classList.remove("hidden");
+      }
+
+      function saveSettings() {
+        settings.difficulty = document.getElementById("difficulty").value;
+        settings.boardSize = parseInt(
+          document.getElementById("boardSize").value
+        );
+        settings.soundEnabled = document.getElementById("soundEnabled").checked;
+        settings.musicEnabled = document.getElementById("musicEnabled").checked;
+        settings.wallsEnabled = document.getElementById("wallsEnabled").checked;
+
+        boardSize = settings.boardSize;
+        tileSize = 480 / boardSize;
+
+        saveSettingsToStorage();
+        showToast("⚙️ Settings Saved!", 2000);
+
+        hideSettings();
+      }
+
+      function showMapEditor() {
+        document.getElementById("mainMenu").classList.add("hidden");
+        document.getElementById("mapSelector").classList.remove("hidden");
+        renderMapList();
+      }
+
+      function hideMapEditor() {
+        document.getElementById("mapSelector").classList.add("hidden");
+        document.getElementById("mainMenu").classList.remove("hidden");
+      }
+
+      function renderMapList() {
+        const mapList = document.getElementById("mapList");
+        mapList.innerHTML = "";
+        maps.forEach((map, index) => {
+          const mapDiv = document.createElement("div");
+          mapDiv.className =
+            "map-preview liquid-glass p-4 text-white text-center";
+          mapDiv.onclick = () => selectMap(index);
+          mapDiv.innerHTML = `
+                    <div class="text-lg font-bold mb-2">${map.name}</div>
+                    <div class="text-sm opacity-70">${map.obstacles.length} obstacles</div>
+                `;
+          if (selectedMap === index) mapDiv.classList.add("selected");
+          mapList.appendChild(mapDiv);
+        });
+      }
+
+      function selectMap(index) {
+        selectedMap = index;
+        renderMapList();
+      }
+
+      function loadSelectedMap() {
+        if (selectedMap !== null) {
+          obstacles = JSON.parse(JSON.stringify(maps[selectedMap].obstacles));
+        }
+        hideMapEditor();
+      }
+
+      // Custom Map Editor Variables
+      let editorGrid = [];
+      let editorCanvas = null;
+      let editorCtx = null;
+      let editorSize = 24;
+
+      function showCustomMapEditor() {
+        document.getElementById("mapSelector").classList.add("hidden");
+        document.getElementById("customMapEditor").classList.remove("hidden");
+
+        editorCanvas = document.getElementById("mapEditorCanvas");
+        editorCtx = editorCanvas.getContext("2d");
+        editorSize = 24;
+
+        // Initialize empty grid
+        editorGrid = Array(editorSize)
+          .fill()
+          .map(() => Array(editorSize).fill(0));
+
+        drawEditorGrid();
+        setupEditorInteraction();
+      }
+
+      function hideCustomMapEditor() {
+        document.getElementById("customMapEditor").classList.add("hidden");
+        document.getElementById("mapSelector").classList.remove("hidden");
+      }
+
+      function drawEditorGrid() {
+        const tileSize = 480 / editorSize;
+        editorCtx.clearRect(0, 0, 480, 480);
+
+        // Draw grid
+        for (let y = 0; y < editorSize; y++) {
+          for (let x = 0; x < editorSize; x++) {
+            if (editorGrid[y][x] === 1) {
+              // Wall
+              editorCtx.fillStyle = "#ef4444";
+            } else {
+              // Empty
+              editorCtx.fillStyle = "#3b82f6";
+            }
+            editorCtx.fillRect(
+              x * tileSize + 2,
+              y * tileSize + 2,
+              tileSize - 4,
+              tileSize - 4
+            );
+          }
+        }
+
+        // Draw grid lines
+        editorCtx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+        editorCtx.lineWidth = 1;
+        for (let i = 0; i <= editorSize; i++) {
+          editorCtx.beginPath();
+          editorCtx.moveTo(i * tileSize, 0);
+          editorCtx.lineTo(i * tileSize, 480);
+          editorCtx.stroke();
+
+          editorCtx.beginPath();
+          editorCtx.moveTo(0, i * tileSize);
+          editorCtx.lineTo(480, i * tileSize);
+          editorCtx.stroke();
+        }
+      }
+
+      function setupEditorInteraction() {
+        editorCanvas.onclick = (e) => {
+          const rect = editorCanvas.getBoundingClientRect();
+          const x = Math.floor(
+            ((e.clientX - rect.left) / rect.width) * editorSize
+          );
+          const y = Math.floor(
+            ((e.clientY - rect.top) / rect.height) * editorSize
+          );
+
+          if (x >= 0 && x < editorSize && y >= 0 && y < editorSize) {
+            editorGrid[y][x] = editorGrid[y][x] === 1 ? 0 : 1;
+            drawEditorGrid();
+          }
+        };
+      }
+
+      function clearEditorGrid() {
+        editorGrid = Array(editorSize)
+          .fill()
+          .map(() => Array(editorSize).fill(0));
+        drawEditorGrid();
+        showToast("🗑️ Grid cleared!", 1500);
+      }
+
+      function saveCustomMap() {
+        const mapName = document.getElementById("customMapName").value.trim();
+
+        if (!mapName) {
+          showToast("⚠️ Please enter a map name!", 2000);
+          return;
+        }
+
+        // Convert grid to obstacles array
+        const obstacles = [];
+        for (let y = 0; y < editorSize; y++) {
+          for (let x = 0; x < editorSize; x++) {
+            if (editorGrid[y][x] === 1) {
+              obstacles.push({ x, y });
+            }
+          }
+        }
+
+        // Create new map
+        const newMap = {
+          name: mapName,
+          obstacles: obstacles,
+        };
+
+        // Load custom maps from localStorage
+        let customMaps = JSON.parse(
+          localStorage.getItem("customSnakeMaps") || "[]"
+        );
+        customMaps.push(newMap);
+        localStorage.setItem("customSnakeMaps", JSON.stringify(customMaps));
+
+        // Add to maps array
+        maps.push(newMap);
+
+        showToast(`✅ Map "${mapName}" saved!`, 2500);
+        document.getElementById("customMapName").value = "";
+        hideCustomMapEditor();
+        renderMapList();
+      }
+
+      // Load custom maps on page load
+      function loadCustomMaps() {
+        const customMaps = JSON.parse(
+          localStorage.getItem("customSnakeMaps") || "[]"
+        );
+        maps.push(...customMaps);
+      }
+
+      function showLeaderboard() {
+        showToast(`🏆 High Score: ${highScore}`, 3000);
+      }
+
+      function startGame() {
+        document.getElementById("mainMenu").classList.add("hidden");
+        document.getElementById("gameContainer").classList.remove("hidden");
+        resetGame();
+
+        if (settings.musicEnabled) {
+          const music = document.getElementById("bg-music");
+          music.volume = 0.3;
+          music.play().catch(() => {});
+        }
+      }
+
+      function resetGame() {
+        snake = [
+          { x: Math.floor(boardSize / 2), y: Math.floor(boardSize / 2) },
+        ];
+        direction = { x: 0, y: -1 };
+        nextDirection = direction;
+        food = spawnFood();
+        score = 0;
+        level = 1;
+        gameOver = false;
+        isPaused = false;
+        gameSpeed =
+          settings.difficulty === "easy"
+            ? 150
+            : settings.difficulty === "hard"
+            ? 80
+            : settings.difficulty === "insane"
+            ? 50
+            : 120;
+        powerups = [];
+        activePowerup = null;
+        powerupTimer = 0;
+        invincible = false;
+        scoreMultiplier = 1;
+
+        document.getElementById("score").textContent = "0";
+        document.getElementById("level").textContent = "1";
+        document.getElementById("highScore").textContent = highScore;
+        document.getElementById("snakeLength").textContent = "1";
+        document.getElementById("powerupStatus").textContent = "";
+
+        if (selectedMap === null) obstacles = [];
+
+        drawBoard();
+        clearInterval(gameInterval);
+        gameInterval = setInterval(gameLoop, gameSpeed);
+      }
+
+      function spawnFood() {
+        let pos;
+        do {
+          pos = {
+            x: Math.floor(Math.random() * boardSize),
+            y: Math.floor(Math.random() * boardSize),
+          };
+        } while (
+          snake.some((seg) => seg.x === pos.x && seg.y === pos.y) ||
+          obstacles.some((obs) => obs.x === pos.x && obs.y === pos.y) ||
+          powerups.some((p) => p.x === pos.x && p.y === pos.y)
+        );
+        return pos;
+      }
+
+      function drawBoard() {
+        ctx.fillStyle = "#0a0a0a";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Grid
+        ctx.strokeStyle = "rgba(255,255,255,0.05)";
+        ctx.lineWidth = 1;
+        for (let i = 0; i <= boardSize; i++) {
+          ctx.beginPath();
+          ctx.moveTo(i * tileSize, 0);
+          ctx.lineTo(i * tileSize, canvas.height);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.moveTo(0, i * tileSize);
+          ctx.lineTo(canvas.width, i * tileSize);
+          ctx.stroke();
+        }
+
+        // Obstacles
+        ctx.fillStyle = "#ff6b6b";
+        obstacles.forEach((obs) => {
+          ctx.fillRect(obs.x * tileSize, obs.y * tileSize, tileSize, tileSize);
+        });
+
+        // Snake
+        snake.forEach((seg, i) => {
+          const gradient = ctx.createLinearGradient(
+            seg.x * tileSize,
+            seg.y * tileSize,
+            seg.x * tileSize + tileSize,
+            seg.y * tileSize + tileSize
+          );
+
+          if (invincible) {
+            gradient.addColorStop(0, "#00ffff");
+            gradient.addColorStop(1, "#0088ff");
+          } else {
+            gradient.addColorStop(0, i === 0 ? "#00ff99" : "#00cc77");
+            gradient.addColorStop(1, i === 0 ? "#00cc77" : "#009955");
+          }
+
+          ctx.fillStyle = gradient;
+          ctx.fillRect(
+            seg.x * tileSize + 1,
+            seg.y * tileSize + 1,
+            tileSize - 2,
+            tileSize - 2
+          );
+        });
+
+        // Food
+        ctx.fillStyle = "#ff3366";
+        ctx.beginPath();
+        ctx.arc(
+          food.x * tileSize + tileSize / 2,
+          food.y * tileSize + tileSize / 2,
+          tileSize / 2.5,
+          0,
+          2 * Math.PI
+        );
+        ctx.fill();
+      }
+
+      function moveSnake() {
+        direction = nextDirection;
+        const head = {
+          x: snake[0].x + direction.x,
+          y: snake[0].y + direction.y,
+        };
+
+        if (
+          settings.wallsEnabled &&
+          (head.x < 0 ||
+            head.x >= boardSize ||
+            head.y < 0 ||
+            head.y >= boardSize)
+        ) {
+          if (!invincible) {
+            gameOver = true;
+            endGame();
+            return;
+          }
+        }
+
+        if (!settings.wallsEnabled) {
+          head.x = (head.x + boardSize) % boardSize;
+          head.y = (head.y + boardSize) % boardSize;
+        }
+
+        if (
+          snake.some((seg) => seg.x === head.x && seg.y === head.y) &&
+          !invincible
+        ) {
+          gameOver = true;
+          endGame();
+          return;
+        }
+
+        if (
+          obstacles.some((obs) => obs.x === head.x && obs.y === head.y) &&
+          !invincible
+        ) {
+          gameOver = true;
+          endGame();
+          return;
+        }
+
+        snake.unshift(head);
+
+        if (head.x === food.x && head.y === food.y) {
+          score += 10 * scoreMultiplier;
+          document.getElementById("score").textContent = score;
+          document.getElementById("snakeLength").textContent = snake.length;
+
+          if (score > highScore) {
+            highScore = score;
+            document.getElementById("highScore").textContent = highScore;
+            localStorage.setItem("snakeHighScore", highScore);
+          }
+
+          if (score % 50 === 0) {
+            level++;
+            document.getElementById("level").textContent = level;
+          }
+
+          food = spawnFood();
+
+          if (settings.soundEnabled) {
+            document
+              .getElementById("eat-sound")
+              .play()
+              .catch(() => {});
+          }
+        } else {
+          snake.pop();
+        }
+      }
+
+      function gameLoop() {
+        if (!gameOver && !isPaused) {
+          moveSnake();
+          drawBoard();
+        }
+      }
+
+      function endGame() {
+        clearInterval(gameInterval);
+        setTimeout(() => {
+          showToast(`🎮 Game Over! Score: ${score}`, 4000);
+          setTimeout(showMainMenu, 1500);
+        }, 100);
+      }
+
+      function togglePause() {
+        isPaused = !isPaused;
+      }
+
+      function setDirection(dx, dy) {
+        if (direction.x + dx === 0 && direction.y + dy === 0) return;
+        nextDirection = { x: dx, y: dy };
+      }
+
+      // Controls
+      document.addEventListener("keydown", (e) => {
+        switch (e.key) {
+          case "ArrowUp":
+          case "w":
+          case "W":
+            e.preventDefault();
+            setDirection(0, -1);
+            break;
+          case "ArrowDown":
+          case "s":
+          case "S":
+            e.preventDefault();
+            setDirection(0, 1);
+            break;
+          case "ArrowLeft":
+          case "a":
+          case "A":
+            e.preventDefault();
+            setDirection(-1, 0);
+            break;
+          case "ArrowRight":
+          case "d":
+          case "D":
+            e.preventDefault();
+            setDirection(1, 0);
+            break;
+          case " ":
+            e.preventDefault();
+            togglePause();
+            break;
+          case "Escape":
+            showMainMenu();
+            break;
+        }
+      });
+
+      document.getElementById("up").onclick = () => setDirection(0, -1);
+      document.getElementById("down").onclick = () => setDirection(0, 1);
+      document.getElementById("left").onclick = () => setDirection(-1, 0);
+      document.getElementById("right").onclick = () => setDirection(1, 0);
+
+      // Load custom maps on initialization
+      loadCustomMaps();
+
+      document.getElementById("highScore").textContent = highScore;
+    </script>
+  </body>
+</html>

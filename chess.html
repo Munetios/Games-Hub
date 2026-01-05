@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+    />
+    <style>
+      body {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+      }
+      .chess-board {
+        display: grid;
+        grid-template-columns: repeat(8, 60px);
+        grid-template-rows: repeat(8, 60px);
+        gap: 0;
+        border: 3px solid #8b4513;
+      }
+      .square {
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .square.white {
+        background: #f0d9b5;
+      }
+      .square.black {
+        background: #b58863;
+      }
+      .square.selected {
+        background: #aaa23a;
+      }
+      .square.valid-move {
+        background: rgba(0, 255, 0, 0.3);
+        box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.5);
+      }
+      .square:hover {
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body class="flex items-center justify-center p-4">
+    <div class="liquid-glass p-8 max-w-3xl">
+      <div class="text-center mb-4">
+        <h1 class="text-4xl font-bold text-white mb-4">♔ Chess</h1>
+        <div class="flex justify-between text-white text-lg mb-4">
+          <span>Turn: <span id="turn" class="font-bold">White</span></span>
+          <span id="status" class="font-bold">Playing</span>
+        </div>
+      </div>
+      <div class="chess-board" id="chessBoard"></div>
+      <div class="mt-6 text-center">
+        <button
+          id="newGame"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition mr-2"
+        >
+          <span class="material-symbols-outlined align-middle">refresh</span>
+          New Game
+        </button>
+        <button
+          id="undoMove"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition mr-2"
+        >
+          <span class="material-symbols-outlined align-middle">undo</span> Undo
+          Move
+        </button>
+        <button
+          id="aiToggle"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          <span class="material-symbols-outlined align-middle">smart_toy</span>
+          Play vs AI
+        </button>
+      </div>
+      <div class="mt-4 text-white text-sm text-center">
+        <p>Click a piece to select, then click a valid square to move</p>
+        <a
+          href="index.html"
+          class="text-white/80 hover:text-white underline mt-2 inline-block"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      const board = document.getElementById("chessBoard");
+      const turnDisplay = document.getElementById("turn");
+      const statusDisplay = document.getElementById("status");
+
+      let aiMode = false;
+      let aiColor = "black";
+
+      const pieces = {
+        K: "♔",
+        Q: "♕",
+        R: "♖",
+        B: "♗",
+        N: "♘",
+        P: "♙",
+        k: "♚",
+        q: "♛",
+        r: "♜",
+        b: "♝",
+        n: "♞",
+        p: "♟",
+      };
+
+      let gameState = [
+        ["r", "n", "b", "q", "k", "b", "n", "r"],
+        ["p", "p", "p", "p", "p", "p", "p", "p"],
+        ["", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", ""],
+        ["", "", "", "", "", "", "", ""],
+        ["P", "P", "P", "P", "P", "P", "P", "P"],
+        ["R", "N", "B", "Q", "K", "B", "N", "R"],
+      ];
+
+      let currentTurn = "white";
+      let selectedPiece = null;
+      let moveHistory = [];
+
+      function initBoard() {
+        board.innerHTML = "";
+        for (let row = 0; row < 8; row++) {
+          for (let col = 0; col < 8; col++) {
+            const square = document.createElement("div");
+            square.className = `square ${
+              (row + col) % 2 === 0 ? "white" : "black"
+            }`;
+            square.dataset.row = row;
+            square.dataset.col = col;
+            square.textContent = pieces[gameState[row][col]] || "";
+            square.addEventListener("click", () => handleSquareClick(row, col));
+            board.appendChild(square);
+          }
+        }
+      }
+
+      function handleSquareClick(row, col) {
+        const piece = gameState[row][col];
+
+        if (selectedPiece) {
+          if (isValidMove(selectedPiece.row, selectedPiece.col, row, col)) {
+            makeMove(selectedPiece.row, selectedPiece.col, row, col);
+            selectedPiece = null;
+            clearHighlights();
+          } else {
+            selectedPiece = null;
+            clearHighlights();
+            if (piece && isPieceColor(piece, currentTurn)) {
+              selectPiece(row, col);
+            }
+          }
+        } else if (piece && isPieceColor(piece, currentTurn)) {
+          selectPiece(row, col);
+        }
+      }
+
+      function selectPiece(row, col) {
+        selectedPiece = { row, col };
+        highlightSquare(row, col);
+        showValidMoves(row, col);
+      }
+
+      function highlightSquare(row, col) {
+        const square = board.querySelector(
+          `[data-row="${row}"][data-col="${col}"]`
+        );
+        square.classList.add("selected");
+      }
+
+      function showValidMoves(row, col) {
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            if (isValidMove(row, col, r, c)) {
+              const square = board.querySelector(
+                `[data-row="${r}"][data-col="${c}"]`
+              );
+              square.classList.add("valid-move");
+            }
+          }
+        }
+      }
+
+      function clearHighlights() {
+        document.querySelectorAll(".square").forEach((sq) => {
+          sq.classList.remove("selected", "valid-move");
+        });
+      }
+
+      function isValidMove(fromRow, fromCol, toRow, toCol) {
+        if (fromRow === toRow && fromCol === toCol) return false;
+        const piece = gameState[fromRow][fromCol].toLowerCase();
+        const target = gameState[toRow][toCol];
+
+        if (target && isPieceColor(target, currentTurn)) return false;
+
+        const rowDiff = Math.abs(toRow - fromRow);
+        const colDiff = Math.abs(toCol - fromCol);
+
+        switch (piece) {
+          case "p":
+            const direction = currentTurn === "white" ? -1 : 1;
+            const startRow = currentTurn === "white" ? 6 : 1;
+            if (fromCol === toCol && !target) {
+              if (toRow === fromRow + direction) return true;
+              if (
+                fromRow === startRow &&
+                toRow === fromRow + 2 * direction &&
+                !gameState[fromRow + direction][fromCol]
+              )
+                return true;
+            }
+            if (colDiff === 1 && toRow === fromRow + direction && target)
+              return true;
+            return false;
+          case "r":
+            return (
+              (fromRow === toRow || fromCol === toCol) &&
+              isPathClear(fromRow, fromCol, toRow, toCol)
+            );
+          case "n":
+            return (
+              (rowDiff === 2 && colDiff === 1) ||
+              (rowDiff === 1 && colDiff === 2)
+            );
+          case "b":
+            return (
+              rowDiff === colDiff && isPathClear(fromRow, fromCol, toRow, toCol)
+            );
+          case "q":
+            return (
+              (fromRow === toRow || fromCol === toCol || rowDiff === colDiff) &&
+              isPathClear(fromRow, fromCol, toRow, toCol)
+            );
+          case "k":
+            return rowDiff <= 1 && colDiff <= 1;
+        }
+        return false;
+      }
+
+      function isPathClear(fromRow, fromCol, toRow, toCol) {
+        const rowDir = Math.sign(toRow - fromRow);
+        const colDir = Math.sign(toCol - fromCol);
+        let r = fromRow + rowDir;
+        let c = fromCol + colDir;
+
+        while (r !== toRow || c !== toCol) {
+          if (gameState[r][c]) return false;
+          r += rowDir;
+          c += colDir;
+        }
+        return true;
+      }
+
+      function isPieceColor(piece, color) {
+        return color === "white"
+          ? piece === piece.toUpperCase()
+          : piece === piece.toLowerCase();
+      }
+
+      function makeMove(fromRow, fromCol, toRow, toCol) {
+        moveHistory.push(JSON.parse(JSON.stringify(gameState)));
+        const piece = gameState[fromRow][fromCol];
+        gameState[toRow][toCol] = piece;
+        gameState[fromRow][fromCol] = "";
+        currentTurn = currentTurn === "white" ? "black" : "white";
+        turnDisplay.textContent = currentTurn === "white" ? "White" : "Black";
+        initBoard();
+        checkGameStatus();
+
+        if (
+          aiMode &&
+          currentTurn === aiColor &&
+          statusDisplay.textContent === "Playing"
+        ) {
+          setTimeout(makeAIMove, 500);
+        }
+      }
+
+      function makeAIMove() {
+        const moves = getAllPossibleMoves(aiColor);
+        if (moves.length === 0) return;
+
+        const randomMove = moves[Math.floor(Math.random() * moves.length)];
+        makeMove(
+          randomMove.from[0],
+          randomMove.from[1],
+          randomMove.to[0],
+          randomMove.to[1]
+        );
+      }
+
+      function getAllPossibleMoves(color) {
+        const moves = [];
+        for (let r = 0; r < 8; r++) {
+          for (let c = 0; c < 8; c++) {
+            const piece = gameState[r][c];
+            if (piece && isPieceColor(piece, color)) {
+              for (let tr = 0; tr < 8; tr++) {
+                for (let tc = 0; tc < 8; tc++) {
+                  if (isValidMove(r, c, tr, tc)) {
+                    moves.push({ from: [r, c], to: [tr, tc] });
+                  }
+                }
+              }
+            }
+          }
+        }
+        return moves;
+      }
+
+      function checkGameStatus() {
+        let whiteKing = false,
+          blackKing = false;
+        for (let row of gameState) {
+          for (let piece of row) {
+            if (piece === "K") whiteKing = true;
+            if (piece === "k") blackKing = true;
+          }
+        }
+        if (!whiteKing) statusDisplay.textContent = "Black Wins!";
+        else if (!blackKing) statusDisplay.textContent = "White Wins!";
+        else statusDisplay.textContent = "Playing";
+      }
+
+      document.getElementById("newGame").addEventListener("click", () => {
+        gameState = [
+          ["r", "n", "b", "q", "k", "b", "n", "r"],
+          ["p", "p", "p", "p", "p", "p", "p", "p"],
+          ["", "", "", "", "", "", "", ""],
+          ["", "", "", "", "", "", "", ""],
+          ["", "", "", "", "", "", "", ""],
+          ["", "", "", "", "", "", "", ""],
+          ["P", "P", "P", "P", "P", "P", "P", "P"],
+          ["R", "N", "B", "Q", "K", "B", "N", "R"],
+        ];
+        currentTurn = "white";
+        selectedPiece = null;
+        moveHistory = [];
+        turnDisplay.textContent = "White";
+        statusDisplay.textContent = "Playing";
+        initBoard();
+      });
+
+      document.getElementById("undoMove").addEventListener("click", () => {
+        if (moveHistory.length > 0) {
+          gameState = moveHistory.pop();
+          currentTurn = currentTurn === "white" ? "black" : "white";
+          turnDisplay.textContent = currentTurn === "white" ? "White" : "Black";
+          selectedPiece = null;
+          initBoard();
+          clearHighlights();
+        }
+      });
+
+      document.getElementById("aiToggle").addEventListener("click", () => {
+        aiMode = !aiMode;
+        const btn = document.getElementById("aiToggle");
+        if (aiMode) {
+          btn.innerHTML =
+            '<span class="material-symbols-outlined align-middle">person</span> Play vs Human';
+          if (currentTurn === aiColor) {
+            setTimeout(makeAIMove, 500);
+          }
+        } else {
+          btn.innerHTML =
+            '<span class="material-symbols-outlined align-middle">smart_toy</span> Play vs AI';
+        }
+      });
+
+      initBoard();
+    </script>
+  </body>
+</html>
