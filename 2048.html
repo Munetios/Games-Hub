@@ -1,943 +1,599 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>2048 Game - Munetios Games Hub</title>
-    <link
-      rel="stylesheet"
-      href="https://api.munetios.com/beautiful-css/beautiful.css"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;700&display=swap"
-    />
+<head>
+    <meta charset="UTF-8">
+    <title>2048 Game</title>
+    <link rel="stylesheet" href="https://api.munetios.com/beautiful-css/beautiful.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;700&display=swap">
     <style>
-      * {
-        font-family: Poppins, "Google Sans Flex", sans-serif !important;
-      }
-      body {
-        background: #2e0650;
-        color: white;
-        font-family: Poppins, "Google Sans Flex", sans-serif !important;
-        margin: 0;
-        padding: 0;
-      }
-      .main-game-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin: 0;
-        min-height: 100vh;
-      }
-      .topbar {
-        height: 60px;
-        padding: 10px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-      .top-left {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        gap: 15px;
-      }
-      .top-right {
-        display: flex;
-        align-items: center;
-        padding: 8px 12px;
-        gap: 15px;
-        margin-left: auto;
-      }
-      #settingsIcon svg {
-        width: 28px;
-        height: 28px;
-        color: #fff;
-      }
-      #settingsIcon svg:hover {
-        color: #ccc;
-      }
-      h1 {
-        margin-top: 40px;
-        color: #fff;
-        font-size: 48px;
-        font-weight: 700;
-      }
-      #game-container {
-        background: #bbada0;
-        border-radius: 8px;
-        padding: 20px;
-        margin-top: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-      }
-      #board {
-        display: grid;
-        grid-template-columns: repeat(4, 80px);
-        grid-template-rows: repeat(4, 80px);
-        gap: 10px;
-        position: relative;
-      }
-      .tile {
-        width: 80px;
-        height: 80px;
-        background: #fff1e2;
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 32px;
-        font-weight: 700;
-        color: #776e65;
-        transition: all 0.15s ease-in-out;
-        user-select: none;
-        position: absolute;
-      }
-      .tile.tile-new {
-        animation: appear 0.2s ease-in-out;
-      }
-      .tile.tile-merged {
-        animation: pop 0.2s ease-in-out;
-      }
-      @keyframes appear {
-        from {
-          transform: scale(0);
-          opacity: 0;
+        * {
+            font-family: Poppins, 'Google Sans Flex', sans-serif !important;
         }
-        to {
-          transform: scale(1);
-          opacity: 1;
+        body {
+            background: #2e0650;
+            color: white;
+            font-family: Poppins, 'Google Sans Flex', sans-serif !important;
+            margin: 0;
+            padding: 0;
         }
-      }
-      @keyframes pop {
-        0% {
-          transform: scale(1);
+        .main-game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            min-height: 100vh;
         }
-        50% {
-          transform: scale(1.2);
+        .topbar {
+            height: 60px;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        100% {
-          transform: scale(1);
+        .top-left {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            gap: 15px;
         }
-      }
-      .tile-2 {
-        background: #eee4da;
-        color: #776e65;
-      }
-      .tile-4 {
-        background: #ede0c8;
-        color: #776e65;
-      }
-      .tile-8 {
-        background: #f2b179;
-        color: #f9f6f2;
-      }
-      .tile-16 {
-        background: #f59563;
-        color: #f9f6f2;
-      }
-      .tile-32 {
-        background: #f67c5f;
-        color: #f9f6f2;
-      }
-      .tile-64 {
-        background: #f65e3b;
-        color: #f9f6f2;
-      }
-      .tile-128 {
-        background: #edcf72;
-        color: #f9f6f2;
-        font-size: 28px;
-      }
-      .tile-256 {
-        background: #edcc61;
-        color: #f9f6f2;
-        font-size: 28px;
-      }
-      .tile-512 {
-        background: #edc850;
-        color: #f9f6f2;
-        font-size: 28px;
-      }
-      .tile-1024 {
-        background: #edc53f;
-        color: #f9f6f2;
-        font-size: 24px;
-      }
-      .tile-2048 {
-        background: #edc22e;
-        color: #f9f6f2;
-        font-size: 24px;
-      }
-      .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        animation: slideIn 0.3s ease-out;
-      }
-      @keyframes slideIn {
-        from {
-          transform: translateX(400px);
-          opacity: 0;
+        .top-right {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            gap: 15px;
+            margin-left: auto;
         }
-        to {
-          transform: translateX(0);
-          opacity: 1;
+        #settingsIcon svg {
+            width: 28px;
+            height: 28px;
+            color: #fff;
         }
-      }
-      .toast.hiding {
-        animation: slideOut 0.3s ease-in forwards;
-      }
-      @keyframes slideOut {
-        from {
-          transform: translateX(0);
-          opacity: 1;
+        #settingsIcon svg:hover {
+            color: #ccc;
         }
-        to {
-          transform: translateX(400px);
-          opacity: 0;
+        h1 {
+            margin-top: 40px;
+            color: #776e65;
+            font-size: 48px;
+            font-weight: 700;
         }
-      }
-      .tile-4096 {
-        background: #3c3a32;
-        color: #f9f6f2;
-      }
-      .tile-8192 {
-        background: #222222;
-        color: #f9f6f2;
-      }
-      .tile-16384 {
-        background: #1a1a1a;
-        color: #f9f6f2;
-      }
-      .tile-32768 {
-        background: #111111;
-        color: #f9f6f2;
-      }
-      .tile-65536 {
-        background: #000000;
-        color: #f9f6f2;
-      }
-      .tile-131072 {
-        background: #ffd700;
-        color: #000;
-      }
-      .tile-262144 {
-        background: #ffb700;
-        color: #000;
-      }
-      .tile-524288 {
-        background: #ffa500;
-        color: #fff;
-      }
-      .tile-1048576 {
-        background: #ff8c00;
-        color: #fff;
-      }
-      .tile-2097152 {
-        background: #ff7f50;
-        color: #fff;
-      }
-      .tile-4194304 {
-        background: #ff6347;
-        color: #fff;
-      }
-      .tile-8388608 {
-        background: #ff4500;
-        color: #fff;
-      }
-      .tile-16777216 {
-        background: #ff0000;
-        color: #fff;
-      }
-      .tile-33554432 {
-        background: #e60000;
-        color: #fff;
-      }
-      .tile-67108864 {
-        background: #cc0000;
-        color: #fff;
-      }
-      .tile-134217728 {
-        background: #b20000;
-        color: #fff;
-      }
-      .tile-268435456 {
-        background: #990000;
-        color: #fff;
-      }
-      .tile-536870912 {
-        background: #800000;
-        color: #fff;
-      }
-      .tile-1073741824 {
-        background: #660000;
-        color: #fff;
-      }
-      .tile-2147483648 {
-        background: #4d0000;
-        color: #fff;
-      }
-      .tile-4294967296 {
-        background: #330000;
-        color: #fff;
-      }
-      .tile-8589934592 {
-        background: #1a0000;
-        color: #fff;
-      }
-      .tile-17179869184 {
-        background: #000033;
-        color: #fff;
-      }
-      .tile-34359738368 {
-        background: #000066;
-        color: #fff;
-      }
-      .tile-68719476736 {
-        background: #000099;
-        color: #fff;
-      }
-      .tile-137438953472 {
-        background: #0000cc;
-        color: #fff;
-      }
-      .tile-274877906944 {
-        background: #0000e6;
-        color: #fff;
-      }
-      .tile-549755813888 {
-        background: #0000ff;
-        color: #fff;
-      }
-      .tile-1099511627776 {
-        background: #0033ff;
-        color: #fff;
-      }
-      .tile-2199023255552 {
-        background: #0066ff;
-        color: #fff;
-      }
-      .tile-4398046511104 {
-        background: #0099ff;
-        color: #fff;
-      }
-      .tile-8796093022208 {
-        background: #00ccff;
-        color: #fff;
-      }
-      .tile-17592186044416 {
-        background: #00e6ff;
-        color: #fff;
-      }
-      .tile-35184372088832 {
-        background: #00ffff;
-        color: #000;
-      }
-      .tile-70368744177664 {
-        background: #00ffe6;
-        color: #000;
-      }
-      .tile-140737488355328 {
-        background: #00ffcc;
-        color: #000;
-      }
-      .tile-281474976710656 {
-        background: #00ff99;
-        color: #000;
-      }
-      .tile-562949953421312 {
-        background: #00ff66;
-        color: #000;
-      }
-      .tile-1125899906842624 {
-        background: #00ff33;
-        color: #000;
-      }
-      .tile-2251799813685248 {
-        background: #00ff00;
-        color: #000;
-      }
-      .tile-4503599627370496 {
-        background: #33ff00;
-        color: #000;
-      }
-      .tile-9007199254740992 {
-        background: #66ff00;
-        color: #000;
-      }
-      .tile-18014398509481984 {
-        background: #99ff00;
-        color: #000;
-      }
-      .tile-36028797018963968 {
-        background: #ccff00;
-        color: #000;
-      }
-      .tile-72057594037927936 {
-        background: #e6ff00;
-        color: #000;
-      }
-      .tile-144115188075855872 {
-        background: #ffff00;
-        color: #000;
-      }
-      .tile-288230376151711744 {
-        background: #ffe600;
-        color: #000;
-      }
-      .tile-576460752303423488 {
-        background: #ffcc00;
-        color: #000;
-      }
-      .tile-1152921504606846976 {
-        background: #ffb300;
-        color: #000;
-      }
-      .tile-2305843009213693952 {
-        background: #ff9900;
-        color: #fff;
-      }
-      .tile-4611686018427387904 {
-        background: #ff8000;
-        color: #fff;
-      }
-      .tile-9223372036854775808 {
-        background: #ff6600;
-        color: #fff;
-      }
-      .tile-18446744073709551616 {
-        background: #ff4d00;
-        color: #fff;
-      }
-      .tile-36893488147419103232 {
-        background: #ff3300;
-        color: #fff;
-      }
-      .tile-73786976294838206464 {
-        background: #ff1a00;
-        color: #fff;
-      }
-      #controls {
-        margin-top: 20px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        justify-content: center;
-      }
-      button {
-        font-family: "Lexend", sans-serif;
-        font-size: 18px;
-        padding: 10px 18px;
-        color: #fff;
-        cursor: pointer;
-        font-weight: 700;
-        transition: background 0.2s;
-      }
-      button:hover {
-        background: #a39489;
-      }
-      #score {
-        margin-top: 15px;
-        font-size: 22px;
-        color: #776e65;
-        font-weight: 700;
-        background: #eee4da;
-        padding: 8px 20px;
-        border-radius: 4px;
-        display: inline-block;
-      }
-      #game-over {
-        margin-top: 20px;
-        font-size: 28px;
-        color: #f65e3b;
-        font-weight: 700;
-        display: none;
-      }
+        #game-container {
+            background: #bbada0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(4, 80px);
+            grid-template-rows: repeat(4, 80px);
+            gap: 10px;
+        }
+        .tile {
+            width: 80px;
+            height: 80px;
+            background: #fff1e2;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 700;
+            color: #776e65;
+            transition: background 0.2s, color 0.2s;
+            user-select: none;
+        }
+        .tile-2    { background: #eee4da; color: #776e65; }
+        .tile-4    { background: #ede0c8; color: #776e65; }
+        .tile-8    { background: #f2b179; color: #f9f6f2; }
+        .tile-16   { background: #f59563; color: #f9f6f2; }
+        .tile-32   { background: #f67c5f; color: #f9f6f2; }
+        .tile-64   { background: #f65e3b; color: #f9f6f2; }
+        .tile-128  { background: #edcf72; color: #f9f6f2; }
+        .tile-256  { background: #edcc61; color: #f9f6f2; }
+        .tile-512  { background: #edc850; color: #f9f6f2; }
+        .tile-1024 { background: #edc53f; color: #f9f6f2; }
+        .tile-2048 { background: #edc22e; color: #f9f6f2; }
+        .tile-4096  { background: #3c3a32; color: #f9f6f2; }
+        .tile-8192  { background: #222222; color: #f9f6f2; }
+        .tile-16384 { background: #1a1a1a; color: #f9f6f2; }
+        .tile-32768 { background: #111111; color: #f9f6f2; }
+        .tile-65536 { background: #000000; color: #f9f6f2; }
+        .tile-131072 { background: #ffd700; color: #000; }
+        .tile-262144 { background: #ffb700; color: #000; }
+        .tile-524288 { background: #ffa500; color: #fff; }
+        .tile-1048576 { background: #ff8c00; color: #fff; }
+        .tile-2097152 { background: #ff7f50; color: #fff; }
+        .tile-4194304 { background: #ff6347; color: #fff; }
+        .tile-8388608 { background: #ff4500; color: #fff; }
+        .tile-16777216 { background: #ff0000; color: #fff; }
+        .tile-33554432 { background: #e60000; color: #fff; }
+        .tile-67108864 { background: #cc0000; color: #fff; }
+        .tile-134217728 { background: #b20000; color: #fff; }
+        .tile-268435456 { background: #990000; color: #fff; }
+        .tile-536870912 { background: #800000; color: #fff; }
+        .tile-1073741824 { background: #660000; color: #fff; }
+        .tile-2147483648 { background: #4d0000; color: #fff; }
+        .tile-4294967296 { background: #330000; color: #fff; }
+        .tile-8589934592 { background: #1a0000; color: #fff; }
+        .tile-17179869184 { background: #000033; color: #fff; }
+        .tile-34359738368 { background: #000066; color: #fff; }
+        .tile-68719476736 { background: #000099; color: #fff; }
+        .tile-137438953472 { background: #0000cc; color: #fff; }
+        .tile-274877906944 { background: #0000e6; color: #fff; }
+        .tile-549755813888 { background: #0000ff; color: #fff; }
+        .tile-1099511627776 { background: #0033ff; color: #fff; }
+        .tile-2199023255552 { background: #0066ff; color: #fff; }
+        .tile-4398046511104 { background: #0099ff; color: #fff; }
+        .tile-8796093022208 { background: #00ccff; color: #fff; }
+        .tile-17592186044416 { background: #00e6ff; color: #fff; }
+        .tile-35184372088832 { background: #00ffff; color: #000; }
+        .tile-70368744177664 { background: #00ffe6; color: #000; }
+        .tile-140737488355328 { background: #00ffcc; color: #000; }
+        .tile-281474976710656 { background: #00ff99; color: #000; }
+        .tile-562949953421312 { background: #00ff66; color: #000; }
+        .tile-1125899906842624 { background: #00ff33; color: #000; }
+        .tile-2251799813685248 { background: #00ff00; color: #000; }
+        .tile-4503599627370496 { background: #33ff00; color: #000; }
+        .tile-9007199254740992 { background: #66ff00; color: #000; }
+        .tile-18014398509481984 { background: #99ff00; color: #000; }
+        .tile-36028797018963968 { background: #ccff00; color: #000; }
+        .tile-72057594037927936 { background: #e6ff00; color: #000; }
+        .tile-144115188075855872 { background: #ffff00; color: #000; }
+        .tile-288230376151711744 { background: #ffe600; color: #000; }
+        .tile-576460752303423488 { background: #ffcc00; color: #000; }
+        .tile-1152921504606846976 { background: #ffb300; color: #000; }
+        .tile-2305843009213693952 { background: #ff9900; color: #fff; }
+        .tile-4611686018427387904 { background: #ff8000; color: #fff; }
+        .tile-9223372036854775808 { background: #ff6600; color: #fff; }
+        .tile-18446744073709551616 { background: #ff4d00; color: #fff; }
+        .tile-36893488147419103232 { background: #ff3300; color: #fff; }
+        .tile-73786976294838206464 { background: #ff1a00; color: #fff; }
+        #controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        button {
+            font-family: 'Lexend', sans-serif;
+            font-size: 18px;
+            padding: 10px 18px;
+            color: #fff;
+            cursor: pointer;
+            font-weight: 700;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #a39489;
+        }
+        #score {
+            margin-top: 15px;
+            font-size: 22px;
+            color: #776e65;
+            font-weight: 700;
+            background: #eee4da;
+            padding: 8px 20px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        #game-over {
+            margin-top: 20px;
+            font-size: 28px;
+            color: #f65e3b;
+            font-weight: 700;
+            display: none;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="topbar">
-      <div class="top-left liquid-glass">
-        <div
-          class="menu-btn"
-          onclick="window.location.href='https://www.munetios.com/games/games.html'"
-        >
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            style="vertical-align: middle; cursor: pointer"
-          >
-            <line x1="3" y1="12" x2="21" y2="12" />
-            <line x1="3" y1="6" x2="21" y2="6" />
-            <line x1="3" y1="18" x2="21" y2="18" />
-          </svg>
+        <div class="top-left liquid-glass">
+            <div class="menu-btn" onclick="window.location.href='https://www.munetios.com/games/games.html'">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; cursor: pointer;">
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </div>
         </div>
-      </div>
-      <div class="top-right liquid-glass">
-        <div id="settingsIcon">
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            style="vertical-align: middle; cursor: pointer"
-          >
-            <circle cx="12" cy="12" r="3.5" fill="none" />
-            <path
-              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
-            />
-          </svg>
+        <div class="top-right liquid-glass">
+           <div id="settingsIcon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; cursor: pointer;">
+                <circle cx="12" cy="12" r="3.5" fill="none"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+           </div>
+           <div id="helpicon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; cursor: pointer;">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3" />
+                <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+           </div>
         </div>
-        <div id="helpicon">
-          <svg
-            width="28"
-            height="28"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2.2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            style="vertical-align: middle; cursor: pointer"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M9.09 9a3 3 0 1 1 5.83 1c0 2-3 3-3 3" />
-            <line x1="12" y1="17" x2="12.01" y2="17" />
-          </svg>
-        </div>
-      </div>
     </div>
 
     <div class="main-game-container">
-      <h1>2048</h1>
-      <div id="score">Score: 0</div>
-      <div id="game-container">
-        <div id="board"></div>
-      </div>
-      <div id="controls">
-        <button class="liquid-glass" onclick="move('up')">⬆️ Up</button>
-        <button class="liquid-glass" onclick="move('left')">⬅️ Left</button>
-        <button class="liquid-glass" onclick="move('down')">⬇️ Down</button>
-        <button class="liquid-glass" onclick="move('right')">➡️ Right</button>
-        <button class="liquid-glass" onclick="restartGame()">🔄 Restart</button>
-      </div>
-      <div id="game-over">Game Over!</div>
+        <h1>2048</h1>
+        <div id="score">Score: 0</div>
+        <div id="game-container">
+            <div id="board"></div>
+        </div>
+        <div id="controls">
+            <button class="liquid-glass" onclick="move('up')">⬆️ Up</button>
+            <button class="liquid-glass" onclick="move('left')">⬅️ Left</button>
+            <button class="liquid-glass" onclick="move('down')">⬇️ Down</button>
+            <button class="liquid-glass" onclick="move('right')">➡️ Right</button>
+            <button class="liquid-glass" onclick="restartGame()">🔄 Restart</button>
+        </div>
+        <div id="game-over">Game Over!</div>
 
-      <div>
-        <h2>Supplies</h2>
-        <div style="margin-bottom: 10px">
-          <span id="rainbow-count" style="margin-right: 20px"
-            >🌈 Rainbow Block: 10</span
-          >
-          <span id="bomb-count">💣 Bomb: 10</span>
+        <div>
+            <h2>Supplies</h2>
+            <div style="margin-bottom: 10px;">
+                <span id="rainbow-count" style="margin-right: 20px;">🌈 Rainbow Block: 10</span>
+                <span id="bomb-count">💣 Bomb: 10</span>
+            </div>
+            <div style="display: flex; gap: 16px; align-items: center;">
+                <button id="rainbow-btn" class="liquid-glass" style="background: linear-gradient(90deg, rgba(255, 0, 0, 0.432), orange, yellow, green, blue, indigo, violet); color: #fff; font-weight: bold;">
+                    🌈 Rainbow Block
+                </button>   
+                <button id="bomb-btn" class="liquid-glass" style="background: linear-gradient(90deg, rgba(34, 34, 34, 0.38), rgba(34, 34, 34, 0.38)); color: #fff; font-weight: bold;">
+                    💣 Bomb
+                </button>
+            </div>
         </div>
-        <div style="display: flex; gap: 16px; align-items: center">
-          <button
-            id="rainbow-btn"
-            class="liquid-glass"
-            style="
-              background: linear-gradient(
-                90deg,
-                rgba(255, 0, 0, 0.432),
-                orange,
-                yellow,
-                green,
-                blue,
-                indigo,
-                violet
-              );
-              color: #fff;
-              font-weight: bold;
-            "
-          >
-            🌈 Rainbow Block
-          </button>
-          <button
-            id="bomb-btn"
-            class="liquid-glass"
-            style="
-              background: linear-gradient(
-                90deg,
-                rgba(34, 34, 34, 0.38),
-                rgba(34, 34, 34, 0.38)
-              );
-              color: #fff;
-              font-weight: bold;
-            "
-          >
-            💣 Bomb
-          </button>
-        </div>
-      </div>
     </div>
 
     <!-- SINGLE SCRIPT: GAME LOGIC + CHEATS + UI -->
     <script>
-      const size = 4;
-      let board = [];
-      let score = 0;
-      let gameOver = false;
+        const size = 4;
+        let board = [];
+        let score = 0;
+        let gameOver = false;
 
-      // Global cheat flags
-      window.cheatsOn = window.cheatsOn || false;
-      window.freeMoveMode = window.freeMoveMode || false;
+        // Global cheat flags
+        window.cheatsOn = window.cheatsOn || false;
+        window.freeMoveMode = window.freeMoveMode || false;
 
-      let rainbowSupply = 10;
-      let bombSupply = 10;
+        let rainbowSupply = 10;
+        let bombSupply = 10;
 
-      function showToast(message, duration = 2500) {
-        const toast = document.createElement("div");
-        toast.textContent = message;
-        toast.style.position = "fixed";
-        toast.style.bottom = "40px";
-        toast.style.left = "50%";
-        toast.style.transform = "translateX(-50%)";
-        toast.style.color = "#fff";
-        toast.style.padding = "16px 32px";
-        toast.style.fontSize = "18px";
-        toast.style.zIndex = 9999;
-        toast.className = "liquid-glass";
-        document.body.appendChild(toast);
-        setTimeout(() => {
-          toast.style.transition = "opacity 0.4s";
-          toast.style.opacity = "0";
-          setTimeout(() => toast.remove(), 400);
-        }, duration);
-      }
-
-      function initBoard() {
-        board = Array.from({ length: size }, () => Array(size).fill(0));
-        score = 0;
-        gameOver = false;
-        addRandomTile();
-        addRandomTile();
-        updateBoard();
-        document.getElementById("game-over").style.display = "none";
-      }
-
-      function baseMinAllowedForSpawn(maxTile) {
-        let minAllowed = 2;
-        if (maxTile >= 2048) minAllowed = 16;
-        else if (maxTile >= 1024) minAllowed = 8;
-        else if (maxTile >= 512) minAllowed = 4;
-        return minAllowed;
-      }
-
-      function addRandomTile() {
-        const empty = [];
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
-            if (board[r][c] === 0) empty.push([r, c]);
-          }
+        function showToast(message, duration = 2500) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '40px';
+            toast.style.left = '50%';
+            toast.style.transform = 'translateX(-50%)';
+            toast.style.color = '#fff';
+            toast.style.padding = '16px 32px';
+            toast.style.fontSize = '18px';
+            toast.style.zIndex = 9999;
+            toast.className = 'liquid-glass';
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.4s';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 400);
+            }, duration);
         }
-        if (empty.length === 0) return;
-        const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-        const maxTile = Math.max(...board.flat());
-        const minAllowed = baseMinAllowedForSpawn(maxTile);
-        board[r][c] = Math.random() < 0.9 ? minAllowed : minAllowed * 2;
-      }
 
-      function updateBoard() {
-        const boardDiv = document.getElementById("board");
-        boardDiv.innerHTML = "";
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
-            const tile = document.createElement("div");
-            const value = board[r][c];
-            tile.className = "tile" + (value ? " tile-" + value : "");
-            tile.textContent = value || "";
-            boardDiv.appendChild(tile);
-          }
-        }
-        document.getElementById("score").textContent = "Score: " + score;
-      }
-
-      function removeLowerTiles() {
-        const maxTile = Math.max(...board.flat());
-        let minAllowed = 2;
-
-        if (maxTile >= 281474976710656) minAllowed = 16777216;
-        else if (maxTile >= 140737488355328) minAllowed = 8388608;
-        else if (maxTile >= 70368744177664) minAllowed = 4194304;
-        else if (maxTile >= 35184372088832) minAllowed = 2097152;
-        else if (maxTile >= 17592186044416) minAllowed = 1048576;
-        else if (maxTile >= 8796093022208) minAllowed = 524288;
-        else if (maxTile >= 4398046511104) minAllowed = 262144;
-        else if (maxTile >= 2199023255552) minAllowed = 131072;
-        else if (maxTile >= 1099511627776) minAllowed = 65536;
-        else if (maxTile >= 549755813888) minAllowed = 32768;
-        else if (maxTile >= 274877906944) minAllowed = 16384;
-        else if (maxTile >= 137438953472) minAllowed = 8192;
-        else if (maxTile >= 68719476736) minAllowed = 4096;
-        else if (maxTile >= 34359738368) minAllowed = 2048;
-        else if (maxTile >= 17179869184) minAllowed = 1024;
-        else if (maxTile >= 8589934592) minAllowed = 512;
-        else if (maxTile >= 4294967296) minAllowed = 256;
-        else if (maxTile >= 2147483648) minAllowed = 128;
-        else if (maxTile >= 1073741824) minAllowed = 64;
-        else if (maxTile >= 536870912) minAllowed = 32;
-        else if (maxTile >= 268435456) minAllowed = 16;
-        else if (maxTile >= 134217728) minAllowed = 8;
-        else if (maxTile >= 67108864) minAllowed = 4;
-
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
-            if (board[r][c] > 0 && board[r][c] < minAllowed) {
-              board[r][c] = 0;
-            }
-          }
-        }
-      }
-
-      function afterMove() {
-        removeLowerTiles();
-        updateBoard();
-        updateSupplies();
-
-        if (isGameOver()) {
-          if (!window.cheatsOn && !window.freeMoveMode) {
-            document.getElementById("game-over").style.display = "block";
-            gameOver = true;
-          } else {
-            document.getElementById("game-over").style.display = "none";
+        function initBoard() {
+            board = Array.from({ length: size }, () => Array(size).fill(0));
+            score = 0;
             gameOver = false;
-          }
-        } else {
-          document.getElementById("game-over").style.display = "none";
-          gameOver = false;
+            addRandomTile();
+            addRandomTile();
+            updateBoard();
+            document.getElementById('game-over').style.display = 'none';
         }
-      }
 
-      function merge(row) {
-        let arr = row.filter((x) => x);
-        for (let i = 0; i < arr.length - 1; i++) {
-          if (arr[i] === arr[i + 1]) {
-            arr[i] *= 2;
-            score += arr[i];
-            arr[i + 1] = 0;
-          }
+        function baseMinAllowedForSpawn(maxTile) {
+            let minAllowed = 2;
+            if (maxTile >= 2048) minAllowed = 16;
+            else if (maxTile >= 1024) minAllowed = 8;
+            else if (maxTile >= 512) minAllowed = 4;
+            return minAllowed;
         }
-        arr = arr.filter((x) => x);
-        while (arr.length < size) arr.push(0);
-        return arr;
-      }
 
-      function boardsEqual(a, b) {
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
-            if (a[r][c] !== b[r][c]) return false;
-          }
-        }
-        return true;
-      }
-
-      function isGameOver() {
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
-            if (board[r][c] === 0) return false;
-          }
-        }
-        for (let r = 0; r < size; r++) {
-          for (let c = 0; c < size; c++) {
-            if (r < size - 1 && board[r][c] === board[r + 1][c]) return false;
-            if (c < size - 1 && board[r][c] === board[r][c + 1]) return false;
-          }
-        }
-        return true;
-      }
-
-      function move(direction) {
-        // Free move & cheats can always move, even after game over
-        if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
-
-        const prevBoard = board.map((row) => row.slice());
-
-        switch (direction) {
-          case "up":
-            for (let c = 0; c < size; c++) {
-              const col = [];
-              for (let r = 0; r < size; r++) col.push(board[r][c]);
-              const merged = merge(col);
-              for (let r = 0; r < size; r++) board[r][c] = merged[r];
-            }
-            break;
-          case "down":
-            for (let c = 0; c < size; c++) {
-              const col = [];
-              for (let r = size - 1; r >= 0; r--) col.push(board[r][c]);
-              const merged = merge(col);
-              for (let r = size - 1, i = 0; r >= 0; r--, i++)
-                board[r][c] = merged[i];
-            }
-            break;
-          case "left":
+        function addRandomTile() {
+            const empty = [];
             for (let r = 0; r < size; r++) {
-              const merged = merge(board[r]);
-              board[r] = merged;
+                for (let c = 0; c < size; c++) {
+                    if (board[r][c] === 0) empty.push([r, c]);
+                }
             }
-            break;
-          case "right":
+            if (empty.length === 0) return;
+            const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+            const maxTile = Math.max(...board.flat());
+            const minAllowed = baseMinAllowedForSpawn(maxTile);
+            board[r][c] = Math.random() < 0.9 ? minAllowed : minAllowed * 2;
+        }
+
+        function updateBoard() {
+            const boardDiv = document.getElementById('board');
+            boardDiv.innerHTML = '';
             for (let r = 0; r < size; r++) {
-              const reversed = board[r].slice().reverse();
-              const merged = merge(reversed);
-              board[r] = merged.reverse();
+                for (let c = 0; c < size; c++) {
+                    const tile = document.createElement('div');
+                    const value = board[r][c];
+                    tile.className = 'tile' + (value ? ' tile-' + value : '');
+                    tile.textContent = value || '';
+                    boardDiv.appendChild(tile);
+                }
             }
-            break;
+            document.getElementById('score').textContent = 'Score: ' + score;
         }
 
-        const moved = !boardsEqual(prevBoard, board);
+        function removeLowerTiles() {
+            const maxTile = Math.max(...board.flat());
+            let minAllowed = 2;
 
-        if (moved) {
-          addRandomTile();
-          afterMove();
-        } else if (window.freeMoveMode) {
-          // Force a tile spawn even if nothing moved/merged
-          addRandomTile();
-          afterMove();
+            if (maxTile >= 281474976710656) minAllowed = 16777216;
+            else if (maxTile >= 140737488355328) minAllowed = 8388608;
+            else if (maxTile >= 70368744177664) minAllowed = 4194304;
+            else if (maxTile >= 35184372088832) minAllowed = 2097152;
+            else if (maxTile >= 17592186044416) minAllowed = 1048576;
+            else if (maxTile >= 8796093022208) minAllowed = 524288;
+            else if (maxTile >= 4398046511104) minAllowed = 262144;
+            else if (maxTile >= 2199023255552) minAllowed = 131072;
+            else if (maxTile >= 1099511627776) minAllowed = 65536;
+            else if (maxTile >= 549755813888) minAllowed = 32768;
+            else if (maxTile >= 274877906944) minAllowed = 16384;
+            else if (maxTile >= 137438953472) minAllowed = 8192;
+            else if (maxTile >= 68719476736) minAllowed = 4096;
+            else if (maxTile >= 34359738368) minAllowed = 2048;
+            else if (maxTile >= 17179869184) minAllowed = 1024;
+            else if (maxTile >= 8589934592) minAllowed = 512;
+            else if (maxTile >= 4294967296) minAllowed = 256;
+            else if (maxTile >= 2147483648) minAllowed = 128;
+            else if (maxTile >= 1073741824) minAllowed = 64;
+            else if (maxTile >= 536870912) minAllowed = 32;
+            else if (maxTile >= 268435456) minAllowed = 16;
+            else if (maxTile >= 134217728) minAllowed = 8;
+            else if (maxTile >= 67108864) minAllowed = 4;
+
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (board[r][c] > 0 && board[r][c] < minAllowed) {
+                        board[r][c] = 0;
+                    }
+                }
+            }
         }
-      }
 
-      function restartGame() {
-        rainbowSupply = 10;
-        bombSupply = 10;
-        document.getElementById("rainbow-btn").textContent = "🌈 Rainbow Block";
-        document.getElementById("bomb-btn").textContent = "💣 Bomb";
-        initBoard();
-        updateSupplies();
-      }
+        function afterMove() {
+            removeLowerTiles();
+            updateBoard();
+            updateSupplies();
 
-      function updateSupplies() {
-        const rainbowEl = document.getElementById("rainbow-count");
-        const bombEl = document.getElementById("bomb-count");
-        const rainbowBtn = document.getElementById("rainbow-btn");
-        const bombBtn = document.getElementById("bomb-btn");
-
-        if (!rainbowEl || !bombEl || !rainbowBtn || !bombBtn) return;
-
-        rainbowEl.textContent = `🌈 Rainbow Block: ${rainbowSupply}`;
-        bombEl.textContent = `💣 Bomb: ${bombSupply}`;
-
-        const disabled = gameOver && !window.cheatsOn && !window.freeMoveMode;
-        rainbowBtn.disabled = rainbowSupply <= 0 || disabled;
-        bombBtn.disabled = bombSupply <= 0 || disabled;
-      }
-
-      function useRainbowBlock() {
-        if (rainbowSupply <= 0) return;
-        if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
-
-        const rainbowBtn = document.getElementById("rainbow-btn");
-        rainbowBtn.disabled = true;
-        rainbowBtn.textContent = "Pick a tile!";
-
-        const boardDiv = document.getElementById("board");
-        Array.from(boardDiv.children).forEach((tileDiv, idx) => {
-          const r = Math.floor(idx / size);
-          const c = idx % size;
-          if (board[r][c] > 0) {
-            tileDiv.style.outline = "3px solid #ff0";
-            tileDiv.style.cursor = "pointer";
-            tileDiv.onclick = function () {
-              const val = board[r][c];
-              board[r][c] = val * 2;
-              score += board[r][c];
-              rainbowSupply--;
-              updateBoard();
-              updateSupplies();
-              Array.from(boardDiv.children).forEach((td) => {
-                td.style.outline = "";
-                td.style.cursor = "";
-                td.onclick = null;
-              });
-              rainbowBtn.textContent = "🌈 Rainbow Block";
-              updateSupplies();
-            };
-          }
-        });
-      }
-
-      function useBomb() {
-        if (bombSupply <= 0) return;
-        if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
-
-        const bombBtn = document.getElementById("bomb-btn");
-        bombBtn.disabled = true;
-        bombBtn.textContent = "Pick a tile!";
-
-        const boardDiv = document.getElementById("board");
-        Array.from(boardDiv.children).forEach((tileDiv, idx) => {
-          const r = Math.floor(idx / size);
-          const c = idx % size;
-          if (board[r][c] > 0) {
-            tileDiv.style.outline = "3px solid #f00";
-            tileDiv.style.cursor = "pointer";
-            tileDiv.onclick = function () {
-              board[r][c] = 0;
-              bombSupply--;
-              updateBoard();
-              updateSupplies();
-              Array.from(boardDiv.children).forEach((td) => {
-                td.style.outline = "";
-                td.style.cursor = "";
-                td.onclick = null;
-              });
-              bombBtn.textContent = "💣 Bomb";
-              updateSupplies();
-            };
-          }
-        });
-      }
-
-      document
-        .getElementById("rainbow-btn")
-        .addEventListener("click", useRainbowBlock);
-      document.getElementById("bomb-btn").addEventListener("click", useBomb);
-
-      document.getElementById("helpicon").onclick = function () {
-        showToast(
-          "Use arrow keys or buttons to move. Merge tiles to reach 2048! Rainbow upgrades a tile, Bomb clears one."
-        );
-      };
-
-      document.getElementById("settingsIcon").onclick = function () {
-        let modal = document.getElementById("settings-modal");
-        if (modal) {
-          modal.style.display = "flex";
-          return;
+            if (isGameOver()) {
+                if (!window.cheatsOn && !window.freeMoveMode) {
+                    document.getElementById('game-over').style.display = 'block';
+                    gameOver = true;
+                } else {
+                    document.getElementById('game-over').style.display = 'none';
+                    gameOver = false;
+                }
+            } else {
+                document.getElementById('game-over').style.display = 'none';
+                gameOver = false;
+            }
         }
-        modal = document.createElement("div");
-        modal.id = "settings-modal";
-        modal.style.position = "fixed";
-        modal.style.top = 0;
-        modal.style.left = 0;
-        modal.style.width = "100vw";
-        modal.style.height = "100vh";
-        modal.style.background = "rgba(0,0,0,0.45)";
-        modal.style.display = "flex";
-        modal.style.alignItems = "center";
-        modal.style.justifyContent = "center";
-        modal.style.zIndex = 10001;
 
-        modal.innerHTML = `
+        function merge(row) {
+            let arr = row.filter(x => x);
+            for (let i = 0; i < arr.length - 1; i++) {
+                if (arr[i] === arr[i + 1]) {
+                    arr[i] *= 2;
+                    score += arr[i];
+                    arr[i + 1] = 0;
+                }
+            }
+            arr = arr.filter(x => x);
+            while (arr.length < size) arr.push(0);
+            return arr;
+        }
+
+        function boardsEqual(a, b) {
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (a[r][c] !== b[r][c]) return false;
+                }
+            }
+            return true;
+        }
+
+        function isGameOver() {
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (board[r][c] === 0) return false;
+                }
+            }
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    if (r < size - 1 && board[r][c] === board[r + 1][c]) return false;
+                    if (c < size - 1 && board[r][c] === board[r][c + 1]) return false;
+                }
+            }
+            return true;
+        }
+
+        function move(direction) {
+            // Free move & cheats can always move, even after game over
+            if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
+
+            const prevBoard = board.map(row => row.slice());
+
+            switch (direction) {
+                case 'up':
+                    for (let c = 0; c < size; c++) {
+                        const col = [];
+                        for (let r = 0; r < size; r++) col.push(board[r][c]);
+                        const merged = merge(col);
+                        for (let r = 0; r < size; r++) board[r][c] = merged[r];
+                    }
+                    break;
+                case 'down':
+                    for (let c = 0; c < size; c++) {
+                        const col = [];
+                        for (let r = size - 1; r >= 0; r--) col.push(board[r][c]);
+                        const merged = merge(col);
+                        for (let r = size - 1, i = 0; r >= 0; r--, i++) board[r][c] = merged[i];
+                    }
+                    break;
+                case 'left':
+                    for (let r = 0; r < size; r++) {
+                        const merged = merge(board[r]);
+                        board[r] = merged;
+                    }
+                    break;
+                case 'right':
+                    for (let r = 0; r < size; r++) {
+                        const reversed = board[r].slice().reverse();
+                        const merged = merge(reversed);
+                        board[r] = merged.reverse();
+                    }
+                    break;
+            }
+
+            const moved = !boardsEqual(prevBoard, board);
+
+            if (moved) {
+                addRandomTile();
+                afterMove();
+            } else if (window.freeMoveMode) {
+                // Force a tile spawn even if nothing moved/merged
+                addRandomTile();
+                afterMove();
+            }
+        }
+
+        function restartGame() {
+            rainbowSupply = 10;
+            bombSupply = 10;
+            document.getElementById('rainbow-btn').textContent = "🌈 Rainbow Block";
+            document.getElementById('bomb-btn').textContent = "💣 Bomb";
+            initBoard();
+            updateSupplies();
+        }
+
+        function updateSupplies() {
+            const rainbowEl = document.getElementById('rainbow-count');
+            const bombEl = document.getElementById('bomb-count');
+            const rainbowBtn = document.getElementById('rainbow-btn');
+            const bombBtn = document.getElementById('bomb-btn');
+
+            if (!rainbowEl || !bombEl || !rainbowBtn || !bombBtn) return;
+
+            rainbowEl.textContent = `🌈 Rainbow Block: ${rainbowSupply}`;
+            bombEl.textContent = `💣 Bomb: ${bombSupply}`;
+
+            const disabled = gameOver && !window.cheatsOn && !window.freeMoveMode;
+            rainbowBtn.disabled = (rainbowSupply <= 0 || disabled);
+            bombBtn.disabled = (bombSupply <= 0 || disabled);
+        }
+
+        function useRainbowBlock() {
+            if (rainbowSupply <= 0) return;
+            if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
+
+            const rainbowBtn = document.getElementById('rainbow-btn');
+            rainbowBtn.disabled = true;
+            rainbowBtn.textContent = "Pick a tile!";
+
+            const boardDiv = document.getElementById('board');
+            Array.from(boardDiv.children).forEach((tileDiv, idx) => {
+                const r = Math.floor(idx / size);
+                const c = idx % size;
+                if (board[r][c] > 0) {
+                    tileDiv.style.outline = "3px solid #ff0";
+                    tileDiv.style.cursor = "pointer";
+                    tileDiv.onclick = function () {
+                        const val = board[r][c];
+                        board[r][c] = val * 2;
+                        score += board[r][c];
+                        rainbowSupply--;
+                        updateBoard();
+                        updateSupplies();
+                        Array.from(boardDiv.children).forEach(td => {
+                            td.style.outline = "";
+                            td.style.cursor = "";
+                            td.onclick = null;
+                        });
+                        rainbowBtn.textContent = "🌈 Rainbow Block";
+                        updateSupplies();
+                    };
+                }
+            });
+        }
+
+        function useBomb() {
+            if (bombSupply <= 0) return;
+            if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
+
+            const bombBtn = document.getElementById('bomb-btn');
+            bombBtn.disabled = true;
+            bombBtn.textContent = "Pick a tile!";
+
+            const boardDiv = document.getElementById('board');
+            Array.from(boardDiv.children).forEach((tileDiv, idx) => {
+                const r = Math.floor(idx / size);
+                const c = idx % size;
+                if (board[r][c] > 0) {
+                    tileDiv.style.outline = "3px solid #f00";
+                    tileDiv.style.cursor = "pointer";
+                    tileDiv.onclick = function () {
+                        board[r][c] = 0;
+                        bombSupply--;
+                        updateBoard();
+                        updateSupplies();
+                        Array.from(boardDiv.children).forEach(td => {
+                            td.style.outline = "";
+                            td.style.cursor = "";
+                            td.onclick = null;
+                        });
+                        bombBtn.textContent = "💣 Bomb";
+                        updateSupplies();
+                    };
+                }
+            });
+        }
+
+        document.getElementById('rainbow-btn').addEventListener('click', useRainbowBlock);
+        document.getElementById('bomb-btn').addEventListener('click', useBomb);
+
+        document.getElementById('helpicon').onclick = function () {
+            showToast("Use arrow keys or buttons to move. Merge tiles to reach 2048! Rainbow upgrades a tile, Bomb clears one.");
+        };
+
+        document.getElementById('settingsIcon').onclick = function () {
+            let modal = document.getElementById('settings-modal');
+            if (modal) {
+                modal.style.display = 'flex';
+                return;
+            }
+            modal = document.createElement('div');
+            modal.id = 'settings-modal';
+            modal.style.position = 'fixed';
+            modal.style.top = 0;
+            modal.style.left = 0;
+            modal.style.width = '100vw';
+            modal.style.height = '100vh';
+            modal.style.background = 'rgba(0,0,0,0.45)';
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            modal.style.zIndex = 10001;
+
+            modal.innerHTML = `
                 <div class="liquid-glass" style=" color:#222; border-radius:10px; min-width:320px; max-width:90vw; padding:32px 24px 20px 24px; box-shadow:0 8px 32px rgba(0,0,0,0.18); position:relative; font-family:'Lexend',sans-serif;">
                     <button id="close-settings" style="position:absolute;top:10px;right:14px;font-size:22px;background:none;border:none;cursor:pointer;color:#888;">&times;</button>
                     <h2 style="margin-top:0;font-size:1.5em;">Settings</h2>
@@ -960,124 +616,101 @@
                     </div>
                 </div>
             `;
-        document.body.appendChild(modal);
+            document.body.appendChild(modal);
 
-        document.getElementById("close-settings").onclick = function () {
-          modal.style.display = "none";
-        };
+            document.getElementById('close-settings').onclick = function () {
+                modal.style.display = 'none';
+            };
 
-        const lightToggle = document.getElementById("lightmode-toggle");
-        function setLightMode(on) {
-          if (on) {
-            document.body.style.background = "#f6f6f6";
-            document.body.style.color = "#222";
-            document.querySelector(".main-game-container").style.background =
-              "#fff";
-            document.getElementById("game-container").style.background = "#fff";
-            document.getElementById("score").style.background = "#fff";
-          } else {
-            document.body.style.background = "#2e0650";
-            document.body.style.color = "#fff";
-            document.querySelector(".main-game-container").style.background =
-              "";
-            document.getElementById("game-container").style.background =
-              "#bbada0";
-            document.getElementById("score").style.background = "#eee4da";
-          }
-        }
-        if (localStorage.getItem("lightmode") === "on") {
-          lightToggle.checked = true;
-          setLightMode(true);
-        }
-        lightToggle.onchange = function () {
-          setLightMode(lightToggle.checked);
-          localStorage.setItem("lightmode", lightToggle.checked ? "on" : "off");
-        };
-
-        const cheatsToggle = document.getElementById("cheats-toggle");
-        if (window.cheatsOn) cheatsToggle.checked = true;
-        cheatsToggle.onchange = function () {
-          window.cheatsOn = cheatsToggle.checked;
-          document.getElementById("cheats-panel").style.display =
-            cheatsToggle.checked ? "block" : "none";
-          showToast(
-            cheatsToggle.checked
-              ? "Cheats enabled! Use cheat buttons below."
-              : "Cheats disabled."
-          );
-          updateSupplies();
-        };
-        if (window.cheatsOn)
-          document.getElementById("cheats-panel").style.display = "block";
-
-        const freeMoveBtn = document.getElementById("free-move-btn");
-        function syncFreeMoveButton() {
-          freeMoveBtn.textContent = window.freeMoveMode
-            ? "Free Move: ON"
-            : "Free Move";
-        }
-        syncFreeMoveButton();
-
-        freeMoveBtn.onclick = function () {
-          window.freeMoveMode = !window.freeMoveMode;
-          syncFreeMoveButton();
-          showToast(
-            window.freeMoveMode
-              ? "Free Move enabled! You can move even if no tiles merge or move."
-              : "Free Move disabled."
-          );
-          updateSupplies();
-        };
-
-        document.getElementById("get-2048-btn").onclick = function () {
-          const empty = [];
-          for (let r = 0; r < size; r++) {
-            for (let c = 0; c < size; c++) {
-              if (board[r][c] === 0) empty.push([r, c]);
+            const lightToggle = document.getElementById('lightmode-toggle');
+            function setLightMode(on) {
+                if (on) {
+                    document.body.style.background = '#f6f6f6';
+                    document.body.style.color = '#222';
+                    document.querySelector('.main-game-container').style.background = '#fff';
+                    document.getElementById('game-container').style.background = '#fff';
+                    document.getElementById('score').style.background = '#fff';
+                } else {
+                    document.body.style.background = '#2e0650';
+                    document.body.style.color = '#fff';
+                    document.querySelector('.main-game-container').style.background = '';
+                    document.getElementById('game-container').style.background = '#bbada0';
+                    document.getElementById('score').style.background = '#eee4da';
+                }
             }
-          }
-          if (empty.length === 0) {
-            showToast("No empty space for 2048 block!");
-            return;
-          }
-          const [r, c] = empty[Math.floor(Math.random() * empty.length)];
-          board[r][c] = 2048;
-          updateBoard();
-          showToast("2048 block added!");
-        };
-
-        document.getElementById("upgrade-all-btn").onclick = function () {
-          for (let r = 0; r < size; r++) {
-            for (let c = 0; c < size; c++) {
-              if (board[r][c] > 0) board[r][c] *= 2;
+            if (localStorage.getItem('lightmode') === 'on') {
+                lightToggle.checked = true;
+                setLightMode(true);
             }
-          }
-          updateBoard();
-          showToast("All blocks upgraded!");
+            lightToggle.onchange = function () {
+                setLightMode(lightToggle.checked);
+                localStorage.setItem('lightmode', lightToggle.checked ? 'on' : 'off');
+            };
+
+            const cheatsToggle = document.getElementById('cheats-toggle');
+            if (window.cheatsOn) cheatsToggle.checked = true;
+            cheatsToggle.onchange = function () {
+                window.cheatsOn = cheatsToggle.checked;
+                document.getElementById('cheats-panel').style.display = cheatsToggle.checked ? 'block' : 'none';
+                showToast(cheatsToggle.checked ? "Cheats enabled! Use cheat buttons below." : "Cheats disabled.");
+                updateSupplies();
+            };
+            if (window.cheatsOn) document.getElementById('cheats-panel').style.display = 'block';
+
+            const freeMoveBtn = document.getElementById('free-move-btn');
+            function syncFreeMoveButton() {
+                freeMoveBtn.textContent = window.freeMoveMode ? "Free Move: ON" : "Free Move";
+            }
+            syncFreeMoveButton();
+
+            freeMoveBtn.onclick = function () {
+                window.freeMoveMode = !window.freeMoveMode;
+                syncFreeMoveButton();
+                showToast(window.freeMoveMode ? "Free Move enabled! You can move even if no tiles merge or move." : "Free Move disabled.");
+                updateSupplies();
+            };
+
+            document.getElementById('get-2048-btn').onclick = function () {
+                const empty = [];
+                for (let r = 0; r < size; r++) {
+                    for (let c = 0; c < size; c++) {
+                        if (board[r][c] === 0) empty.push([r, c]);
+                    }
+                }
+                if (empty.length === 0) {
+                    showToast("No empty space for 2048 block!");
+                    return;
+                }
+                const [r, c] = empty[Math.floor(Math.random() * empty.length)];
+                board[r][c] = 2048;
+                updateBoard();
+                showToast("2048 block added!");
+            };
+
+            document.getElementById('upgrade-all-btn').onclick = function () {
+                for (let r = 0; r < size; r++) {
+                    for (let c = 0; c < size; c++) {
+                        if (board[r][c] > 0) board[r][c] *= 2;
+                    }
+                }
+                updateBoard();
+                showToast("All blocks upgraded!");
+            };
         };
-      };
 
-      document.addEventListener("keydown", function (e) {
-        if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
-        switch (e.key) {
-          case "ArrowUp":
-            move("up");
-            break;
-          case "ArrowDown":
-            move("down");
-            break;
-          case "ArrowLeft":
-            move("left");
-            break;
-          case "ArrowRight":
-            move("right");
-            break;
-        }
-      });
+        document.addEventListener('keydown', function (e) {
+            if (gameOver && !window.cheatsOn && !window.freeMoveMode) return;
+            switch (e.key) {
+                case 'ArrowUp': move('up'); break;
+                case 'ArrowDown': move('down'); break;
+                case 'ArrowLeft': move('left'); break;
+                case 'ArrowRight': move('right'); break;
+            }
+        });
 
-      // Init
-      initBoard();
-      updateSupplies();
+        // Init
+        initBoard();
+        updateSupplies();
     </script>
-  </body>
+</body>
 </html>
