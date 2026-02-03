@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,7 +11,7 @@
     />
     <!-- Google Sans Flex font -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:opsz,wght,ROND@6..144,1..1000,80&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -26,6 +26,9 @@
         align-items: center;
         color: white;
         justify-content: flex-start;
+      }
+      h1 {
+        font-feature-settings: "ss01" on;
       }
       .liquid-glass {
         margin-top: 32px;
@@ -79,9 +82,10 @@
         font-family: "Google Sans Flex", Arial, sans-serif;
         font-size: 1rem;
         padding: 8px 18px;
-        border-radius: 8px;
-        border: none;
-        background: #6300d4;
+        border-radius: 84px;
+        border: 1px solid #ffffff10;
+        background: #6300d43d;
+        backdrop-filter: blur(2px) saturate(180%);
         color: #fff;
         cursor: pointer;
         transition: background 0.2s;
@@ -106,7 +110,7 @@
     <div class="liquid-glass">
       <h1
         style="
-          font-family: 'Google Sans Flex', Arial, sans-serif;
+          font-family: &quot;Google Sans Flex&quot;, Arial, sans-serif;
           text-align: center;
         "
       >
@@ -123,6 +127,18 @@
             <option value="super-hard">Super Hard</option>
           </select>
         </div>
+        <label>Website Speed: </label>
+        <select class="btn" id="speed-select">
+          <option value="default" selected>Default</option>
+          <option 1.5x value="1.5x">1.5x</option>
+          <option 1.75x value="1.75x">1.75x</option>
+          <option 2x value="2x">2x</option>
+          <option 4x value="4x">4x</option>
+          <option 5x value="5x">5x</option>
+          <option 8x value="8x">8x</option>
+          <option 10x value="10x">10x</option>
+          <option 16x value="16x">16x</option>
+        </select>
         <button id="restart-btn" class="btn">Restart</button>
       </div>
       <div class="cheats">
@@ -148,6 +164,7 @@
     <!-- Tone.js for sound effects -->
     <script src="https://cdn.jsdelivr.net/npm/tone@14.8.49/build/Tone.min.js"></script>
     <!-- Background music (autoplay) -->
+    <!-- Credit: SoundHelix -->
     <audio
       id="bg-music"
       src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
@@ -165,7 +182,7 @@
             () => {
               bgMusic.play();
             },
-            { once: true }
+            { once: true },
           );
         });
       }
@@ -209,6 +226,7 @@
       let passThroughWalls = false; // cheat: pass through walls
       let gameOver = false; // is the game over
       let animationFrameId = null; // ID of the current animation frame
+      let gameSpeed = 1.0; // global game speed multiplier
 
       // DOM elements
       const scoreEl = document.getElementById("score");
@@ -221,6 +239,7 @@
       const passThroughWallsCheckbox =
         document.getElementById("pass-through-walls");
       const titleEl = document.querySelector("h1");
+      const speedSelect = document.getElementById("speed-select");
 
       // Tone.js sound effects
       const jumpSynth = new Tone.Synth({
@@ -242,16 +261,26 @@
       }).toDestination();
 
       function playJump() {
-        jumpSynth.triggerAttackRelease("C5", "8n", Tone.now());
+        jumpSynth.triggerAttackRelease("C5", "8n", Tone.now(), 0.5 * gameSpeed);
       }
       function playPoint() {
-        pointSynth.triggerAttackRelease("C2", "8n", Tone.now());
+        pointSynth.triggerAttackRelease(
+          "C2",
+          "8n",
+          Tone.now(),
+          0.5 * gameSpeed,
+        );
       }
       function playHit() {
-        hitSynth.triggerAttackRelease("C4", "16n", Tone.now());
+        hitSynth.triggerAttackRelease("C4", "16n", Tone.now(), 0.5 * gameSpeed);
       }
       function playBomb() {
-        bombSynth.triggerAttackRelease("C3", "16n", Tone.now());
+        bombSynth.triggerAttackRelease(
+          "C3",
+          "16n",
+          Tone.now(),
+          0.5 * gameSpeed,
+        );
       }
 
       // Level settings
@@ -259,36 +288,36 @@
         if (level === "easy")
           return {
             gap: pipeGapEasy,
-            speed: pipeSpeedEasy,
+            speed: pipeSpeedEasy * gameSpeed,
             pipeColor: "#4caf50",
-            interval: pipeInterval,
+            interval: pipeInterval / gameSpeed,
           };
         if (level === "hard")
           return {
             gap: pipeGapHard,
-            speed: pipeSpeedHard,
+            speed: pipeSpeedHard * gameSpeed,
             pipeColor: "#4caf50",
-            interval: pipeInterval,
+            interval: pipeInterval / gameSpeed,
           };
         if (level === "super-easy")
           return {
             gap: pipeGapSuperEasy,
-            speed: pipeSpeedSuperEasy,
+            speed: pipeSpeedSuperEasy * gameSpeed,
             pipeColor: "#4caf50",
-            interval: pipeIntervalSuperEasy,
+            interval: pipeIntervalSuperEasy / gameSpeed,
           };
         if (level === "super-hard")
           return {
             gap: pipeGapSuperHard,
-            speed: pipeSpeedSuperHard,
+            speed: pipeSpeedSuperHard * gameSpeed,
             pipeColor: "#e53935",
-            interval: pipeInterval,
+            interval: pipeInterval / gameSpeed,
           }; // Red pipes
         return {
           gap: pipeGapNormal,
-          speed: pipeSpeedNormal,
+          speed: pipeSpeedNormal * gameSpeed,
           pipeColor: "#4caf50",
-          interval: pipeInterval,
+          interval: pipeInterval / gameSpeed,
         };
       }
 
@@ -378,7 +407,7 @@
       function update(dt) {
         if (!running) return;
         // Bird physics
-        bird.vy += gravity;
+        bird.vy += gravity * gameSpeed;
         bird.y += bird.vy;
 
         // Pipes
@@ -407,14 +436,17 @@
         // Bombs (super-hard only)
         if (level === "super-hard") {
           // Spawn bombs
-          if (performance.now() - lastBombTime > bombIntervalSuperHard) {
+          if (
+            performance.now() - lastBombTime >
+            bombIntervalSuperHard / gameSpeed
+          ) {
             spawnBomb();
             lastBombTime = performance.now();
           }
           // Move bombs
           for (let bomb of bombs) {
-            bomb.x -= bombSpeedSuperHard;
-            bomb.y += bomb.vy;
+            bomb.x -= bombSpeedSuperHard * gameSpeed;
+            bomb.y += bomb.vy * gameSpeed;
             // Bounce off top/bottom
             if (bomb.y < bombRadius) {
               bomb.y = bombRadius;
@@ -519,14 +551,14 @@
             pipe.x,
             pipe.top + pipe.gap,
             pipe.width,
-            canvas.height - pipe.top - pipe.gap
+            canvas.height - pipe.top - pipe.gap,
           );
           ctx.strokeStyle = level === "super-hard" ? "#b71c1c" : "#388e3c";
           ctx.strokeRect(
             pipe.x,
             pipe.top + pipe.gap,
             pipe.width,
-            canvas.height - pipe.top - pipe.gap
+            canvas.height - pipe.top - pipe.gap,
           );
         }
         ctx.restore();
@@ -607,7 +639,7 @@
           if (gameOver) resetGame();
           return;
         }
-        bird.vy = jumpStrength;
+        bird.vy = jumpStrength * gameSpeed;
         playJump();
       }
       document.addEventListener("keydown", (e) => {
@@ -638,6 +670,19 @@
       });
       passThroughWallsCheckbox.addEventListener("change", () => {
         passThroughWalls = passThroughWallsCheckbox.checked;
+      });
+
+      // Speed control
+      speedSelect.addEventListener("change", (e) => {
+        const speedValue = e.target.value;
+        if (speedValue === "default") {
+          gameSpeed = 1.0;
+        } else {
+          // Parse values like "1.5x", "2x", etc.
+          gameSpeed = parseFloat(speedValue.replace("x", ""));
+        }
+        // Update background music playback rate
+        bgMusic.playbackRate = gameSpeed;
       });
 
       // Start game
