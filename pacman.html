@@ -28,11 +28,23 @@
         position: fixed;
         top: 20px;
         right: 20px;
-        background: linear-gradient(135deg, #667eea, #764ba2);
         color: white;
         padding: 1rem 1.5rem;
         border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+               background:
+    linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.16) 0%,
+      rgba(255,255,255,0.06) 22%,
+      rgba(255,255,255,0.04) 50%,
+      rgba(255,255,255,0.06) 78%,
+      rgba(255,255,255,0.14) 100%
+    );
+    box-shadow: 0 8px 32px 0 rgba( 31, 38, 135, 0.37 );
+    backdrop-filter: blur( 2px )  saturate(190%) brightness(105%) contrast(100%) !important;
+    -webkit-backdrop-filter: blur( 1.75px )  saturate(200%) brightness(125%) contrast(100%) !important;
+    border-radius: 50px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
         z-index: 1000;
         animation: slideIn 0.3s ease-out;
       }
@@ -684,9 +696,10 @@
         .addEventListener("click", togglePause);
 
       ctx.fillStyle = "#fff";
-      ctx.font = "24px Arial";
+      ctx.font = "24px Google Sans Flex";
       ctx.textAlign = "center";
       ctx.fillText("Press Start to Play", canvas.width / 2, canvas.height / 2);
     </script>
   </body>
 </html>
+
