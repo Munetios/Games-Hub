@@ -24,6 +24,41 @@
         border-radius: 8px;
         background: #000;
       }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
     </style>
   </head>
   <body class="flex items-center justify-center p-4">
@@ -55,6 +90,18 @@
     </div>
 
     <script>
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
       const canvas = document.getElementById("gameCanvas");
       const ctx = canvas.getContext("2d");
 
@@ -151,7 +198,7 @@
               document.getElementById("score").textContent = score;
 
               if (bricks.every((b) => b.status === 0)) {
-                alert("YOU WIN! Congratulations!");
+                showToast("🎉 YOU WIN! Congratulations!", 3000);
                 ball.speed += 0.5;
                 createBricks();
               }
