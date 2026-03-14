@@ -55,6 +55,41 @@
         stroke-width: 3;
         fill: none;
       }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
     </style>
   </head>
   <body>
@@ -173,6 +208,18 @@
     </div>
 
     <script>
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
       const words = [
         { word: "JAVASCRIPT", hint: "Programming language" },
         { word: "COMPUTER", hint: "Electronic device" },
@@ -269,7 +316,7 @@
 
           if (wrongCount >= 6) {
             setTimeout(() => {
-              alert(`Game Over! The word was: ${currentWord}`);
+              showToast(`Game Over! The word was: ${currentWord}`);
               losses++;
               localStorage.setItem("hangmanLosses", losses);
               document.getElementById("losses").textContent = losses;
@@ -294,7 +341,7 @@
             .every((letter) => guessedLetters.includes(letter))
         ) {
           setTimeout(() => {
-            alert(`🎉 You Won! The word was: ${currentWord}`);
+            showToast(`🎉 You Won! The word was: ${currentWord}`);
             wins++;
             localStorage.setItem("hangmanWins", wins);
             document.getElementById("wins").textContent = wins;

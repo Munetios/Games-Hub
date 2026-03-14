@@ -22,6 +22,41 @@
         display: block;
         margin: 20px auto;
       }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
     </style>
   </head>
   <body>
@@ -42,6 +77,18 @@
       </div>
     </div>
     <script>
+      function showToast(message, duration = 3000) {
+        const toast = document.createElement("div");
+        toast.className = "toast";
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.classList.add("hiding");
+          setTimeout(() => toast.remove(), 300);
+        }, duration);
+      }
+
       const c = document.getElementById("c"),
         ctx = c.getContext("2d");
       let x = 400,
@@ -51,12 +98,14 @@
         px = 350,
         pw = 100,
         score = 0,
-        lives = 3;
+        lives = 3,
+        gameRunning = true;
       const bricks = [];
       for (let r = 0; r < 5; r++)
         for (let co = 0; co < 10; co++)
           bricks.push({ x: co * 80 + 5, y: r * 30 + 30, w: 75, h: 25, v: 1 });
       function draw() {
+        if (!gameRunning) return;
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, 800, 600);
         ctx.fillStyle = "#fff";
@@ -91,8 +140,9 @@
           lives--;
           document.getElementById("lives").textContent = lives;
           if (lives <= 0) {
-            alert("Game Over! Score: " + score);
-            location.reload();
+            gameRunning = false;
+            showToast("🎮 Game Over! Score: " + score);
+            setTimeout(() => location.reload(), 3000);
           }
           x = 400;
           y = 550;
@@ -100,8 +150,9 @@
           dy = -3;
         }
         if (bricks.every((b) => !b.v)) {
-          alert("You Win! Score: " + score);
-          location.reload();
+          gameRunning = false;
+          showToast("🎉 You Win! Score: " + score);
+          setTimeout(() => location.reload(), 3000);
         }
       }
       c.onmousemove = (e) => (px = e.offsetX - pw / 2);
