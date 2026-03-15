@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catch Game - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(
+          135deg,
+          #1a0533 0%,
+          #0d0d2b 50%,
+          #0f2027 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      #gameCanvas {
+        border-radius: 16px;
+        display: block;
+        cursor: none;
+        touch-action: none;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-6 max-w-md w-full text-center">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-white">⭐ Catch!</h1>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Hub</a
+        >
+      </div>
+
+      <div class="flex justify-between text-white text-center mb-4">
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Score</div>
+          <div class="text-2xl font-bold" id="scoreDisplay">0</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Lives</div>
+          <div class="text-2xl font-bold" id="livesDisplay">❤️❤️❤️</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Level</div>
+          <div class="text-2xl font-bold" id="levelDisplay">1</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Best</div>
+          <div class="text-2xl font-bold" id="bestDisplay">—</div>
+        </div>
+      </div>
+
+      <canvas
+        id="gameCanvas"
+        width="380"
+        height="450"
+        style="background: linear-gradient(180deg, #0d0d2b, #1a0050)"
+      ></canvas>
+
+      <div id="overlay" class="mt-3">
+        <button
+          onclick="startGame()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-8 rounded-xl transition"
+        >
+          ▶ Start
+        </button>
+      </div>
+      <p class="text-white/50 text-xs mt-2">
+        Move mouse / touch to catch falling stars!
+      </p>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width,
+        H = canvas.height;
+
+      const ITEMS = [
+        { emoji: "⭐", points: 1 },
+        { emoji: "💎", points: 3 },
+        { emoji: "🌙", points: 2 },
+        { emoji: "💫", points: 1 },
+        { emoji: "☄️", points: 5 },
+        { emoji: "💣", points: -2, bomb: true },
+      ];
+
+      let items = [],
+        basketX = W / 2,
+        score = 0,
+        lives = 3,
+        level = 1;
+      let gameRunning = false,
+        frameId,
+        frameCount = 0,
+        spawnTimer = 0;
+      let particles = [];
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      const BWIDTH = 60,
+        BHEIGHT = 20;
+      const BY = H - 30;
+
+      function spawnItem() {
+        const template =
+          ITEMS[
+            Math.floor(
+              Math.random() * (level > 3 ? ITEMS.length : ITEMS.length - 1),
+            )
+          ];
+        items.push({
+          x: 20 + Math.random() * (W - 40),
+          y: -20,
+          vy: 1.5 + Math.random() * 1 + level * 0.2,
+          size: 24,
+          emoji: template.emoji,
+          points: template.points,
+          bomb: template.bomb || false,
+          rotation: Math.random() * Math.PI * 2,
+        });
+      }
+
+      function gameLoop() {
+        ctx.clearRect(0, 0, W, H);
+        frameCount++;
+        spawnTimer++;
+        const spawnRate = Math.max(20, 55 - level * 4);
+        if (spawnTimer >= spawnRate) {
+          spawnItem();
+          spawnTimer = 0;
+        }
+        if (frameCount % 400 === 0) {
+          level++;
+          document.getElementById("levelDisplay").textContent = level;
+          showToast(`⬆️ Level ${level}!`, 1500);
+        }
+
+        // Draw basket
+        ctx.save();
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.strokeStyle = "rgba(255,255,255,0.6)";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(
+          basketX - BWIDTH / 2,
+          BY - BHEIGHT / 2,
+          BWIDTH,
+          BHEIGHT,
+          8,
+        );
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.fillRect(
+          basketX - BWIDTH / 2 + 4,
+          BY - BHEIGHT / 2 + 4,
+          BWIDTH - 8,
+          BHEIGHT - 8,
+        );
+        ctx.restore();
+
+        // Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.y += p.vy;
+          p.x += p.vx;
+          p.life -= 0.04;
+          p.r += 0.5;
+          ctx.globalAlpha = p.life;
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.globalAlpha = 1;
+          if (p.life <= 0) particles.splice(i, 1);
+        }
+
+        // Items
+        ctx.font = "24px serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        for (let i = items.length - 1; i >= 0; i--) {
+          const it = items[i];
+          it.y += it.vy;
+          it.rotation += 0.03;
+          ctx.save();
+          ctx.translate(it.x, it.y);
+          ctx.rotate(it.rotation);
+          ctx.fillText(it.emoji, 0, 0);
+          ctx.restore();
+
+          // Check catch
+          if (
+            it.y >= BY - BHEIGHT / 2 - 10 &&
+            it.y <= BY + BHEIGHT / 2 + 10 &&
+            Math.abs(it.x - basketX) < BWIDTH / 2 + 8
+          ) {
+            items.splice(i, 1);
+            if (it.bomb) {
+              lives--;
+              document.getElementById("livesDisplay").textContent =
+                "❤️".repeat(Math.max(0, lives)) +
+                "🖤".repeat(Math.max(0, 3 - lives));
+              showToast("💣 Caught a bomb! -1 life", 1500);
+              for (let j = 0; j < 8; j++)
+                particles.push({
+                  x: it.x,
+                  y: BY,
+                  vx: (Math.random() - 0.5) * 4,
+                  vy: -Math.random() * 3,
+                  life: 1,
+                  r: 3,
+                  color: "#ef4444",
+                });
+            } else {
+              score += it.points;
+              document.getElementById("scoreDisplay").textContent = score;
+              for (let j = 0; j < 6; j++)
+                particles.push({
+                  x: it.x,
+                  y: BY,
+                  vx: (Math.random() - 0.5) * 3,
+                  vy: -Math.random() * 3,
+                  life: 1,
+                  r: 3,
+                  color: "#facc15",
+                });
+            }
+            if (lives <= 0) {
+              endGame();
+              return;
+            }
+            continue;
+          }
+          // Missed
+          if (it.y > H + 20) {
+            items.splice(i, 1);
+            if (!it.bomb) {
+              lives--;
+              document.getElementById("livesDisplay").textContent =
+                "❤️".repeat(Math.max(0, lives)) +
+                "🖤".repeat(Math.max(0, 3 - lives));
+              showToast("💨 Missed! -1 life", 1500);
+              if (lives <= 0) {
+                endGame();
+                return;
+              }
+            }
+          }
+        }
+
+        frameId = requestAnimationFrame(gameLoop);
+      }
+
+      canvas.addEventListener("mousemove", (e) => {
+        const rect = canvas.getBoundingClientRect();
+        basketX = Math.max(
+          BWIDTH / 2,
+          Math.min(W - BWIDTH / 2, (e.clientX - rect.left) * (W / rect.width)),
+        );
+      });
+      canvas.addEventListener(
+        "touchmove",
+        (e) => {
+          e.preventDefault();
+          const rect = canvas.getBoundingClientRect();
+          basketX = Math.max(
+            BWIDTH / 2,
+            Math.min(
+              W - BWIDTH / 2,
+              (e.touches[0].clientX - rect.left) * (W / rect.width),
+            ),
+          );
+        },
+        { passive: false },
+      );
+
+      function startGame() {
+        items = [];
+        particles = [];
+        score = 0;
+        lives = 3;
+        level = 1;
+        frameCount = 0;
+        spawnTimer = 0;
+        basketX = W / 2;
+        gameRunning = true;
+        document.getElementById("scoreDisplay").textContent = "0";
+        document.getElementById("livesDisplay").textContent = "❤️❤️❤️";
+        document.getElementById("levelDisplay").textContent = "1";
+        document.getElementById("overlay").innerHTML = "";
+        const best = localStorage.getItem("catchgameBest");
+        document.getElementById("bestDisplay").textContent = best || "—";
+        cancelAnimationFrame(frameId);
+        gameLoop();
+      }
+
+      function endGame() {
+        gameRunning = false;
+        cancelAnimationFrame(frameId);
+        const best = parseInt(localStorage.getItem("catchgameBest")) || 0;
+        if (score > best) localStorage.setItem("catchgameBest", score);
+        document.getElementById("bestDisplay").textContent = Math.max(
+          score,
+          best,
+        );
+        showToast(`⭐ Game Over! Score: ${score}`, 3000);
+
+        ctx.fillStyle = "rgba(0,0,0,0.7)";
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 28px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Game Over!", W / 2, H / 2 - 20);
+        ctx.font = "20px sans-serif";
+        ctx.fillText(`Score: ${score}`, W / 2, H / 2 + 15);
+        document.getElementById("overlay").innerHTML =
+          `<button onclick="startGame()" class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-8 rounded-xl transition mt-2">🔄 Play Again</button>`;
+      }
+
+      const b = localStorage.getItem("catchgameBest");
+      if (b) document.getElementById("bestDisplay").textContent = b;
+    </script>
+  </body>
+</html>

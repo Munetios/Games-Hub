@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Number Guess - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #4e54c8 0%, #8f94fb 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      #guessInput {
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        font-size: 2rem;
+        font-weight: 700;
+        text-align: center;
+        width: 100%;
+        padding: 0.75rem;
+        border-radius: 12px;
+        outline: none;
+      }
+      #guessInput:focus {
+        border-color: rgba(255, 255, 255, 0.7);
+      }
+      #guessInput::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 400;
+        font-size: 1.1rem;
+      }
+      .temp-bar {
+        height: 12px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.15);
+        overflow: hidden;
+      }
+      .temp-fill {
+        height: 100%;
+        border-radius: 6px;
+        transition: all 0.5s;
+      }
+      .guess-item {
+        padding: 0.4rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        display: inline-block;
+        margin: 3px;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-8 max-w-md w-full text-center">
+      <h1 class="text-4xl font-bold text-white mb-2">🔮 Number Guess</h1>
+
+      <div class="flex gap-3 justify-center mb-5">
+        <button
+          onclick="setMode('easy')"
+          id="btn-easy"
+          class="px-4 py-1 rounded-full text-white text-sm font-semibold transition bg-white/30"
+        >
+          Easy (1–50)
+        </button>
+        <button
+          onclick="setMode('medium')"
+          id="btn-medium"
+          class="px-4 py-1 rounded-full text-white text-sm font-semibold transition bg-white/10"
+        >
+          Medium (1–100)
+        </button>
+        <button
+          onclick="setMode('hard')"
+          id="btn-hard"
+          class="px-4 py-1 rounded-full text-white text-sm font-semibold transition bg-white/10"
+        >
+          Hard (1–200)
+        </button>
+      </div>
+
+      <div class="flex justify-between text-white text-center mb-5">
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Attempts</div>
+          <div class="text-2xl font-bold" id="attemptsDisplay">0 / 10</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Best (fewest)</div>
+          <div class="text-2xl font-bold" id="bestDisplay">—</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Wins</div>
+          <div class="text-2xl font-bold" id="winsDisplay">0</div>
+        </div>
+      </div>
+
+      <div class="temp-bar mb-2">
+        <div
+          class="temp-fill bg-gradient-to-r from-blue-400 to-blue-400"
+          id="tempFill"
+          style="width: 50%"
+        ></div>
+      </div>
+      <div class="text-white/70 text-sm mb-5" id="tempLabel">
+        ❄️ Cold · Range: <span id="rangeLabel">1 – 100</span>
+      </div>
+
+      <input
+        id="guessInput"
+        type="number"
+        placeholder="Enter your guess"
+        min="1"
+        max="200"
+      />
+
+      <div class="flex gap-3 justify-center mt-4 mb-4">
+        <button
+          onclick="makeGuess()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          Guess!
+        </button>
+        <button
+          onclick="newGame()"
+          class="bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          🔄 New
+        </button>
+        <a
+          href="index.html"
+          class="bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-5 rounded-lg transition"
+          >← Hub</a
+        >
+      </div>
+
+      <div id="guessHistory" class="flex flex-wrap justify-center gap-1"></div>
+    </div>
+
+    <script>
+      let secret,
+        maxGuesses = 10,
+        attempts = 0,
+        mode = "medium",
+        wins = 0,
+        lo = 1,
+        hi = 100;
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function setMode(m) {
+        mode = m;
+        ["easy", "medium", "hard"].forEach((id) => {
+          document.getElementById(`btn-${id}`).className =
+            `px-4 py-1 rounded-full text-white text-sm font-semibold transition ${id === m ? "bg-white/30" : "bg-white/10"}`;
+        });
+        hi = m === "easy" ? 50 : m === "medium" ? 100 : 200;
+        document.getElementById("rangeLabel").textContent = `1 – ${hi}`;
+        newGame();
+      }
+
+      function newGame() {
+        secret = Math.floor(Math.random() * hi) + 1;
+        attempts = 0;
+        lo = 1;
+        document.getElementById("attemptsDisplay").textContent =
+          `0 / ${maxGuesses}`;
+        document.getElementById("tempFill").style.width = "50%";
+        document.getElementById("tempFill").className =
+          "temp-fill bg-gradient-to-r from-blue-400 to-blue-400";
+        document.getElementById("tempLabel").innerHTML =
+          `❄️ Cold · Range: <span id="rangeLabel">1 – ${hi}</span>`;
+        document.getElementById("guessHistory").innerHTML = "";
+        document.getElementById("guessInput").value = "";
+        document.getElementById("guessInput").disabled = false;
+        document.getElementById("guessInput").focus();
+        const best = localStorage.getItem(`numguessBest_${mode}`);
+        document.getElementById("bestDisplay").textContent = best || "—";
+      }
+
+      function getTemp(guess) {
+        const dist = Math.abs(guess - secret);
+        const range = hi - lo;
+        if (dist === 0) return 100;
+        const pct = 1 - (dist / range) * 2;
+        return Math.max(0, Math.min(100, Math.round(pct * 100)));
+      }
+
+      function makeGuess() {
+        const inp = document.getElementById("guessInput");
+        const g = parseInt(inp.value);
+        if (isNaN(g) || g < 1 || g > hi) {
+          showToast(`Enter a number between 1 and ${hi}`, 2000);
+          return;
+        }
+        inp.value = "";
+
+        attempts++;
+        document.getElementById("attemptsDisplay").textContent =
+          `${attempts} / ${maxGuesses}`;
+
+        const temp = getTemp(g);
+        const fill = document.getElementById("tempFill");
+        fill.style.width = temp + "%";
+
+        // Color: cold (blue) → warm (yellow) → hot (red)
+        const r = temp < 50 ? Math.round((temp * 2 * 250) / 100) : 250;
+        const b = temp < 50 ? 250 : Math.round(((100 - temp) * 2 * 250) / 100);
+        fill.style.background = `rgb(${r}, 100, ${b})`;
+
+        let label, emoji;
+        if (temp === 100) {
+          emoji = "🔥";
+          label = "CORRECT!";
+        } else if (temp >= 80) {
+          emoji = "🔥";
+          label = "Burning hot!";
+        } else if (temp >= 60) {
+          emoji = "♨️";
+          label = "Very warm!";
+        } else if (temp >= 40) {
+          emoji = "☀️";
+          label = "Getting warmer";
+        } else if (temp >= 20) {
+          emoji = "🌡️";
+          label = "Cool...";
+        } else {
+          emoji = "❄️";
+          label = "Ice cold!";
+        }
+
+        if (g < secret) lo = Math.max(lo, g + 1);
+        else if (g > secret) hi = Math.min(hi, g - 1);
+
+        document.getElementById("tempLabel").innerHTML =
+          `${emoji} ${label} · Range: <span id="rangeLabel">${lo} – ${hi}</span>`;
+
+        const badge = document.createElement("span");
+        badge.className = `guess-item ${g === secret ? "bg-green-500/40" : g < secret ? "bg-blue-500/30" : "bg-red-400/30"} text-white`;
+        badge.textContent = `${g} ${g < secret ? "↑" : g > secret ? "↓" : "✓"}`;
+        document.getElementById("guessHistory").appendChild(badge);
+
+        if (g === secret) {
+          wins++;
+          document.getElementById("winsDisplay").textContent = wins;
+          const best =
+            parseInt(localStorage.getItem(`numguessBest_${mode}`)) || Infinity;
+          if (attempts < best)
+            localStorage.setItem(`numguessBest_${mode}`, attempts);
+          document.getElementById("bestDisplay").textContent = Math.min(
+            attempts,
+            best === Infinity ? attempts : best,
+          );
+          showToast(
+            `🎉 Correct! The number was ${secret}. Guessed in ${attempts} tries!`,
+            4000,
+          );
+          inp.disabled = true;
+          setTimeout(newGame, 3000);
+        } else if (attempts >= maxGuesses) {
+          showToast(`💀 Out of guesses! The number was ${secret}`, 4000);
+          inp.disabled = true;
+          setTimeout(newGame, 3000);
+        } else {
+          showToast(`${emoji} ${label} — Try again!`, 1500);
+        }
+      }
+
+      document.getElementById("guessInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") makeGuess();
+      });
+
+      setMode("medium");
+    </script>
+  </body>
+</html>

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bubble Pop - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #005c97 0%, #363795 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      #gameCanvas {
+        border-radius: 16px;
+        cursor: crosshair;
+        display: block;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-6 max-w-md w-full text-center">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-white">🫧 Bubble Pop</h1>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Hub</a
+        >
+      </div>
+
+      <div class="flex justify-between text-white text-center mb-4">
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Score</div>
+          <div class="text-2xl font-bold" id="scoreDisplay">0</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Lives</div>
+          <div class="text-2xl font-bold" id="livesDisplay">❤️❤️❤️</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Best</div>
+          <div class="text-2xl font-bold" id="bestDisplay">—</div>
+        </div>
+      </div>
+
+      <canvas
+        id="gameCanvas"
+        width="380"
+        height="420"
+        style="background: rgba(0, 0, 20, 0.6)"
+      ></canvas>
+
+      <div id="overlay" class="mt-4">
+        <button
+          id="startBtn"
+          onclick="startGame()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-8 rounded-xl transition"
+        >
+          ▶ Start
+        </button>
+      </div>
+      <p class="text-white/50 text-xs mt-2">
+        Click/tap bubbles before they reach the top!
+      </p>
+    </div>
+
+    <script>
+      const canvas = document.getElementById("gameCanvas");
+      const ctx = canvas.getContext("2d");
+      const W = canvas.width,
+        H = canvas.height;
+
+      let bubbles = [],
+        score = 0,
+        lives = 3,
+        gameRunning = false;
+      let spawnTimer = 0,
+        frameId,
+        difficulty = 1,
+        frameCount = 0;
+
+      const COLORS = [
+        "#ef4444",
+        "#f97316",
+        "#facc15",
+        "#4ade80",
+        "#60a5fa",
+        "#c084fc",
+        "#f472b6",
+        "#34d399",
+      ];
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function spawnBubble() {
+        const r = 18 + Math.random() * 20;
+        bubbles.push({
+          x: r + Math.random() * (W - r * 2),
+          y: H + r,
+          r,
+          vy: -(0.5 + Math.random() * 0.5 + difficulty * 0.1),
+          vx: (Math.random() - 0.5) * 0.4,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          alpha: 1,
+          popping: false,
+          popFrame: 0,
+          points: Math.max(1, Math.round(20 / r)),
+        });
+      }
+
+      function drawBubble(b) {
+        ctx.save();
+        ctx.globalAlpha = b.alpha;
+        // Shadow glow
+        ctx.shadowColor = b.color;
+        ctx.shadowBlur = 12;
+        // Bubble gradient
+        const g = ctx.createRadialGradient(
+          b.x - b.r * 0.3,
+          b.y - b.r * 0.3,
+          b.r * 0.1,
+          b.x,
+          b.y,
+          b.r,
+        );
+        g.addColorStop(0, "rgba(255,255,255,0.7)");
+        g.addColorStop(0.4, b.color + "bb");
+        g.addColorStop(1, b.color + "44");
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = b.color;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        // Points text
+        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.font = `bold ${Math.round(b.r * 0.7)}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(`+${b.points}`, b.x, b.y);
+        ctx.restore();
+      }
+
+      function gameLoop() {
+        ctx.clearRect(0, 0, W, H);
+        frameCount++;
+        spawnTimer++;
+        const spawnRate = Math.max(30, 70 - difficulty * 5);
+        if (spawnTimer >= spawnRate) {
+          spawnBubble();
+          spawnTimer = 0;
+        }
+        if (frameCount % 300 === 0) difficulty += 0.5;
+
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+          const b = bubbles[i];
+          if (b.popping) {
+            b.popFrame++;
+            b.r += 3;
+            b.alpha -= 0.15;
+            if (b.alpha <= 0) {
+              bubbles.splice(i, 1);
+              continue;
+            }
+          } else {
+            b.y += b.vy;
+            b.x += b.vx;
+            if (b.x - b.r < 0 || b.x + b.r > W) b.vx *= -1;
+            if (b.y + b.r < 0) {
+              bubbles.splice(i, 1);
+              lives--;
+              document.getElementById("livesDisplay").textContent =
+                "❤️".repeat(Math.max(0, lives)) +
+                "🖤".repeat(Math.max(0, 3 - lives));
+              if (lives <= 0) {
+                endGame();
+                return;
+              }
+              showToast("💨 Bubble escaped! -1 life", 1500);
+              continue;
+            }
+          }
+          drawBubble(b);
+        }
+
+        frameId = requestAnimationFrame(gameLoop);
+      }
+
+      function handleClick(e) {
+        if (!gameRunning) return;
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = W / rect.width;
+        const scaleY = H / rect.height;
+        const cx = (e.clientX - rect.left) * scaleX;
+        const cy = (e.clientY - rect.top) * scaleY;
+
+        for (let i = bubbles.length - 1; i >= 0; i--) {
+          const b = bubbles[i];
+          if (!b.popping && Math.hypot(cx - b.x, cy - b.y) <= b.r) {
+            b.popping = true;
+            score += b.points;
+            document.getElementById("scoreDisplay").textContent = score;
+            break;
+          }
+        }
+      }
+
+      canvas.addEventListener("click", handleClick);
+      canvas.addEventListener(
+        "touchstart",
+        (e) => {
+          e.preventDefault();
+          handleClick(e.touches[0]);
+        },
+        { passive: false },
+      );
+
+      function startGame() {
+        bubbles = [];
+        score = 0;
+        lives = 3;
+        difficulty = 1;
+        frameCount = 0;
+        spawnTimer = 0;
+        gameRunning = true;
+        document.getElementById("scoreDisplay").textContent = "0";
+        document.getElementById("livesDisplay").textContent = "❤️❤️❤️";
+        document.getElementById("overlay").innerHTML = "";
+        const best = localStorage.getItem("bubblepopBest");
+        document.getElementById("bestDisplay").textContent = best || "—";
+        cancelAnimationFrame(frameId);
+        gameLoop();
+      }
+
+      function endGame() {
+        gameRunning = false;
+        cancelAnimationFrame(frameId);
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 32px sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("Game Over!", W / 2, H / 2 - 20);
+        ctx.font = "24px sans-serif";
+        ctx.fillText(`Score: ${score}`, W / 2, H / 2 + 20);
+
+        const best = parseInt(localStorage.getItem("bubblepopBest")) || 0;
+        if (score > best) localStorage.setItem("bubblepopBest", score);
+        document.getElementById("bestDisplay").textContent = Math.max(
+          score,
+          best,
+        );
+
+        showToast(`💥 Game Over! Score: ${score}`, 3000);
+        document.getElementById("overlay").innerHTML =
+          `<button onclick="startGame()" class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-8 rounded-xl transition mt-2">🔄 Play Again</button>`;
+      }
+
+      // Show best on load
+      const b = localStorage.getItem("bubblepopBest");
+      if (b) document.getElementById("bestDisplay").textContent = b;
+      // Draw idle screen
+      ctx.fillStyle = "rgba(255,255,255,0.1)";
+      ctx.font = "18px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Press Start to play!", W / 2, H / 2);
+    </script>
+  </body>
+</html>

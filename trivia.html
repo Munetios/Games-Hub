@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trivia Quiz - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(
+          135deg,
+          #1a1a2e 0%,
+          #16213e 50%,
+          #0f3460 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .option-btn {
+        width: 100%;
+        text-align: left;
+        padding: 0.875rem 1.25rem;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        color: white;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.25s;
+      }
+      .option-btn:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateX(4px);
+      }
+      .option-btn.correct {
+        background: rgba(74, 222, 128, 0.25);
+        border-color: #4ade80;
+      }
+      .option-btn.wrong {
+        background: rgba(248, 113, 113, 0.25);
+        border-color: #f87171;
+      }
+      .progress-bar {
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: width 0.3s;
+      }
+      .timer-bar {
+        height: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .timer-fill {
+        height: 100%;
+        border-radius: 3px;
+        background: #4ade80;
+        transition: width 0.1s linear;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-8 max-w-xl w-full">
+      <!-- Start Screen -->
+      <div id="startScreen" class="text-center">
+        <div class="text-6xl mb-4">❓</div>
+        <h1 class="text-4xl font-bold text-white mb-3">Trivia Quiz</h1>
+        <p class="text-white/70 mb-6">10 questions · 15 seconds each</p>
+        <div class="mb-4">
+          <div class="text-white/60 text-sm mb-1">Best Score</div>
+          <div class="text-3xl font-bold text-yellow-300" id="bestScore">—</div>
+        </div>
+        <button
+          onclick="startQuiz()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-8 rounded-xl transition text-lg w-full mb-3"
+        >
+          ▶ Start Quiz
+        </button>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Back to Hub</a
+        >
+      </div>
+
+      <!-- Quiz Screen -->
+      <div id="quizScreen" class="hidden">
+        <div class="flex justify-between items-center mb-4">
+          <span class="text-white/70 text-sm font-semibold" id="questionNum"
+            >Q 1 / 10</span
+          >
+          <span class="text-white font-bold" id="scoreDisplay">Score: 0</span>
+        </div>
+        <div class="progress-bar mb-1">
+          <div class="progress-fill" id="progressFill" style="width: 10%"></div>
+        </div>
+        <div class="timer-bar mb-5">
+          <div class="timer-fill" id="timerFill" style="width: 100%"></div>
+        </div>
+        <div
+          class="text-white text-lg font-semibold mb-5 min-h-16"
+          id="questionText"
+        ></div>
+        <div class="space-y-3" id="optionsContainer"></div>
+      </div>
+
+      <!-- Results Screen -->
+      <div id="resultsScreen" class="hidden text-center">
+        <div class="text-6xl mb-4" id="resultEmoji">🏆</div>
+        <h2 class="text-3xl font-bold text-white mb-2">Quiz Complete!</h2>
+        <div
+          class="text-5xl font-bold text-yellow-300 mb-2"
+          id="finalScore"
+        ></div>
+        <div class="text-white/60 mb-6" id="finalSubtitle"></div>
+        <button
+          onclick="startQuiz()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-6 rounded-xl transition w-full mb-3"
+        >
+          🔄 Play Again
+        </button>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Back to Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      const questions = [
+        {
+          q: "What is the capital of France?",
+          opts: ["Berlin", "Madrid", "Paris", "Rome"],
+          a: 2,
+        },
+        {
+          q: "How many planets are in our solar system?",
+          opts: ["7", "8", "9", "10"],
+          a: 1,
+        },
+        {
+          q: "What is the largest ocean on Earth?",
+          opts: ["Atlantic", "Indian", "Arctic", "Pacific"],
+          a: 3,
+        },
+        {
+          q: "Which element has the chemical symbol 'O'?",
+          opts: ["Gold", "Oxygen", "Osmium", "Oganesson"],
+          a: 1,
+        },
+        {
+          q: "Who painted the Mona Lisa?",
+          opts: ["Picasso", "Van Gogh", "Leonardo da Vinci", "Michelangelo"],
+          a: 2,
+        },
+        { q: "What is 12 × 13?", opts: ["144", "156", "168", "152"], a: 1 },
+        {
+          q: "Which country has the most natural lakes?",
+          opts: ["Russia", "Brazil", "USA", "Canada"],
+          a: 3,
+        },
+        {
+          q: "What is the speed of light (approx)?",
+          opts: [
+            "150,000 km/s",
+            "300,000 km/s",
+            "500,000 km/s",
+            "1,000,000 km/s",
+          ],
+          a: 1,
+        },
+        {
+          q: "In what year did the first iPhone launch?",
+          opts: ["2005", "2006", "2007", "2008"],
+          a: 2,
+        },
+        {
+          q: "What is the smallest prime number?",
+          opts: ["0", "1", "2", "3"],
+          a: 2,
+        },
+        {
+          q: "Which planet is closest to the Sun?",
+          opts: ["Venus", "Earth", "Mercury", "Mars"],
+          a: 2,
+        },
+        {
+          q: "What language is most spoken worldwide (by native speakers)?",
+          opts: ["English", "Spanish", "Hindi", "Mandarin"],
+          a: 3,
+        },
+        {
+          q: "How many sides does a hexagon have?",
+          opts: ["5", "6", "7", "8"],
+          a: 1,
+        },
+        {
+          q: "Which animal is the fastest on land?",
+          opts: ["Lion", "Leopard", "Cheetah", "Horse"],
+          a: 2,
+        },
+        {
+          q: "What is the chemical formula for water?",
+          opts: ["HO", "H2O", "H3O", "OH2"],
+          a: 1,
+        },
+      ];
+
+      let shuffled = [],
+        current = 0,
+        score = 0,
+        timerInterval = null;
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function startQuiz() {
+        shuffled = [...questions].sort(() => Math.random() - 0.5).slice(0, 10);
+        current = 0;
+        score = 0;
+        document.getElementById("startScreen").classList.add("hidden");
+        document.getElementById("resultsScreen").classList.add("hidden");
+        document.getElementById("quizScreen").classList.remove("hidden");
+        loadQuestion();
+        const best = localStorage.getItem("triviaHigh");
+        document.getElementById("bestScore").textContent = best || "—";
+      }
+
+      function loadQuestion() {
+        clearInterval(timerInterval);
+        const q = shuffled[current];
+        document.getElementById("questionNum").textContent =
+          `Q ${current + 1} / 10`;
+        document.getElementById("scoreDisplay").textContent = `Score: ${score}`;
+        document.getElementById("progressFill").style.width =
+          `${(current + 1) * 10}%`;
+        document.getElementById("questionText").textContent = q.q;
+
+        const opts = document.getElementById("optionsContainer");
+        opts.innerHTML = q.opts
+          .map(
+            (opt, i) =>
+              `<button class="option-btn" onclick="answer(${i})">${String.fromCharCode(65 + i)}. ${opt}</button>`,
+          )
+          .join("");
+
+        let timeLeft = 15;
+        document.getElementById("timerFill").style.width = "100%";
+        document.getElementById("timerFill").style.background = "#4ade80";
+        timerInterval = setInterval(() => {
+          timeLeft -= 0.1;
+          const pct = (timeLeft / 15) * 100;
+          document.getElementById("timerFill").style.width = pct + "%";
+          if (timeLeft <= 5)
+            document.getElementById("timerFill").style.background = "#f87171";
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timeUp();
+          }
+        }, 100);
+      }
+
+      function answer(chosen) {
+        clearInterval(timerInterval);
+        const q = shuffled[current];
+        document.querySelectorAll(".option-btn").forEach((btn, i) => {
+          btn.disabled = true;
+          if (i === q.a) btn.classList.add("correct");
+          else if (i === chosen && chosen !== q.a) btn.classList.add("wrong");
+        });
+        if (chosen === q.a) {
+          score++;
+          showToast("✅ Correct!", 1200);
+        } else {
+          showToast(`❌ Wrong! Answer: ${q.opts[q.a]}`, 2000);
+        }
+        setTimeout(nextQuestion, 1400);
+      }
+
+      function timeUp() {
+        const q = shuffled[current];
+        document.querySelectorAll(".option-btn").forEach((btn, i) => {
+          btn.disabled = true;
+          if (i === q.a) btn.classList.add("correct");
+        });
+        showToast("⏱️ Time's up!", 1500);
+        setTimeout(nextQuestion, 1500);
+      }
+
+      function nextQuestion() {
+        current++;
+        if (current >= 10) {
+          endQuiz();
+          return;
+        }
+        loadQuestion();
+      }
+
+      function endQuiz() {
+        document.getElementById("quizScreen").classList.add("hidden");
+        document.getElementById("resultsScreen").classList.remove("hidden");
+        document.getElementById("finalScore").textContent = `${score} / 10`;
+        const emojis = ["😅", "😐", "🙂", "😊", "😄", "🎉"];
+        const idx = Math.min(Math.floor(score / 2), 5);
+        document.getElementById("resultEmoji").textContent = emojis[idx];
+        const messages = [
+          "Keep trying!",
+          "Not bad!",
+          "Good effort!",
+          "Well done!",
+          "Great job!",
+          "Perfect score!",
+        ];
+        document.getElementById("finalSubtitle").textContent = messages[idx];
+
+        const best = parseInt(localStorage.getItem("triviaHigh")) || 0;
+        if (score > best) {
+          localStorage.setItem("triviaHigh", score);
+          showToast(`🏆 New High Score: ${score}/10!`, 3000);
+        } else {
+          showToast(`Quiz done! Score: ${score}/10`, 2500);
+        }
+        document.getElementById("bestScore").textContent = Math.max(
+          score,
+          best,
+        );
+      }
+
+      // Show best on load
+      const b = localStorage.getItem("triviaHigh");
+      if (b) document.getElementById("bestScore").textContent = b;
+    </script>
+  </body>
+</html>

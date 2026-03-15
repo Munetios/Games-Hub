@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Math Duel - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .ans-btn {
+        padding: 1rem;
+        font-size: 1.5rem;
+        font-weight: 700;
+        border-radius: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .ans-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: scale(1.05);
+      }
+      .ans-btn.correct {
+        background: rgba(74, 222, 128, 0.3);
+        border-color: #4ade80;
+      }
+      .ans-btn.wrong {
+        background: rgba(248, 113, 113, 0.3);
+        border-color: #f87171;
+      }
+      #timer-bar {
+        height: 8px;
+        border-radius: 4px;
+        background: rgba(255, 255, 255, 0.2);
+      }
+      #timer-fill {
+        height: 100%;
+        border-radius: 4px;
+        background: #fff;
+        transition: width 0.1s linear;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+      @keyframes shake {
+        0%,
+        100% {
+          transform: translateX(0);
+        }
+        25% {
+          transform: translateX(-8px);
+        }
+        75% {
+          transform: translateX(8px);
+        }
+      }
+      .shake {
+        animation: shake 0.3s ease;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-8 max-w-md w-full text-center">
+      <!-- Start Screen -->
+      <div id="startScreen">
+        <div class="text-6xl mb-4">➕</div>
+        <h1 class="text-4xl font-bold text-white mb-2">Math Duel</h1>
+        <p class="text-white/70 mb-6">
+          Answer math problems fast! 5 seconds each.
+        </p>
+        <div class="mb-6">
+          <label class="text-white/80 font-semibold mb-2 block"
+            >Difficulty</label
+          >
+          <select
+            id="difficulty"
+            class="w-full p-3 rounded-xl bg-white/20 text-white border border-white/30 font-semibold"
+          >
+            <option value="easy">🟢 Easy (1–10)</option>
+            <option value="medium" selected>🟡 Medium (1–20)</option>
+            <option value="hard">🔴 Hard (1–50)</option>
+          </select>
+        </div>
+        <div class="text-white/60 mb-4 text-sm">
+          Best Streak:
+          <span id="bestStreak" class="text-yellow-300 font-bold">—</span>
+        </div>
+        <button
+          onclick="startGame()"
+          class="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-3 px-6 rounded-xl transition text-lg mb-3"
+        >
+          ▶ Start!
+        </button>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Back to Hub</a
+        >
+      </div>
+
+      <!-- Game Screen -->
+      <div id="gameScreen" class="hidden">
+        <div class="flex justify-between items-center mb-4 text-white">
+          <div class="bg-white/15 rounded-lg px-3 py-1 text-sm">
+            Streak: <span class="font-bold text-yellow-300" id="streak">0</span>
+          </div>
+          <div class="bg-white/15 rounded-lg px-3 py-1 text-sm">
+            Score: <span class="font-bold" id="score">0</span>
+          </div>
+          <div class="bg-white/15 rounded-lg px-3 py-1 text-sm">
+            Lives: <span id="lives">❤️❤️❤️</span>
+          </div>
+        </div>
+        <div id="timer-bar" class="mb-5">
+          <div id="timer-fill" style="width: 100%"></div>
+        </div>
+        <div class="text-5xl font-bold text-white mb-8" id="question">?</div>
+        <div class="grid grid-cols-2 gap-3" id="answers"></div>
+      </div>
+
+      <!-- End Screen -->
+      <div id="endScreen" class="hidden">
+        <div class="text-6xl mb-4" id="endEmoji">💥</div>
+        <h2 class="text-3xl font-bold text-white mb-2">Game Over!</h2>
+        <div class="text-white/70 mb-4">
+          <div>
+            Score:
+            <span class="text-white font-bold text-2xl" id="finalScore">0</span>
+          </div>
+          <div>
+            Best Streak:
+            <span class="text-yellow-300 font-bold" id="finalStreak">0</span>
+          </div>
+        </div>
+        <button
+          onclick="startGame()"
+          class="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-3 rounded-xl transition mb-3"
+        >
+          🔄 Play Again
+        </button>
+        <button
+          onclick="
+            document.getElementById('endScreen').classList.add('hidden');
+            document.getElementById('startScreen').classList.remove('hidden');
+          "
+          class="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 rounded-xl transition text-sm"
+        >
+          Menu
+        </button>
+      </div>
+    </div>
+
+    <script>
+      let score = 0,
+        streak = 0,
+        lives = 3,
+        timerInterval,
+        correct = 0,
+        timeLeft = 5;
+      let diff = "medium";
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function startGame() {
+        diff = document.getElementById("difficulty").value;
+        score = 0;
+        streak = 0;
+        lives = 3;
+        document.getElementById("startScreen").classList.add("hidden");
+        document.getElementById("endScreen").classList.add("hidden");
+        document.getElementById("gameScreen").classList.remove("hidden");
+        updateHUD();
+        nextQuestion();
+        const best = localStorage.getItem(`mathBest_${diff}`);
+        document.getElementById("bestStreak").textContent = best || "—";
+      }
+
+      function updateHUD() {
+        document.getElementById("score").textContent = score;
+        document.getElementById("streak").textContent = streak;
+        document.getElementById("lives").textContent =
+          "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+      }
+
+      function getRangeMax() {
+        return diff === "easy" ? 10 : diff === "medium" ? 20 : 50;
+      }
+
+      function nextQuestion() {
+        clearInterval(timerInterval);
+        const max = getRangeMax();
+        const ops = ["+", "-", "×"];
+        const op = ops[Math.floor(Math.random() * (diff === "easy" ? 2 : 3))];
+        let a = Math.floor(Math.random() * max) + 1;
+        let b = Math.floor(Math.random() * max) + 1;
+        if (op === "-" && b > a) [a, b] = [b, a];
+        correct = op === "+" ? a + b : op === "-" ? a - b : a * b;
+        document.getElementById("question").textContent = `${a} ${op} ${b} = ?`;
+
+        // Generate answer options
+        const opts = new Set([correct]);
+        while (opts.size < 4) {
+          const fake = correct + Math.floor(Math.random() * 20) - 10;
+          if (fake !== correct && fake >= 0) opts.add(fake);
+        }
+        const shuffled = Array.from(opts).sort(() => Math.random() - 0.5);
+        document.getElementById("answers").innerHTML = shuffled
+          .map(
+            (v) =>
+              `<button class="ans-btn" onclick="answer(this, ${v})">${v}</button>`,
+          )
+          .join("");
+
+        timeLeft = 5;
+        document.getElementById("timer-fill").style.width = "100%";
+        timerInterval = setInterval(() => {
+          timeLeft -= 0.1;
+          document.getElementById("timer-fill").style.width =
+            (timeLeft / 5) * 100 + "%";
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timeUp();
+          }
+        }, 100);
+      }
+
+      function answer(btn, val) {
+        clearInterval(timerInterval);
+        document
+          .querySelectorAll(".ans-btn")
+          .forEach((b) => (b.disabled = true));
+        if (val === correct) {
+          btn.classList.add("correct");
+          streak++;
+          score += 10 + streak * 2;
+          showToast(`✅ Correct! +${10 + streak * 2}`, 1000);
+          setTimeout(nextQuestion, 900);
+        } else {
+          btn.classList.add("wrong");
+          document.querySelectorAll(".ans-btn").forEach((b) => {
+            if (parseInt(b.textContent) === correct) b.classList.add("correct");
+          });
+          streak = 0;
+          lives--;
+          showToast(`❌ Wrong! Answer was ${correct}`, 1500);
+          if (lives <= 0) {
+            setTimeout(endGame, 1200);
+            return;
+          }
+          setTimeout(nextQuestion, 1200);
+        }
+        updateHUD();
+      }
+
+      function timeUp() {
+        document.querySelectorAll(".ans-btn").forEach((b) => {
+          b.disabled = true;
+          if (parseInt(b.textContent) === correct) b.classList.add("correct");
+        });
+        streak = 0;
+        lives--;
+        showToast(`⏱️ Too slow! Answer: ${correct}`, 1500);
+        updateHUD();
+        if (lives <= 0) {
+          setTimeout(endGame, 1200);
+          return;
+        }
+        setTimeout(nextQuestion, 1200);
+      }
+
+      function endGame() {
+        clearInterval(timerInterval);
+        document.getElementById("gameScreen").classList.add("hidden");
+        document.getElementById("endScreen").classList.remove("hidden");
+        document.getElementById("finalScore").textContent = score;
+        document.getElementById("finalStreak").textContent = streak;
+        document.getElementById("endEmoji").textContent =
+          score >= 100 ? "🏆" : score >= 50 ? "🎉" : "💥";
+
+        const best = parseInt(localStorage.getItem(`mathBest_${diff}`)) || 0;
+        if (score > best) {
+          localStorage.setItem(`mathBest_${diff}`, score);
+          showToast(`🏆 New Best: ${score}!`, 3000);
+        }
+        document.getElementById("bestStreak").textContent = Math.max(
+          score,
+          best,
+        );
+      }
+
+      // Load best
+      const b = localStorage.getItem("mathBest_medium");
+      if (b) document.getElementById("bestStreak").textContent = b;
+    </script>
+  </body>
+</html>

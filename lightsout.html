@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lights Out - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(
+          135deg,
+          #0d0d0d 0%,
+          #1a0533 50%,
+          #0d0d2b 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .light-cell {
+        width: 70px;
+        height: 70px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .light-cell.on {
+        background: #facc15;
+        box-shadow:
+          0 0 18px #facc15,
+          0 0 35px rgba(250, 204, 21, 0.4);
+        border-color: #fde047;
+      }
+      .light-cell.off {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .light-cell:hover {
+        transform: scale(1.08);
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-8 max-w-md w-full text-center">
+      <h1 class="text-4xl font-bold text-white mb-1">💡 Lights Out</h1>
+      <p class="text-white/60 text-sm mb-5">Turn all lights OFF to win!</p>
+
+      <div class="flex justify-between items-center mb-5 text-white">
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Moves</div>
+          <div class="text-2xl font-bold" id="movesDisplay">0</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Level</div>
+          <div class="text-2xl font-bold" id="levelDisplay">1</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Best</div>
+          <div class="text-2xl font-bold" id="bestDisplay">—</div>
+        </div>
+      </div>
+
+      <div
+        id="grid"
+        class="grid gap-2 mx-auto mb-5"
+        style="grid-template-columns: repeat(5, 70px); width: fit-content"
+      ></div>
+
+      <div class="flex gap-3 justify-center">
+        <button
+          onclick="newPuzzle()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-5 rounded-lg transition"
+        >
+          New Puzzle
+        </button>
+        <button
+          onclick="showHint()"
+          class="bg-yellow-500/25 hover:bg-yellow-500/40 text-white font-bold py-2 px-5 rounded-lg transition"
+        >
+          💡 Hint
+        </button>
+        <a
+          href="index.html"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-5 rounded-lg transition"
+          >← Hub</a
+        >
+      </div>
+    </div>
+
+    <script>
+      const SIZE = 5;
+      let grid = [],
+        moves = 0,
+        level = 1;
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function toggle(r, c) {
+        if (r >= 0 && r < SIZE && c >= 0 && c < SIZE) grid[r][c] ^= 1;
+      }
+
+      function click(r, c) {
+        toggle(r, c);
+        toggle(r - 1, c);
+        toggle(r + 1, c);
+        toggle(r, c - 1);
+        toggle(r, c + 1);
+        moves++;
+        document.getElementById("movesDisplay").textContent = moves;
+        render();
+        if (grid.flat().every((v) => v === 0)) {
+          const best =
+            parseInt(localStorage.getItem(`lightsout_best_${level}`)) ||
+            Infinity;
+          if (moves < best)
+            localStorage.setItem(`lightsout_best_${level}`, moves);
+          showToast(`🎉 Level ${level} cleared in ${moves} moves!`, 3000);
+          setTimeout(() => {
+            level++;
+            document.getElementById("levelDisplay").textContent = level;
+            newPuzzle();
+          }, 2000);
+        }
+      }
+
+      function render() {
+        const g = document.getElementById("grid");
+        g.innerHTML = "";
+        const best = localStorage.getItem(`lightsout_best_${level}`);
+        document.getElementById("bestDisplay").textContent = best || "—";
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            const cell = document.createElement("div");
+            cell.className = `light-cell ${grid[r][c] ? "on" : "off"}`;
+            cell.onclick = () => click(r, c);
+            g.appendChild(cell);
+          }
+        }
+      }
+
+      function newPuzzle() {
+        // Generate solvable puzzle by applying random "clicks" from solved state
+        grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(0));
+        const numClicks = 5 + level * 2;
+        for (let i = 0; i < numClicks; i++) {
+          const r = Math.floor(Math.random() * SIZE);
+          const c = Math.floor(Math.random() * SIZE);
+          toggle(r, c);
+          toggle(r - 1, c);
+          toggle(r + 1, c);
+          toggle(r, c - 1);
+          toggle(r, c + 1);
+        }
+        // Make sure not already solved
+        if (grid.flat().every((v) => v === 0)) newPuzzle();
+        moves = 0;
+        document.getElementById("movesDisplay").textContent = "0";
+        render();
+      }
+
+      function showHint() {
+        // Find first lit cell and suggest clicking it
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            if (grid[r][c]) {
+              showToast(`💡 Try clicking row ${r + 1}, column ${c + 1}`, 2500);
+              return;
+            }
+          }
+        }
+        showToast("All lights are off — you won! 🎉", 2000);
+      }
+
+      newPuzzle();
+    </script>
+  </body>
+</html>

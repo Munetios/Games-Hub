@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Color Flood - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      #flood-grid {
+        display: grid;
+        grid-template-columns: repeat(14, 1fr);
+        gap: 2px;
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+      }
+      .grid-cell {
+        aspect-ratio: 1;
+        border-radius: 3px;
+        transition: background 0.15s;
+      }
+      .color-btn {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        border: 3px solid rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .color-btn:hover {
+        transform: scale(1.15);
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+      .color-btn.selected {
+        border-color: #fff;
+        transform: scale(1.2);
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-6 max-w-lg w-full">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-white">🎨 Color Flood</h1>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Hub</a
+        >
+      </div>
+      <p class="text-white/60 text-sm mb-4">
+        Flood the grid from the top-left with one color. Fill it all within 25
+        moves!
+      </p>
+
+      <div class="flex justify-between text-white text-center mb-4">
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Moves Left</div>
+          <div class="text-2xl font-bold" id="movesLeft">25</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Filled</div>
+          <div class="text-2xl font-bold" id="filledCount">1</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-4 py-2">
+          <div class="text-xs opacity-60">Best</div>
+          <div class="text-2xl font-bold" id="bestDisplay">—</div>
+        </div>
+      </div>
+
+      <div id="flood-grid" class="mb-5"></div>
+
+      <div id="colorPicker" class="flex gap-3 justify-center mb-4"></div>
+
+      <button
+        onclick="newGame()"
+        class="w-full bg-white/20 hover:bg-white/30 text-white font-bold py-2 rounded-lg transition"
+      >
+        🔄 New Game
+      </button>
+    </div>
+
+    <script>
+      const COLORS = [
+        "#ef4444",
+        "#f97316",
+        "#facc15",
+        "#4ade80",
+        "#60a5fa",
+        "#c084fc",
+      ];
+      const SIZE = 14;
+      const MAX_MOVES = 25;
+      let board = [],
+        movesLeft = MAX_MOVES,
+        flooded = new Set();
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function newGame() {
+        board = Array.from({ length: SIZE }, () =>
+          Array.from({ length: SIZE }, () =>
+            Math.floor(Math.random() * COLORS.length),
+          ),
+        );
+        movesLeft = MAX_MOVES;
+        flooded = new Set();
+        flood(0, 0, board[0][0], true);
+        render();
+        document.getElementById("movesLeft").textContent = MAX_MOVES;
+        const best = localStorage.getItem("colorfloodBest");
+        document.getElementById("bestDisplay").textContent = best || "—";
+      }
+
+      function flood(r, c, targetColor, init = false) {
+        if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+        const key = `${r},${c}`;
+        if (flooded.has(key) || board[r][c] !== targetColor) return;
+        flooded.add(key);
+        if (!init) {
+          flood(r - 1, c, targetColor);
+          flood(r + 1, c, targetColor);
+          flood(r, c - 1, targetColor);
+          flood(r, c + 1, targetColor);
+        }
+      }
+
+      function expand(newColor) {
+        const newFlooded = new Set(flooded);
+        for (const key of flooded) {
+          const [r, c] = key.split(",").map(Number);
+          [
+            [r - 1, c],
+            [r + 1, c],
+            [r, c - 1],
+            [r, c + 1],
+          ].forEach(([nr, nc]) => {
+            if (
+              nr >= 0 &&
+              nr < SIZE &&
+              nc >= 0 &&
+              nc < SIZE &&
+              board[nr][nc] === newColor
+            )
+              newFlooded.add(`${nr},${nc}`);
+          });
+        }
+        return newFlooded;
+      }
+
+      function pickColor(ci) {
+        const currentColor = board[0][0];
+        if (ci === currentColor) {
+          showToast("Already that color!", 1200);
+          return;
+        }
+        movesLeft--;
+        // Repaint flooded cells
+        flooded.forEach((key) => {
+          const [r, c] = key.split(",").map(Number);
+          board[r][c] = ci;
+        });
+        // Expand flood
+        flooded = expand(ci);
+        document.getElementById("movesLeft").textContent = movesLeft;
+        document.getElementById("filledCount").textContent = flooded.size;
+        render();
+
+        if (flooded.size === SIZE * SIZE) {
+          const used = MAX_MOVES - movesLeft;
+          const best =
+            parseInt(localStorage.getItem("colorfloodBest")) || Infinity;
+          if (used < best) localStorage.setItem("colorfloodBest", used);
+          showToast(`🎉 Flooded in ${used} moves!`, 3000);
+          document.getElementById("bestDisplay").textContent = Math.min(
+            used,
+            best === Infinity ? used : best,
+          );
+        } else if (movesLeft <= 0) {
+          showToast(
+            `😞 Out of moves! ${SIZE * SIZE - flooded.size} cells remaining.`,
+            3000,
+          );
+          setTimeout(newGame, 2500);
+        }
+      }
+
+      function render() {
+        const g = document.getElementById("flood-grid");
+        g.innerHTML = "";
+        for (let r = 0; r < SIZE; r++) {
+          for (let c = 0; c < SIZE; c++) {
+            const cell = document.createElement("div");
+            cell.className = "grid-cell";
+            cell.style.background = COLORS[board[r][c]];
+            if (flooded.has(`${r},${c}`)) {
+              cell.style.opacity = "1";
+              cell.style.boxShadow = "inset 0 0 0 1px rgba(255,255,255,0.25)";
+            }
+            g.appendChild(cell);
+          }
+        }
+        // Color picker
+        const cp = document.getElementById("colorPicker");
+        cp.innerHTML = COLORS.map(
+          (col, i) =>
+            `<button class="color-btn ${board[0][0] === i ? "selected" : ""}" style="background:${col}" onclick="pickColor(${i})" title="Color ${i + 1}"></button>`,
+        ).join("");
+      }
+
+      newGame();
+    </script>
+  </body>
+</html>

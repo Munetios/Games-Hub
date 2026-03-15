@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Typing Speed Test - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(
+          135deg,
+          #0f2027 0%,
+          #203a43 50%,
+          #2c5364 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .char-correct {
+        color: #4ade80;
+      }
+      .char-wrong {
+        color: #f87171;
+        background: rgba(248, 113, 113, 0.15);
+        border-radius: 2px;
+      }
+      .char-pending {
+        color: rgba(255, 255, 255, 0.35);
+      }
+      .char-current {
+        color: #fff;
+        border-bottom: 2px solid #fff;
+      }
+      #typingInput {
+        opacity: 0;
+        position: absolute;
+        top: -9999px;
+      }
+      #textDisplay {
+        font-size: 1.25rem;
+        line-height: 2rem;
+        letter-spacing: 0.03em;
+        cursor: text;
+        user-select: none;
+      }
+      .stat-box {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 1rem;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-8 max-w-2xl w-full">
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-bold text-white">⌨️ Typing Speed</h1>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Hub</a
+        >
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 mb-6">
+        <div class="stat-box text-center text-white">
+          <div class="text-3xl font-bold" id="wpmDisplay">—</div>
+          <div class="text-xs opacity-60">WPM</div>
+        </div>
+        <div class="stat-box text-center text-white">
+          <div class="text-3xl font-bold" id="accuracyDisplay">—</div>
+          <div class="text-xs opacity-60">Accuracy</div>
+        </div>
+        <div class="stat-box text-center text-white">
+          <div class="text-3xl font-bold" id="timerDisplay">60</div>
+          <div class="text-xs opacity-60">Seconds Left</div>
+        </div>
+      </div>
+
+      <div
+        class="bg-black/30 rounded-xl p-5 mb-4 cursor-text"
+        id="textWrapper"
+        onclick="document.getElementById('typingInput').focus()"
+      >
+        <div id="textDisplay"></div>
+      </div>
+
+      <input
+        id="typingInput"
+        type="text"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
+
+      <div id="statusBar" class="text-center text-white/60 text-sm mb-4">
+        Click the text area above and start typing!
+      </div>
+
+      <div class="flex gap-3 justify-center">
+        <button
+          onclick="startTest()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          🔄 New Test
+        </button>
+        <button
+          onclick="showStats()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
+        >
+          📊 Best Scores
+        </button>
+      </div>
+
+      <div
+        id="resultsPanel"
+        class="hidden mt-4 bg-white/10 rounded-xl p-4 text-white text-center"
+      >
+        <div class="text-2xl font-bold mb-2">🎯 Test Complete!</div>
+        <div id="finalStats" class="text-lg"></div>
+      </div>
+    </div>
+
+    <script>
+      const paragraphs = [
+        "The quick brown fox jumps over the lazy dog near the riverbank on a sunny afternoon while birds sing.",
+        "Programming is the art of telling a computer what you want it to do in a language it understands well.",
+        "Every great journey begins with a single step forward into the unknown with courage and determination.",
+        "The universe is under no obligation to make sense to you or anyone else who questions its many mysteries.",
+        "Success is not final and failure is not fatal but it is the courage to continue that counts the most.",
+        "In the middle of every difficulty lies opportunity waiting to be discovered by those who look carefully.",
+        "Creativity is intelligence having fun with ideas that push the boundaries of what is considered possible.",
+        "The only way to do great work is to love what you do and never stop learning new things every single day.",
+      ];
+
+      let currentText = "";
+      let typedCount = 0;
+      let errors = 0;
+      let timerInterval = null;
+      let timeLeft = 60;
+      let started = false;
+      let finished = false;
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function startTest() {
+        clearInterval(timerInterval);
+        currentText = paragraphs[Math.floor(Math.random() * paragraphs.length)];
+        typedCount = 0;
+        errors = 0;
+        timeLeft = 60;
+        started = false;
+        finished = false;
+
+        document.getElementById("timerDisplay").textContent = "60";
+        document.getElementById("wpmDisplay").textContent = "—";
+        document.getElementById("accuracyDisplay").textContent = "—";
+        document.getElementById("statusBar").textContent =
+          "Click the text area and start typing!";
+        document.getElementById("resultsPanel").classList.add("hidden");
+        renderText(0);
+
+        const inp = document.getElementById("typingInput");
+        inp.value = "";
+        inp.disabled = false;
+        inp.focus();
+      }
+
+      function renderText(pos) {
+        const display = document.getElementById("textDisplay");
+        display.innerHTML = currentText
+          .split("")
+          .map((ch, i) => {
+            let cls = "char-pending";
+            if (i < pos) {
+              const typed = document.getElementById("typingInput").value[i];
+              cls = typed === ch ? "char-correct" : "char-wrong";
+            } else if (i === pos) {
+              cls = "char-current";
+            }
+            return `<span class="${cls}">${ch === " " ? "&nbsp;" : ch}</span>`;
+          })
+          .join("");
+      }
+
+      document.getElementById("typingInput").addEventListener("input", (e) => {
+        if (finished) return;
+        if (!started) {
+          started = true;
+          timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById("timerDisplay").textContent = timeLeft;
+            if (timeLeft <= 0) finishTest();
+          }, 1000);
+        }
+        const val = e.target.value;
+        typedCount = val.length;
+        renderText(typedCount);
+        if (typedCount === currentText.length) finishTest();
+      });
+
+      function finishTest() {
+        if (finished) return;
+        finished = true;
+        clearInterval(timerInterval);
+        document.getElementById("typingInput").disabled = true;
+
+        const elapsed = 60 - timeLeft || 1;
+        const typed = document.getElementById("typingInput").value;
+        let correct = 0;
+        for (let i = 0; i < typed.length; i++) {
+          if (typed[i] === currentText[i]) correct++;
+        }
+        const wpm = Math.round(correct / 5 / (elapsed / 60));
+        const acc = typed.length
+          ? Math.round((correct / typed.length) * 100)
+          : 0;
+
+        document.getElementById("wpmDisplay").textContent = wpm;
+        document.getElementById("accuracyDisplay").textContent = acc + "%";
+
+        const best = parseInt(localStorage.getItem("typingBestWPM")) || 0;
+        if (wpm > best) {
+          localStorage.setItem("typingBestWPM", wpm);
+          showToast(`🏆 New Best: ${wpm} WPM!`, 3000);
+        } else {
+          showToast(`⌨️ ${wpm} WPM · ${acc}% accuracy`, 3000);
+        }
+
+        document.getElementById("resultsPanel").classList.remove("hidden");
+        document.getElementById("finalStats").innerHTML =
+          `<span class="text-green-300 font-bold">${wpm} WPM</span> · ${acc}% accuracy · Best: ${Math.max(wpm, best)} WPM`;
+      }
+
+      function showStats() {
+        const best = localStorage.getItem("typingBestWPM") || "none yet";
+        showToast(`🏆 Best WPM: ${best}`, 3000);
+      }
+
+      startTest();
+    </script>
+  </body>
+</html>

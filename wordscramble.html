@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Word Scramble - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Google+Sans+Flex:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        font-family: "Google Sans Flex", system-ui, sans-serif;
+      }
+      body {
+        background: linear-gradient(
+          135deg,
+          #355c7d 0%,
+          #6c5b7b 50%,
+          #c06c84 100%
+        );
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      #answerInput {
+        background: rgba(255, 255, 255, 0.15);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: center;
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        outline: none;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+      }
+      #answerInput:focus {
+        border-color: rgba(255, 255, 255, 0.7);
+      }
+      #answerInput::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 400;
+      }
+      .letter-tile {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        font-size: 1.25rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        margin: 3px;
+      }
+      .timer-ring {
+        position: relative;
+        width: 70px;
+        height: 70px;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        color: white;
+        padding: 1rem 1.5rem;
+        border-radius: 50px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.16),
+          rgba(255, 255, 255, 0.06)
+        );
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(2px) saturate(190%);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        z-index: 1000;
+        animation: slideIn 0.3s ease-out;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .toast.hiding {
+        animation: slideOut 0.3s ease-in forwards;
+      }
+      @keyframes slideOut {
+        from {
+          transform: translateX(0);
+          opacity: 1;
+        }
+        to {
+          transform: translateX(400px);
+          opacity: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="liquid-glass p-8 max-w-md w-full text-center">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-bold text-white">🔤 Word Scramble</h1>
+        <a href="index.html" class="text-white/60 hover:text-white text-sm"
+          >← Hub</a
+        >
+      </div>
+
+      <div class="flex justify-between text-white mb-5">
+        <div class="bg-white/10 rounded-lg px-3 py-2 text-center">
+          <div class="text-xs opacity-60">Score</div>
+          <div class="text-2xl font-bold" id="score">0</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-3 py-2 text-center">
+          <div class="text-xs opacity-60">Round</div>
+          <div class="text-2xl font-bold" id="round">1</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-3 py-2 text-center">
+          <div class="text-xs opacity-60">Time</div>
+          <div class="text-2xl font-bold" id="timer">30</div>
+        </div>
+        <div class="bg-white/10 rounded-lg px-3 py-2 text-center">
+          <div class="text-xs opacity-60">Best</div>
+          <div class="text-2xl font-bold" id="best">—</div>
+        </div>
+      </div>
+
+      <div class="text-white/60 text-sm mb-2" id="category">Category: —</div>
+      <div
+        id="scrambled"
+        class="mb-3 flex flex-wrap justify-center min-h-12"
+      ></div>
+      <div class="text-white/50 text-xs mb-1">
+        Hint: <span id="hint" class="text-white/70">—</span>
+      </div>
+
+      <input
+        id="answerInput"
+        type="text"
+        placeholder="TYPE YOUR ANSWER"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="characters"
+        spellcheck="false"
+      />
+
+      <div class="flex gap-3 justify-center mt-4">
+        <button
+          onclick="checkAnswer()"
+          class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-5 rounded-lg transition"
+        >
+          ✓ Submit
+        </button>
+        <button
+          onclick="skipWord()"
+          class="bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-5 rounded-lg transition text-sm"
+        >
+          ⏭ Skip
+        </button>
+        <button
+          onclick="useHint()"
+          class="bg-yellow-500/30 hover:bg-yellow-500/50 text-white font-bold py-2 px-5 rounded-lg transition text-sm"
+        >
+          💡 Hint
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const wordData = [
+        { word: "ELEPHANT", category: "Animals", hint: "Largest land animal" },
+        { word: "DOLPHIN", category: "Animals", hint: "Smart ocean mammal" },
+        { word: "GUITAR", category: "Music", hint: "Six-stringed instrument" },
+        { word: "PLANET", category: "Space", hint: "Orbits a star" },
+        { word: "CASTLE", category: "Buildings", hint: "Medieval fortress" },
+        { word: "THUNDER", category: "Weather", hint: "Comes with lightning" },
+        { word: "LIBRARY", category: "Places", hint: "Full of books" },
+        { word: "VOLCANO", category: "Nature", hint: "Erupts with lava" },
+        {
+          word: "DIAMOND",
+          category: "Gems",
+          hint: "Hardest natural substance",
+        },
+        {
+          word: "PYRAMID",
+          category: "History",
+          hint: "Ancient Egyptian structure",
+        },
+        { word: "PENGUIN", category: "Animals", hint: "Flightless bird" },
+        { word: "COMPASS", category: "Tools", hint: "Navigation device" },
+        { word: "LANTERN", category: "Objects", hint: "Portable light source" },
+        { word: "TORNADO", category: "Weather", hint: "Spinning wind funnel" },
+        { word: "BALLOON", category: "Objects", hint: "Floats in air" },
+        { word: "FOREST", category: "Nature", hint: "Dense trees area" },
+        { word: "BRIDGE", category: "Structures", hint: "Spans over water" },
+        { word: "CANDLE", category: "Objects", hint: "Wax with a wick" },
+        { word: "SPIDER", category: "Animals", hint: "Eight-legged arachnid" },
+        { word: "ROCKET", category: "Space", hint: "Launches to space" },
+      ];
+
+      let score = 0,
+        round = 1,
+        timeLeft = 30,
+        timerInterval;
+      let currentWord = null,
+        hintsUsed = 0;
+
+      function showToast(msg, dur = 2500) {
+        const t = document.createElement("div");
+        t.className = "toast";
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(() => {
+          t.classList.add("hiding");
+          setTimeout(() => t.remove(), 300);
+        }, dur);
+      }
+
+      function scramble(word) {
+        const arr = word.split("");
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        const result = arr.join("");
+        return result === word && word.length > 1 ? scramble(word) : result;
+      }
+
+      function newWord() {
+        hintsUsed = 0;
+        currentWord = wordData[Math.floor(Math.random() * wordData.length)];
+        const sc = scramble(currentWord.word);
+        document.getElementById("category").textContent =
+          `Category: ${currentWord.category}`;
+        document.getElementById("hint").textContent = "—";
+        document.getElementById("scrambled").innerHTML = sc
+          .split("")
+          .map((c) => `<span class="letter-tile">${c}</span>`)
+          .join("");
+        document.getElementById("answerInput").value = "";
+        document.getElementById("answerInput").focus();
+        clearInterval(timerInterval);
+        timeLeft = 30;
+        document.getElementById("timer").textContent = "30";
+        document.getElementById("timer").style.color = "";
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          document.getElementById("timer").textContent = timeLeft;
+          if (timeLeft <= 10)
+            document.getElementById("timer").style.color = "#f87171";
+          if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            timeExpired();
+          }
+        }, 1000);
+      }
+
+      function checkAnswer() {
+        const ans = document
+          .getElementById("answerInput")
+          .value.trim()
+          .toUpperCase();
+        if (!ans) return;
+        if (ans === currentWord.word) {
+          clearInterval(timerInterval);
+          const bonus = Math.max(0, timeLeft);
+          const points = 10 + bonus + (hintsUsed ? 0 : 5);
+          score += points;
+          round++;
+          document.getElementById("score").textContent = score;
+          document.getElementById("round").textContent = round;
+          showToast(`✅ Correct! +${points} points`, 1500);
+          setTimeout(newWord, 1200);
+        } else {
+          showToast("❌ Wrong! Keep trying...", 1500);
+          document.getElementById("answerInput").value = "";
+        }
+      }
+
+      function skipWord() {
+        clearInterval(timerInterval);
+        showToast(`⏭ Answer was: ${currentWord.word}`, 2500);
+        setTimeout(newWord, 1000);
+      }
+
+      function useHint() {
+        hintsUsed++;
+        document.getElementById("hint").textContent = currentWord.hint;
+        showToast("💡 Hint revealed! (-5 bonus points)", 2000);
+      }
+
+      function timeExpired() {
+        showToast(`⏱️ Time's up! Answer: ${currentWord.word}`, 2500);
+        const best = parseInt(localStorage.getItem("scrambleBest")) || 0;
+        if (score > best) {
+          localStorage.setItem("scrambleBest", score);
+          showToast(`🏆 New Best: ${score}!`, 3000);
+        }
+        document.getElementById("best").textContent = Math.max(score, best);
+        setTimeout(() => {
+          score = 0;
+          round = 1;
+          document.getElementById("score").textContent = "0";
+          document.getElementById("round").textContent = "1";
+          newWord();
+        }, 2500);
+      }
+
+      // Enter key support
+      document
+        .getElementById("answerInput")
+        .addEventListener("keydown", (e) => {
+          if (e.key === "Enter") checkAnswer();
+        });
+
+      const b = localStorage.getItem("scrambleBest");
+      if (b) document.getElementById("best").textContent = b;
+      newWord();
+    </script>
+  </body>
+</html>
