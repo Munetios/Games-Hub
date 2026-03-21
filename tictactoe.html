@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -97,7 +97,7 @@
 
       <div id="board" class="grid grid-cols-3 gap-2 mb-6 mx-auto w-fit"></div>
 
-      <div class="flex gap-4 justify-center mb-4">
+      <div class="flex gap-4 justify-center mb-4 flex-wrap">
         <button
           id="resetBtn"
           class="bg-white/20 hover:bg-white/30 text-white font-bold py-2 px-6 rounded-lg transition"
@@ -110,6 +110,46 @@
         >
           Play vs AI
         </button>
+        <button
+          id="cheatsBtn"
+          class="bg-yellow-500/30 hover:bg-yellow-500/50 text-white font-bold py-2 px-6 rounded-lg transition border border-yellow-400/40"
+        >
+          🎭 Cheats
+        </button>
+      </div>
+
+      <!-- Cheats Panel -->
+      <div
+        id="cheatsPanel"
+        class="hidden bg-white/10 rounded-xl p-4 mb-4 border border-yellow-400/30"
+      >
+        <h3 class="text-white font-bold mb-3 text-lg">🎭 Active Cheats</h3>
+        <label class="flex items-center gap-3 text-white mb-3 cursor-pointer">
+          <input
+            type="checkbox"
+            id="cheatReplaceX"
+            class="w-5 h-5 accent-yellow-400"
+          />
+          <div>
+            <div class="font-semibold">Replace X with O</div>
+            <div class="text-xs text-white/60">
+              X's moves will place O tokens instead
+            </div>
+          </div>
+        </label>
+        <label class="flex items-center gap-3 text-white cursor-pointer">
+          <input
+            type="checkbox"
+            id="cheatOOverwrite"
+            class="w-5 h-5 accent-yellow-400"
+          />
+          <div>
+            <div class="font-semibold">O Ignores Grid Limits</div>
+            <div class="text-xs text-white/60">
+              O can overwrite X's already-placed marks
+            </div>
+          </div>
+        </label>
       </div>
 
       <div class="text-center">
@@ -129,6 +169,8 @@
       let xWins = parseInt(localStorage.getItem("tttXWins")) || 0;
       let oWins = parseInt(localStorage.getItem("tttOWins")) || 0;
       let draws = parseInt(localStorage.getItem("tttDraws")) || 0;
+      let cheatReplaceX = false;
+      let cheatOOverwrite = false;
 
       document.getElementById("xWins").textContent = xWins;
       document.getElementById("oWins").textContent = oWins;
@@ -184,8 +226,13 @@
 
       function handleCellClick(e) {
         const index = parseInt(e.target.dataset.index);
-
-        if (board[index] !== "" || !gameActive) return;
+        if (!gameActive) return;
+        // Allow O to overwrite X cells if the overwrite cheat is active
+        if (
+          board[index] !== "" &&
+          !(cheatOOverwrite && currentPlayer === "O" && board[index] === "X")
+        )
+          return;
 
         makeMove(index);
 
@@ -195,10 +242,13 @@
       }
 
       function makeMove(index) {
-        board[index] = currentPlayer;
+        // Cheat: replace X moves with O pieces
+        const piece =
+          cheatReplaceX && currentPlayer === "X" ? "O" : currentPlayer;
+        board[index] = piece;
         updateBoard();
 
-        if (checkWin()) {
+        if (checkWin(piece)) {
           showToast(`🎉 ${currentPlayer} Wins!`, 3000);
           gameActive = false;
 
@@ -227,9 +277,10 @@
         updateBoard();
       }
 
-      function checkWin() {
+      function checkWin(player) {
+        const p = player || currentPlayer;
         return winPatterns.some((pattern) => {
-          return pattern.every((index) => board[index] === currentPlayer);
+          return pattern.every((index) => board[index] === p);
         });
       }
 
@@ -294,6 +345,34 @@
 
       document.getElementById("resetBtn").addEventListener("click", resetGame);
       document.getElementById("aiBtn").addEventListener("click", toggleAI);
+
+      document.getElementById("cheatsBtn").addEventListener("click", () => {
+        document.getElementById("cheatsPanel").classList.toggle("hidden");
+      });
+
+      document
+        .getElementById("cheatReplaceX")
+        .addEventListener("change", (e) => {
+          cheatReplaceX = e.target.checked;
+          showToast(
+            cheatReplaceX
+              ? "🎭 Cheat ON: X places O tokens!"
+              : "🎭 Replace X cheat off",
+            2000,
+          );
+        });
+
+      document
+        .getElementById("cheatOOverwrite")
+        .addEventListener("change", (e) => {
+          cheatOOverwrite = e.target.checked;
+          showToast(
+            cheatOOverwrite
+              ? "🎭 Cheat ON: O can overwrite X marks!"
+              : "🎭 Overwrite cheat off",
+            2000,
+          );
+        });
 
       createBoard();
     </script>
