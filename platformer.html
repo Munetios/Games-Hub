@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Platformer - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://api.munetios.com/beautiful-css/beautiful.css" />
+    <style>
+      body{font-family:"Google Sans Flex",system-ui,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2 55%,#f093fb);min-height:100vh;margin:0;color:white;display:flex;align-items:center;justify-content:center;padding:1rem}canvas{width:min(920px,96vw);max-height:66vh;background:linear-gradient(#172554,#1e1b4b);border-radius:24px;border:1px solid rgba(255,255,255,.22);box-shadow:0 20px 60px rgba(0,0,0,.35)}button,a{transition:.2s}.hud{display:flex;gap:.75rem;flex-wrap:wrap;justify-content:center}.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:.5rem .9rem;backdrop-filter:blur(8px)}
+    </style>
+  </head>
+  <body>
+    <main class="liquid-glass p-6 md:p-8 text-center max-w-5xl w-full">
+      <a href="index.html" class="text-white/75 hover:text-white underline">← Back to Hub</a>
+      <h1 class="text-4xl md:text-5xl font-bold mt-3 mb-2">🏃 Platformer</h1>
+      <p class="text-white/80 mb-4">Run, jump, collect gems, and reach the portal.</p>
+      <div class="hud mb-4"><span class="pill" id="score">Gems: 0/8</span><span class="pill" id="time">Time: 0.0s</span><span class="pill" id="status">Arrow keys / WASD to move, Space to jump</span></div>
+      <canvas id="game" width="920" height="520"></canvas>
+      <div class="mt-5 flex gap-3 justify-center flex-wrap"><button id="restart" class="liquid-glass px-5 py-2 rounded-full font-semibold">Restart</button></div>
+    </main>
+    <script>
+      const c=document.getElementById('game'),ctx=c.getContext('2d'),scoreEl=document.getElementById('score'),timeEl=document.getElementById('time'),statusEl=document.getElementById('status');
+      const keys={}; addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase()))e.preventDefault()}); addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+      const start=performance.now(); let won=false;
+      const startState={x:55,y:390,vx:0,vy:0,w:30,h:42,on:false}; let p={...startState};
+      const plats=[{x:0,y:470,w:920,h:50},{x:120,y:390,w:140,h:18},{x:315,y:330,w:120,h:18},{x:500,y:270,w:130,h:18},{x:690,y:355,w:150,h:18},{x:760,y:230,w:110,h:18}];
+      let gems=[[170,360],[365,300],[555,240],[735,325],[805,200],[40,435],[470,435],[875,435]].map(([x,y])=>({x,y,got:false})); const portal={x:845,y:392,w:38,h:78};
+      function reset(){p={...startState};gems.forEach(g=>g.got=false);won=false;statusEl.textContent='Arrow keys / WASD to move, Space to jump'} document.getElementById('restart').onclick=reset;
+      function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+      function step(){ if(!won){p.vx=(keys.arrowleft||keys.a?-4:0)+(keys.arrowright||keys.d?4:0); if((keys[' ']||keys.arrowup||keys.w)&&p.on){p.vy=-12;p.on=false} p.vy+=.55;p.x+=p.vx;p.y+=p.vy;p.on=false; plats.forEach(pl=>{if(hit(p,pl)&&p.vy>=0&&p.y+p.h-p.vy<=pl.y+4){p.y=pl.y-p.h;p.vy=0;p.on=true}}); if(p.y>560||p.x<-50||p.x>970)p={...startState}; gems.forEach(g=>{if(!g.got&&Math.hypot(p.x+p.w/2-g.x,p.y+p.h/2-g.y)<28)g.got=true}); if(hit(p,portal)&&gems.every(g=>g.got)){won=true;statusEl.textContent='You reached the portal!'}} draw(); requestAnimationFrame(step)}
+      function draw(){ctx.clearRect(0,0,c.width,c.height);ctx.fillStyle='rgba(255,255,255,.08)';for(let i=0;i<80;i++)ctx.fillRect((i*73)%920,(i*41)%220,2,2);plats.forEach(pl=>{ctx.fillStyle='#38bdf8';ctx.fillRect(pl.x,pl.y,pl.w,pl.h);ctx.fillStyle='rgba(255,255,255,.45)';ctx.fillRect(pl.x,pl.y,pl.w,3)});ctx.fillStyle='#a78bfa';ctx.fillRect(portal.x,portal.y,portal.w,portal.h);ctx.fillStyle='#facc15';gems.forEach(g=>{if(!g.got){ctx.beginPath();ctx.moveTo(g.x,g.y-14);ctx.lineTo(g.x+14,g.y);ctx.lineTo(g.x,g.y+14);ctx.lineTo(g.x-14,g.y);ctx.closePath();ctx.fill()}});ctx.fillStyle='#fff';ctx.fillRect(p.x,p.y,p.w,p.h);ctx.fillStyle='#22c55e';ctx.fillRect(p.x+5,p.y+8,20,8);const got=gems.filter(g=>g.got).length;scoreEl.textContent=`Gems: ${got}/${gems.length}`;timeEl.textContent=`Time: ${((performance.now()-start)/1000).toFixed(1)}s`}
+      step();
+    </script>
+  </body>
+</html>
