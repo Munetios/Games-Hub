@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Target Tap - Munetios Games Hub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://api.munetios.com/beautiful-css/beautiful.css" />
+    <style>
+      body{font-family:"Google Sans Flex",system-ui,sans-serif;background:linear-gradient(135deg,#0f172a,#7c3aed,#ec4899);min-height:100vh;margin:0;color:white;display:flex;align-items:center;justify-content:center;padding:1rem}.arena{position:relative;height:min(62vh,560px);min-height:360px;overflow:hidden;border-radius:28px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);backdrop-filter:blur(12px)}.target{position:absolute;width:70px;height:70px;border-radius:999px;border:4px solid rgba(255,255,255,.88);background:radial-gradient(circle,#fff 0 16%,#ef4444 17% 38%,#fff 39% 56%,#3b82f6 57%);box-shadow:0 0 32px rgba(255,255,255,.4);cursor:pointer;transform:translate(-50%,-50%)}.pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:.5rem .9rem;backdrop-filter:blur(8px)}
+    </style>
+  </head>
+  <body>
+    <main class="liquid-glass p-6 md:p-8 max-w-4xl w-full text-center">
+      <a href="index.html" class="text-white/75 hover:text-white underline">← Back to Hub</a>
+      <h1 class="text-4xl md:text-5xl font-bold mt-3 mb-2">🎯 Target Tap</h1>
+      <p class="text-white/80 mb-4">Tap as many moving targets as you can before time runs out.</p>
+      <div class="flex gap-3 justify-center flex-wrap mb-4"><span class="pill" id="score">Score: 0</span><span class="pill" id="timer">Time: 30</span><span class="pill" id="best">Best: 0</span></div>
+      <div id="arena" class="arena"><button id="target" class="target" aria-label="Target"></button></div>
+      <button id="start" class="liquid-glass px-6 py-3 rounded-full font-bold mt-5">Start New Round</button>
+    </main>
+    <script>
+      const arena=document.getElementById('arena'),target=document.getElementById('target'),scoreEl=document.getElementById('score'),timerEl=document.getElementById('timer'),bestEl=document.getElementById('best'),startBtn=document.getElementById('start');
+      let score=0,time=30,playing=false,tick; bestEl.textContent=`Best: ${localStorage.targetTapBest||0}`;
+      function place(){const r=arena.getBoundingClientRect(),pad=45;target.style.left=pad+Math.random()*(r.width-pad*2)+'px';target.style.top=pad+Math.random()*(r.height-pad*2)+'px';target.style.transform=`translate(-50%,-50%) scale(${.75+Math.random()*.6})`}
+      function start(){clearInterval(tick);score=0;time=30;playing=true;scoreEl.textContent='Score: 0';timerEl.textContent='Time: 30';place();tick=setInterval(()=>{time--;timerEl.textContent=`Time: ${time}`;if(time<=0){playing=false;clearInterval(tick);const best=Math.max(Number(localStorage.targetTapBest||0),score);localStorage.targetTapBest=best;bestEl.textContent=`Best: ${best}`;target.style.left='50%';target.style.top='50%'}},1000)}
+      target.addEventListener('click',()=>{if(!playing)return;score++;scoreEl.textContent=`Score: ${score}`;place()}); startBtn.onclick=start; place();
+    </script>
+  </body>
+</html>
