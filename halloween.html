@@ -1,0 +1,7081 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+
+    <meta name="theme-color" content="#16001f" />
+
+    <title>MunetGame Halloween – Trick or Treat</title>
+
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+
+    <script src="https://munetios.com/tone.js"></script>
+
+    <style>
+      :root {
+        color-scheme: dark;
+
+        --background: #0b000f;
+
+        --surface: rgba(27, 6, 39, 0.58);
+
+        --surface-light: rgba(255, 255, 255, 0.1);
+
+        --surface-hover: rgba(255, 255, 255, 0.14);
+
+        --purple: #902cff;
+        --purple-light: #bd75ff;
+
+        --orange: #ff861c;
+        --orange-light: #ffb348;
+
+        --green: #4ce697;
+        --red: #ff5676;
+
+        --text: #ffffff;
+
+        --text-secondary: rgba(255, 255, 255, 0.72);
+
+        --text-tertiary: rgba(255, 255, 255, 0.5);
+
+        --border: rgba(255, 255, 255, 0.14);
+
+        --border-strong: rgba(255, 255, 255, 0.24);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+      }
+
+      html {
+        background: var(--background);
+      }
+
+      body {
+        min-height: 100vh;
+
+        margin: 0;
+
+        padding: max(12px, env(safe-area-inset-top))
+          max(12px, env(safe-area-inset-right))
+          max(12px, env(safe-area-inset-bottom))
+          max(12px, env(safe-area-inset-left));
+
+        overflow-x: hidden;
+
+        color: var(--text);
+
+        background:
+          radial-gradient(
+            circle at 50% -20%,
+            rgba(143, 44, 255, 0.3),
+            transparent 43%
+          ),
+          linear-gradient(180deg, #09000d, #170020 55%, #070009);
+
+        font-family: "Munetios Sans", "Google Sans Flex", system-ui, sans-serif;
+
+        font-weight: 400;
+      }
+
+      button,
+      input,
+      label,
+      h1,
+      h2,
+      h3,
+      p,
+      span,
+      div {
+        font-weight: 400;
+      }
+
+      button,
+      input {
+        font-family: inherit;
+      }
+
+      button {
+        color: inherit;
+      }
+
+      icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        width: 1em;
+        height: 1em;
+
+        flex: 0 0 auto;
+
+        font-size: 22px;
+        line-height: 1;
+
+        pointer-events: none;
+        user-select: none;
+      }
+
+      .app {
+        width: min(1500px, 100%);
+        min-height: calc(100vh - 24px);
+
+        margin: 0 auto;
+
+        display: flex;
+        flex-direction: column;
+
+        gap: 12px;
+      }
+
+      .liquid-surface {
+        border: 1px solid var(--border);
+
+        background:
+          linear-gradient(
+            145deg,
+            rgba(255, 255, 255, 0.07),
+            rgba(255, 255, 255, 0.025)
+          ),
+          rgba(20, 3, 29, 0.56);
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.08),
+          0 14px 42px rgba(0, 0, 0, 0.24);
+      }
+
+      .topbar {
+        min-height: 76px;
+
+        padding: 12px 14px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 14px;
+
+        border-radius: 27px;
+      }
+
+      .brand {
+        min-width: 0;
+
+        display: flex;
+        align-items: center;
+
+        gap: 12px;
+      }
+
+      .logo {
+        width: 52px;
+        height: 52px;
+
+        flex: 0 0 auto;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 16px;
+
+        background: linear-gradient(
+          135deg,
+          #aa00ff,
+          #6930ff 40%,
+          #2657ff 70%,
+          #00d77c
+        );
+
+        color: white;
+
+        font-size: 30px;
+        font-weight: 400;
+
+        box-shadow:
+          0 0 28px rgba(143, 44, 255, 0.45),
+          inset 0 1px 0 rgba(255, 255, 255, 0.32);
+      }
+
+      .brand-copy {
+        min-width: 0;
+      }
+
+      .brand-copy h1 {
+        margin: 0;
+
+        font-size: clamp(18px, 2.3vw, 28px);
+
+        letter-spacing: -0.035em;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .brand-copy p {
+        margin: 3px 0 0;
+
+        color: var(--text-secondary);
+
+        font-size: 13px;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+
+        gap: 8px;
+      }
+
+      .icon-button,
+      .normal-button,
+      .dropdown-button,
+      .step-button {
+        border: 1px solid var(--border);
+
+        outline: none;
+
+        cursor: pointer;
+
+        transition:
+          transform 150ms ease,
+          background 150ms ease,
+          border-color 150ms ease;
+      }
+
+      .icon-button:hover,
+      .normal-button:hover,
+      .dropdown-button:hover,
+      .step-button:hover {
+        background: rgba(255, 255, 255, 0.14);
+
+        border-color: var(--border-strong);
+      }
+
+      .icon-button:active,
+      .normal-button:active,
+      .dropdown-button:active,
+      .step-button:active {
+        transform: scale(0.97);
+      }
+
+      .icon-button {
+        width: 46px;
+        height: 46px;
+
+        padding: 0;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 15px;
+
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .normal-button {
+        min-height: 46px;
+
+        padding: 0 18px;
+
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        gap: 8px;
+
+        border-radius: 15px;
+
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .normal-button.primary {
+        background: linear-gradient(
+          135deg,
+          rgba(143, 44, 255, 0.88),
+          rgba(91, 40, 235, 0.88)
+        );
+      }
+
+      .normal-button.orange {
+        color: #321300;
+
+        background: linear-gradient(135deg, #ff821c, #ffad34);
+
+        border-color: rgba(255, 195, 107, 0.55);
+      }
+
+      .game-shell {
+        position: relative;
+
+        flex: 1 1 auto;
+
+        min-height: 560px;
+
+        overflow: hidden;
+
+        border: 1px solid rgba(255, 255, 255, 0.13);
+
+        border-radius: 30px;
+
+        background: #070009;
+
+        box-shadow: 0 25px 90px rgba(0, 0, 0, 0.46);
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+
+        display: block;
+
+        touch-action: none;
+      }
+
+      .hud {
+        position: absolute;
+        z-index: 10;
+
+        top: 14px;
+        left: 14px;
+        right: 14px;
+
+        display: flex;
+        flex-wrap: wrap;
+
+        gap: 7px;
+
+        pointer-events: none;
+      }
+
+      .hud-card {
+        min-height: 47px;
+
+        padding: 7px 12px;
+
+        display: flex;
+        align-items: center;
+
+        gap: 9px;
+
+        border-radius: 16px;
+      }
+
+      .hud-card icon {
+        color: #d39aff;
+
+        font-size: 20px;
+      }
+
+      .hud-value {
+        font-size: 16px;
+        line-height: 1.1;
+      }
+
+      .hud-label {
+        margin-top: 3px;
+
+        color: var(--text-tertiary);
+
+        font-size: 9px;
+
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .clock-card {
+        margin-left: auto;
+      }
+
+      .clock-card icon {
+        color: #ffc661;
+      }
+
+      .daylight-info {
+        position: absolute;
+        z-index: 10;
+
+        top: 73px;
+        right: 14px;
+
+        padding: 8px 11px;
+
+        display: flex;
+        align-items: center;
+
+        gap: 12px;
+
+        border-radius: 14px;
+
+        color: rgba(255, 255, 255, 0.8);
+
+        font-size: 12px;
+
+        pointer-events: none;
+      }
+
+      .daylight-item {
+        display: flex;
+        align-items: center;
+
+        gap: 5px;
+      }
+
+      .daylight-item icon {
+        font-size: 17px;
+      }
+
+      .daylight-item:first-child icon {
+        color: #ffd26b;
+      }
+
+      .daylight-item:last-child icon {
+        color: #b98cff;
+      }
+
+      .status {
+        position: absolute;
+        z-index: 12;
+
+        display: none;
+        align-items: center;
+
+        gap: 7px;
+
+        padding: 8px 11px;
+
+        border-radius: 14px;
+
+        font-size: 12px;
+
+        pointer-events: none;
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+      }
+
+      #powerStatus {
+        top: 73px;
+        left: 14px;
+
+        color: #ffd27b;
+
+        border: 1px solid rgba(255, 178, 66, 0.32);
+
+        background: rgba(98, 45, 0, 0.32);
+      }
+
+      #cheatStatus {
+        right: 14px;
+        bottom: 14px;
+
+        color: #dec0ff;
+
+        border: 1px solid rgba(186, 112, 255, 0.34);
+
+        background: rgba(75, 20, 104, 0.32);
+      }
+
+      #timeBonusStatus {
+        left: 14px;
+        bottom: 14px;
+
+        color: #a6ffd0;
+
+        border: 1px solid rgba(76, 230, 151, 0.32);
+
+        background: rgba(13, 87, 52, 0.28);
+
+        opacity: 0;
+
+        display: flex;
+
+        transition: opacity 180ms ease;
+      }
+
+      #timeBonusStatus.visible {
+        opacity: 1;
+      }
+
+      .screen {
+        position: absolute;
+        z-index: 30;
+
+        inset: 0;
+
+        padding: 24px;
+
+        display: none;
+        align-items: center;
+        justify-content: center;
+
+        background: radial-gradient(
+          circle at center,
+          rgba(90, 24, 125, 0.22),
+          rgba(5, 0, 8, 0.79)
+        );
+
+        backdrop-filter: blur(2px) saturate(160%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(160%);
+      }
+
+      .screen.active {
+        display: flex;
+      }
+
+      .game-modal {
+        width: min(680px, 100%);
+
+        padding: 28px;
+
+        border: 1px solid rgba(255, 255, 255, 0.16);
+
+        border-radius: 30px;
+
+        background: rgba(28, 6, 40, 0.78);
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+
+        text-align: center;
+
+        box-shadow: 0 35px 110px rgba(0, 0, 0, 0.5);
+      }
+
+      .modal-icon {
+        width: 80px;
+        height: 80px;
+
+        margin: 0 auto 15px;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 26px;
+
+        background: radial-gradient(circle at 50% 40%, #ffc14b, #ff6e17 75%);
+
+        box-shadow: 0 0 35px rgba(255, 111, 20, 0.35);
+      }
+
+      .modal-icon icon {
+        color: #361200;
+
+        font-size: 45px;
+      }
+
+      .game-modal h2 {
+        margin: 8px 0 10px;
+
+        font-size: clamp(34px, 5.5vw, 60px);
+
+        line-height: 1;
+
+        letter-spacing: -0.045em;
+      }
+
+      .orange-text {
+        color: var(--orange-light);
+      }
+
+      .game-modal > p {
+        max-width: 560px;
+
+        margin: 0 auto;
+
+        color: var(--text-secondary);
+
+        line-height: 1.55;
+      }
+
+      .instructions {
+        margin-top: 22px;
+
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+
+        gap: 9px;
+      }
+
+      .instruction {
+        padding: 13px;
+
+        border: 1px solid rgba(255, 255, 255, 0.09);
+
+        border-radius: 17px;
+
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .instruction icon {
+        margin-bottom: 8px;
+
+        color: #c889ff;
+
+        font-size: 27px;
+      }
+
+      .instruction-title {
+        display: block;
+
+        margin-bottom: 5px;
+
+        font-size: 14px;
+      }
+
+      .instruction-description {
+        color: var(--text-tertiary);
+
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .modal-actions {
+        margin-top: 22px;
+
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+
+        gap: 9px;
+      }
+
+      .keyboard-help {
+        margin-top: 14px !important;
+
+        font-size: 12px;
+      }
+
+      .results {
+        margin-top: 22px;
+
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+
+        gap: 9px;
+      }
+
+      .result-card {
+        padding: 15px;
+
+        border: 1px solid rgba(255, 255, 255, 0.09);
+
+        border-radius: 18px;
+
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      .result-value {
+        display: block;
+
+        font-size: 23px;
+      }
+
+      .result-label {
+        display: block;
+
+        margin-top: 4px;
+
+        color: var(--text-tertiary);
+
+        font-size: 10px;
+
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      /* Settings */
+
+      .settings-overlay {
+        position: fixed;
+        z-index: 80;
+
+        inset: 0;
+
+        padding: max(16px, env(safe-area-inset-top))
+          max(16px, env(safe-area-inset-right))
+          max(16px, env(safe-area-inset-bottom))
+          max(16px, env(safe-area-inset-left));
+
+        display: none;
+        align-items: center;
+        justify-content: center;
+
+        background: rgba(3, 0, 5, 0.7);
+
+        backdrop-filter: blur(3px) saturate(150%);
+
+        -webkit-backdrop-filter: blur(3px) saturate(150%);
+      }
+
+      .settings-overlay.open {
+        display: flex;
+      }
+
+      .settings-modal {
+        width: min(780px, 100%);
+        max-height: min(820px, 94vh);
+
+        display: flex;
+        flex-direction: column;
+
+        overflow: hidden;
+
+        border: 1px solid rgba(255, 255, 255, 0.15);
+
+        border-radius: 30px;
+
+        background: rgba(20, 4, 29, 0.82);
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+
+        box-shadow: 0 35px 120px rgba(0, 0, 0, 0.62);
+      }
+
+      .settings-header {
+        padding: 16px 18px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 12px;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .settings-title {
+        display: flex;
+        align-items: center;
+
+        gap: 10px;
+      }
+
+      .settings-title icon {
+        color: #bd7cff;
+
+        font-size: 26px;
+      }
+
+      .settings-title h2 {
+        margin: 0;
+
+        font-size: 22px;
+      }
+
+      .settings-body {
+        padding: 18px;
+
+        overflow-y: auto;
+
+        overscroll-behavior: contain;
+      }
+
+      .settings-section {
+        margin-bottom: 26px;
+      }
+
+      .settings-section:last-child {
+        margin-bottom: 0;
+      }
+
+      .section-heading {
+        margin: 0 0 5px;
+
+        display: flex;
+        align-items: center;
+
+        gap: 8px;
+
+        font-size: 15px;
+      }
+
+      .section-heading icon {
+        color: #b979ff;
+
+        font-size: 20px;
+      }
+
+      .section-description {
+        margin: 0 0 13px;
+
+        color: var(--text-tertiary);
+
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .settings-group {
+        overflow: hidden;
+
+        border: 1px solid rgba(255, 255, 255, 0.09);
+
+        border-radius: 19px;
+
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .setting-row {
+        min-height: 65px;
+
+        padding: 11px 13px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 18px;
+
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      .setting-row:last-child {
+        border-bottom: 0;
+      }
+
+      .setting-info {
+        min-width: 0;
+
+        flex: 1;
+      }
+
+      .setting-name {
+        display: block;
+
+        font-size: 14px;
+      }
+
+      .setting-description {
+        display: block;
+
+        margin-top: 3px;
+
+        color: var(--text-tertiary);
+
+        font-size: 11px;
+        line-height: 1.35;
+      }
+
+      .dropdown-button {
+        min-width: 180px;
+        max-width: 250px;
+        min-height: 42px;
+
+        padding: 0 11px 0 14px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 9px;
+
+        border-radius: 13px;
+
+        /*
+          Intentionally alpha 0.1.
+        */
+        background: rgba(255, 255, 255, 0.1);
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+
+        text-align: left;
+      }
+
+      .dropdown-label {
+        min-width: 0;
+
+        overflow: hidden;
+
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+
+      .dropdown-button icon {
+        color: var(--text-tertiary);
+      }
+
+      .toggle {
+        position: relative;
+
+        width: 50px;
+        height: 30px;
+
+        flex: 0 0 auto;
+
+        border: 0;
+
+        border-radius: 999px;
+
+        background: rgba(255, 255, 255, 0.14);
+
+        cursor: pointer;
+
+        transition:
+          background 170ms ease,
+          opacity 170ms ease;
+      }
+
+      .toggle::after {
+        content: "";
+
+        position: absolute;
+
+        top: 4px;
+        left: 4px;
+
+        width: 22px;
+        height: 22px;
+
+        border-radius: 50%;
+
+        background: white;
+
+        transition:
+          left 170ms ease,
+          transform 170ms ease;
+      }
+
+      .toggle.active {
+        background: rgba(143, 44, 255, 0.88);
+      }
+
+      .toggle.active::after {
+        left: 24px;
+      }
+
+      .toggle:disabled {
+        opacity: 0.32;
+
+        cursor: default;
+      }
+
+      .time-input-group {
+        width: min(230px, 100%);
+
+        display: flex;
+        align-items: center;
+
+        gap: 6px;
+      }
+
+      .custom-time-input,
+      .minute-input {
+        height: 42px;
+
+        border: 1px solid var(--border);
+
+        border-radius: 13px;
+
+        outline: none;
+
+        color: white;
+
+        background: rgba(255, 255, 255, 0.1);
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+
+        transition:
+          border-color 150ms ease,
+          background 150ms ease;
+      }
+
+      .custom-time-input {
+        width: 140px;
+
+        padding: 0 12px;
+
+        text-align: center;
+      }
+
+      .minute-input {
+        width: 84px;
+
+        padding: 0 10px;
+
+        text-align: center;
+      }
+
+      .custom-time-input:hover,
+      .minute-input:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .custom-time-input:focus,
+      .minute-input:focus {
+        border-color: rgba(184, 110, 255, 0.7);
+      }
+
+      .custom-time-input.invalid,
+      .minute-input.invalid {
+        border-color: rgba(255, 86, 118, 0.8);
+      }
+
+      .step-button {
+        width: 38px;
+        height: 38px;
+
+        padding: 0;
+
+        flex: 0 0 auto;
+
+        display: grid;
+        place-items: center;
+
+        border-radius: 12px;
+
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .step-button icon {
+        font-size: 19px;
+      }
+
+      .daylight-preview {
+        margin-top: 11px;
+
+        padding: 13px;
+
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+
+        gap: 10px;
+
+        border: 1px solid rgba(255, 255, 255, 0.09);
+
+        border-radius: 17px;
+
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .preview-time {
+        display: flex;
+        align-items: center;
+
+        gap: 10px;
+      }
+
+      .preview-time icon {
+        font-size: 28px;
+      }
+
+      .preview-time:first-child icon {
+        color: #ffd067;
+      }
+
+      .preview-time:last-child icon {
+        color: #b98cff;
+      }
+
+      .preview-label {
+        display: block;
+
+        color: var(--text-tertiary);
+
+        font-size: 10px;
+
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .preview-value {
+        display: block;
+
+        margin-top: 2px;
+
+        font-size: 16px;
+      }
+
+      .daylight-warning {
+        display: none;
+
+        margin: 10px 0 0;
+
+        color: #ff9aae;
+
+        font-size: 12px;
+      }
+
+      .daylight-warning.visible {
+        display: block;
+      }
+
+      .cheat-master {
+        background: rgba(143, 44, 255, 0.06);
+      }
+
+      .cheat-row.disabled {
+        opacity: 0.42;
+      }
+
+      .settings-footer {
+        padding: 13px 18px;
+
+        display: flex;
+        justify-content: flex-end;
+
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      /*
+        Custom dropdown layers.
+
+        They remain at the end of <body>.
+        The menus use alpha 0.1 rather than
+        an opaque/solid background.
+      */
+
+      .custom-dropdown-menu {
+        position: fixed;
+        z-index: 200;
+
+        display: none;
+
+        min-width: 200px;
+        max-width: min(320px, calc(100vw - 24px));
+
+        max-height: min(390px, calc(100vh - 24px));
+
+        padding: 6px;
+
+        overflow-y: auto;
+
+        border: 1px solid rgba(255, 255, 255, 0.14);
+
+        border-radius: 15px;
+
+        background: rgba(30, 7, 43, 0.1);
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+
+        box-shadow:
+          0 20px 60px rgba(0, 0, 0, 0.36),
+          inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      }
+
+      .custom-dropdown-menu.open {
+        display: block;
+      }
+
+      .dropdown-option {
+        width: 100%;
+        min-height: 42px;
+
+        padding: 8px 10px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 10px;
+
+        border: 0;
+
+        border-radius: 10px;
+
+        color: white;
+
+        background: rgba(255, 255, 255, 0.1);
+
+        cursor: pointer;
+
+        text-align: left;
+
+        margin-bottom: 4px;
+      }
+
+      .dropdown-option:last-child {
+        margin-bottom: 0;
+      }
+
+      .dropdown-option:hover {
+        background: rgba(255, 255, 255, 0.14);
+      }
+
+      .dropdown-option.selected {
+        background: rgba(143, 44, 255, 0.1);
+      }
+
+      .dropdown-option icon {
+        visibility: hidden;
+
+        color: #c487ff;
+
+        font-size: 18px;
+      }
+
+      .dropdown-option.selected icon {
+        visibility: visible;
+      }
+
+      .touch-controls {
+        position: absolute;
+        z-index: 20;
+
+        left: 16px;
+        right: 16px;
+        bottom: 16px;
+
+        display: none;
+        align-items: flex-end;
+        justify-content: space-between;
+
+        pointer-events: none;
+      }
+
+      .dpad {
+        position: relative;
+
+        width: 170px;
+        height: 170px;
+
+        pointer-events: auto;
+      }
+
+      .touch-button {
+        position: absolute;
+
+        width: 56px;
+        height: 56px;
+
+        padding: 0;
+
+        display: grid;
+        place-items: center;
+
+        border: 1px solid rgba(255, 255, 255, 0.16);
+
+        border-radius: 18px;
+
+        color: white;
+
+        background: rgba(21, 4, 30, 0.4);
+
+        backdrop-filter: blur(2px) saturate(180%);
+
+        -webkit-backdrop-filter: blur(2px) saturate(180%);
+
+        touch-action: none;
+      }
+
+      .touch-button.active {
+        background: rgba(143, 44, 255, 0.58);
+      }
+
+      .touch-up {
+        top: 0;
+        left: 57px;
+      }
+
+      .touch-down {
+        bottom: 0;
+        left: 57px;
+      }
+
+      .touch-left {
+        left: 0;
+        top: 57px;
+      }
+
+      .touch-right {
+        right: 0;
+        top: 57px;
+      }
+
+      .dash-button {
+        width: 88px;
+        height: 88px;
+
+        display: grid;
+        place-items: center;
+
+        pointer-events: auto;
+
+        border: 1px solid rgba(255, 190, 90, 0.5);
+
+        border-radius: 50%;
+
+        color: #351400;
+
+        background: rgba(255, 152, 29, 0.88);
+
+        cursor: pointer;
+
+        touch-action: none;
+      }
+
+      .dash-button icon {
+        font-size: 33px;
+      }
+
+      .footer-note {
+        padding-bottom: 3px;
+
+        color: var(--text-tertiary);
+
+        text-align: center;
+
+        font-size: 12px;
+      }
+
+      @media (max-width: 720px) {
+        body {
+          padding: 0;
+        }
+
+        .app {
+          min-height: 100vh;
+          gap: 0;
+        }
+
+        .topbar {
+          min-height: 62px;
+
+          padding: max(8px, env(safe-area-inset-top)) 9px 8px;
+
+          border-radius: 0;
+
+          border-top: 0;
+          border-left: 0;
+          border-right: 0;
+        }
+
+        .logo {
+          width: 43px;
+          height: 43px;
+
+          border-radius: 13px;
+
+          font-size: 24px;
+        }
+
+        .brand-copy h1 {
+          font-size: 17px;
+        }
+
+        .brand-copy p {
+          display: none;
+        }
+
+        .icon-button {
+          width: 41px;
+          height: 41px;
+        }
+
+        .game-shell {
+          min-height: 0;
+
+          flex: 1;
+
+          border: 0;
+          border-radius: 0;
+        }
+
+        .footer-note {
+          display: none;
+        }
+
+        .hud {
+          top: 8px;
+          left: 8px;
+          right: 8px;
+
+          gap: 5px;
+        }
+
+        .hud-card {
+          min-height: 38px;
+
+          padding: 6px 8px;
+
+          border-radius: 12px;
+        }
+
+        .hud-card icon {
+          font-size: 16px;
+        }
+
+        .hud-value {
+          font-size: 13px;
+        }
+
+        .hud-label {
+          display: none;
+        }
+
+        .clock-card {
+          margin-left: 0;
+        }
+
+        .daylight-info {
+          display: none;
+        }
+
+        .touch-controls {
+          display: flex;
+        }
+
+        .instructions,
+        .results,
+        .daylight-preview {
+          grid-template-columns: 1fr;
+        }
+
+        .settings-overlay {
+          padding: 0;
+        }
+
+        .settings-modal {
+          width: 100%;
+          height: 100%;
+          max-height: none;
+
+          border: 0;
+          border-radius: 0;
+        }
+
+        .setting-row {
+          align-items: flex-start;
+
+          flex-direction: column;
+        }
+
+        .setting-row.toggle-setting {
+          flex-direction: row;
+          align-items: center;
+        }
+
+        .dropdown-button,
+        .time-input-group {
+          width: 100%;
+          max-width: none;
+        }
+
+        .dropdown-button {
+          min-width: 0;
+        }
+
+        .custom-time-input {
+          flex: 1;
+          width: auto;
+        }
+      }
+
+      @media (pointer: coarse) {
+        .touch-controls {
+          display: flex;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <main class="app">
+      <header class="topbar liquid-surface">
+        <div class="brand">
+          <div class="logo">M</div>
+
+          <div class="brand-copy">
+            <h1 data-i18n="appTitle">MunetGame Halloween</h1>
+
+            <p data-i18n="eventSubtitle">Trick or Treat • October 1–31</p>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button
+            class="icon-button"
+            id="settingsButton"
+            type="button"
+            aria-label="Settings"
+          >
+            <icon>settings</icon>
+          </button>
+
+          <button
+            class="icon-button"
+            id="soundButton"
+            type="button"
+            aria-label="Sound"
+          >
+            <icon id="soundIcon"> volume_up </icon>
+          </button>
+
+          <button
+            class="icon-button"
+            id="pauseButton"
+            type="button"
+            aria-label="Pause"
+          >
+            <icon id="pauseIcon"> pause </icon>
+          </button>
+
+          <button
+            class="icon-button"
+            id="restartButton"
+            type="button"
+            aria-label="Restart"
+          >
+            <icon>restart_alt</icon>
+          </button>
+        </div>
+      </header>
+
+      <section class="game-shell" id="gameShell">
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="hud">
+          <div class="hud-card liquid-surface">
+            <icon>cookie</icon>
+
+            <div>
+              <div class="hud-value" id="scoreValue">0</div>
+
+              <div class="hud-label" data-i18n="candy">Candy</div>
+            </div>
+          </div>
+
+          <div class="hud-card liquid-surface">
+            <icon>favorite</icon>
+
+            <div>
+              <div class="hud-value" id="livesValue">5</div>
+
+              <div class="hud-label" data-i18n="lives">Lives</div>
+            </div>
+          </div>
+
+          <div class="hud-card liquid-surface">
+            <icon>timer</icon>
+
+            <div>
+              <div class="hud-value" id="timerValue">1:30</div>
+
+              <div class="hud-label" data-i18n="timeLeft">Time left</div>
+            </div>
+          </div>
+
+          <div class="hud-card liquid-surface">
+            <icon>emoji_events</icon>
+
+            <div>
+              <div class="hud-value" id="highScoreValue">0</div>
+
+              <div class="hud-label" data-i18n="best">Best</div>
+            </div>
+          </div>
+
+          <div class="hud-card clock-card liquid-surface">
+            <icon id="clockIcon"> dark_mode </icon>
+
+            <div>
+              <div class="hud-value" id="worldClock">6:00 NM</div>
+
+              <div class="hud-label" data-i18n="currentTime">Current time</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="daylight-info liquid-surface">
+          <div class="daylight-item">
+            <icon>light_mode</icon>
+            <span id="hudSunrise"> 7:27 NM </span>
+          </div>
+
+          <div class="daylight-item">
+            <icon>dark_mode</icon>
+            <span id="hudSunset"> 5:28 AN </span>
+          </div>
+        </div>
+
+        <div class="status" id="powerStatus">
+          <icon>shield</icon>
+
+          <span data-i18n="pumpkinShield"> Pumpkin shield </span>
+
+          <span id="powerTime"> 0.0s </span>
+        </div>
+
+        <div class="status" id="cheatStatus">
+          <icon>sports_esports</icon>
+
+          <span data-i18n="funCheatsActive"> Fun cheats active </span>
+        </div>
+
+        <div class="status" id="timeBonusStatus">
+          <icon>more_time</icon>
+
+          <span data-i18n="timeBonus"> +1 second </span>
+        </div>
+
+        <!-- Start -->
+
+        <div class="screen active" id="startScreen">
+          <div class="game-modal">
+            <div class="modal-icon">
+              <icon>skull</icon>
+            </div>
+
+            <h2>
+              <span data-i18n="startTitle"> MunetGame </span>
+
+              <br />
+
+              <span class="orange-text" data-i18n="halloween"> Halloween </span>
+            </h2>
+
+            <p data-i18n="startDescription">
+              Trick or treat through a haunted neighborhood, collect candy,
+              visit houses, grab magic pumpkins, and survive the spooky
+              creatures.
+            </p>
+
+            <div class="instructions">
+              <div class="instruction">
+                <icon>cookie</icon>
+
+                <span class="instruction-title" data-i18n="collectCandy">
+                  Collect Candy
+                </span>
+
+                <span
+                  class="instruction-description"
+                  data-i18n="collectCandyDescription"
+                >
+                  Pick up candy scattered around the neighborhood.
+                </span>
+              </div>
+
+              <div class="instruction">
+                <icon>house</icon>
+
+                <span class="instruction-title" data-i18n="visitHouses">
+                  Visit Houses
+                </span>
+
+                <span
+                  class="instruction-description"
+                  data-i18n="visitHousesDescription"
+                >
+                  Visit glowing doors for trick-or-treat bonuses.
+                </span>
+              </div>
+
+              <div class="instruction">
+                <icon>shield</icon>
+
+                <span class="instruction-title" data-i18n="grabPumpkins">
+                  Grab Pumpkins
+                </span>
+
+                <span
+                  class="instruction-description"
+                  data-i18n="grabPumpkinsDescription"
+                >
+                  Pumpkin power protects you from enemies.
+                </span>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                class="normal-button orange"
+                id="playButton"
+                type="button"
+              >
+                <icon>play_arrow</icon>
+
+                <span data-i18n="play"> Play Trick or Treat </span>
+              </button>
+
+              <button
+                class="normal-button"
+                id="startSettingsButton"
+                type="button"
+              >
+                <icon>settings</icon>
+
+                <span data-i18n="settings"> Settings </span>
+              </button>
+            </div>
+
+            <p class="keyboard-help" data-i18n="keyboardHelp">
+              WASD / Arrow Keys • Space: Dash • P: Pause
+            </p>
+          </div>
+        </div>
+
+        <!-- Pause -->
+
+        <div class="screen" id="pauseScreen">
+          <div class="game-modal">
+            <div class="modal-icon">
+              <icon>dark_mode</icon>
+            </div>
+
+            <h2 data-i18n="paused">Paused</h2>
+
+            <p data-i18n="pausedDescription">Halloween is waiting for you.</p>
+
+            <div class="modal-actions">
+              <button
+                class="normal-button primary"
+                id="resumeButton"
+                type="button"
+              >
+                <icon>play_arrow</icon>
+
+                <span data-i18n="resume"> Resume </span>
+              </button>
+
+              <button
+                class="normal-button"
+                id="pauseSettingsButton"
+                type="button"
+              >
+                <icon>settings</icon>
+
+                <span data-i18n="settings"> Settings </span>
+              </button>
+
+              <button
+                class="normal-button"
+                id="pauseRestartButton"
+                type="button"
+              >
+                <icon>restart_alt</icon>
+
+                <span data-i18n="restart"> Restart </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Game over -->
+
+        <div class="screen" id="gameOverScreen">
+          <div class="game-modal">
+            <div class="modal-icon">
+              <icon>celebration</icon>
+            </div>
+
+            <h2 id="gameOverTitle">Halloween Complete!</h2>
+
+            <p id="gameOverMessage">Halloween is over.</p>
+
+            <div class="results">
+              <div class="result-card">
+                <span class="result-value" id="finalScore"> 0 </span>
+
+                <span class="result-label" data-i18n="candyScore">
+                  Candy score
+                </span>
+              </div>
+
+              <div class="result-card">
+                <span class="result-value" id="housesVisited"> 0 </span>
+
+                <span class="result-label" data-i18n="housesVisited">
+                  Houses visited
+                </span>
+              </div>
+
+              <div class="result-card">
+                <span class="result-value" id="finalBest"> 0 </span>
+
+                <span class="result-label" data-i18n="bestScore">
+                  Best score
+                </span>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                class="normal-button orange"
+                id="playAgainButton"
+                type="button"
+              >
+                <icon>replay</icon>
+
+                <span data-i18n="playAgain"> Play Again </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mobile -->
+
+        <div class="touch-controls">
+          <div class="dpad">
+            <button
+              class="touch-button touch-up"
+              data-control="up"
+              type="button"
+            >
+              <icon>keyboard_arrow_up</icon>
+            </button>
+
+            <button
+              class="touch-button touch-left"
+              data-control="left"
+              type="button"
+            >
+              <icon>keyboard_arrow_left</icon>
+            </button>
+
+            <button
+              class="touch-button touch-right"
+              data-control="right"
+              type="button"
+            >
+              <icon>keyboard_arrow_right</icon>
+            </button>
+
+            <button
+              class="touch-button touch-down"
+              data-control="down"
+              type="button"
+            >
+              <icon>keyboard_arrow_down</icon>
+            </button>
+          </div>
+
+          <button class="dash-button" id="dashButton" type="button">
+            <icon>speed</icon>
+          </button>
+        </div>
+      </section>
+
+      <div class="footer-note" data-i18n="footer">
+        MunetGame Halloween • October 1–31
+      </div>
+    </main>
+
+    <!-- Settings -->
+
+    <div class="settings-overlay" id="settingsOverlay" aria-hidden="true">
+      <section class="settings-modal">
+        <header class="settings-header">
+          <div class="settings-title">
+            <icon>settings</icon>
+
+            <h2 data-i18n="settings">Settings</h2>
+          </div>
+
+          <button class="icon-button" id="closeSettingsButton" type="button">
+            <icon>close</icon>
+          </button>
+        </header>
+
+        <div class="settings-body">
+          <!-- General -->
+
+          <section class="settings-section">
+            <h3 class="section-heading">
+              <icon>tune</icon>
+
+              <span data-i18n="general"> General </span>
+            </h3>
+
+            <p class="section-description" data-i18n="generalDescription">
+              Customize language, time symbols, music, and sound.
+            </p>
+
+            <div class="settings-group">
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="language">
+                    Language
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="languageDescription"
+                  >
+                    Changes the language used by the game.
+                  </span>
+                </div>
+
+                <button
+                  class="dropdown-button"
+                  id="languageDropdownButton"
+                  data-dropdown="languageDropdownMenu"
+                  type="button"
+                >
+                  <span class="dropdown-label" id="languageDropdownLabel">
+                    English
+                  </span>
+
+                  <icon>expand_more</icon>
+                </button>
+              </div>
+
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="timeSymbols">
+                    Time symbols
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="timeSymbolsDescription"
+                  >
+                    Choose NM/AN or AM/PM.
+                  </span>
+                </div>
+
+                <button
+                  class="dropdown-button"
+                  id="timeDropdownButton"
+                  data-dropdown="timeDropdownMenu"
+                  type="button"
+                >
+                  <span class="dropdown-label" id="timeDropdownLabel">
+                    NM / AN
+                  </span>
+
+                  <icon>expand_more</icon>
+                </button>
+              </div>
+
+              <div class="setting-row toggle-setting">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="soundMusic">
+                    Music & Sound
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="soundMusicDescription"
+                  >
+                    Plays Halloween music and Tone.js sound effects.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle active"
+                  id="soundToggle"
+                  type="button"
+                  role="switch"
+                  aria-checked="true"
+                ></button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Daylight -->
+
+          <section class="settings-section">
+            <h3 class="section-heading">
+              <icon>wb_twilight</icon>
+
+              <span data-i18n="daylight"> Daylight </span>
+            </h3>
+
+            <p class="section-description" data-i18n="daylightDescription">
+              Enter custom sunrise and sunset times and optionally apply
+              independent daylight-saving adjustments.
+            </p>
+
+            <div class="settings-group">
+              <!-- Sunrise -->
+
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="sunriseTime">
+                    Sunrise time
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="sunriseTimeDescription"
+                  >
+                    Text input — no native time picker.
+                  </span>
+                </div>
+
+                <div class="time-input-group">
+                  <button
+                    class="step-button"
+                    id="sunriseEarlierButton"
+                    type="button"
+                  >
+                    <icon>remove</icon>
+                  </button>
+
+                  <input
+                    class="custom-time-input"
+                    id="sunriseTimeInput"
+                    type="text"
+                    inputmode="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    value="7:27 NM"
+                    aria-label="Sunrise time"
+                  />
+
+                  <button
+                    class="step-button"
+                    id="sunriseLaterButton"
+                    type="button"
+                  >
+                    <icon>add</icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sunset -->
+
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="sunsetTime">
+                    Sunset time
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="sunsetTimeDescription"
+                  >
+                    Text input — no native time picker.
+                  </span>
+                </div>
+
+                <div class="time-input-group">
+                  <button
+                    class="step-button"
+                    id="sunsetEarlierButton"
+                    type="button"
+                  >
+                    <icon>remove</icon>
+                  </button>
+
+                  <input
+                    class="custom-time-input"
+                    id="sunsetTimeInput"
+                    type="text"
+                    inputmode="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    value="5:28 AN"
+                    aria-label="Sunset time"
+                  />
+
+                  <button
+                    class="step-button"
+                    id="sunsetLaterButton"
+                    type="button"
+                  >
+                    <icon>add</icon>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Sunrise DST -->
+
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="sunriseDst">
+                    Sunrise daylight-saving adjustment
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="dstMinutesDescription"
+                  >
+                    Enter an offset from -180 to +180 minutes.
+                  </span>
+                </div>
+
+                <input
+                  class="minute-input"
+                  id="sunriseDstInput"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  value="0"
+                  aria-label="Sunrise daylight-saving adjustment"
+                />
+              </div>
+
+              <!-- Sunset DST -->
+
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="sunsetDst">
+                    Sunset daylight-saving adjustment
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="dstMinutesDescription"
+                  >
+                    Enter an offset from -180 to +180 minutes.
+                  </span>
+                </div>
+
+                <input
+                  class="minute-input"
+                  id="sunsetDstInput"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  value="0"
+                  aria-label="Sunset daylight-saving adjustment"
+                />
+              </div>
+            </div>
+
+            <div class="daylight-preview">
+              <div class="preview-time">
+                <icon>light_mode</icon>
+
+                <div>
+                  <span class="preview-label" data-i18n="effectiveSunrise">
+                    Effective sunrise
+                  </span>
+
+                  <span class="preview-value" id="sunrisePreview">
+                    7:27 NM
+                  </span>
+                </div>
+              </div>
+
+              <div class="preview-time">
+                <icon>dark_mode</icon>
+
+                <div>
+                  <span class="preview-label" data-i18n="effectiveSunset">
+                    Effective sunset
+                  </span>
+
+                  <span class="preview-value" id="sunsetPreview">
+                    5:28 AN
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <p
+              class="daylight-warning"
+              id="daylightWarning"
+              data-i18n="invalidDaylight"
+            >
+              Sunset must be later than sunrise.
+            </p>
+
+            <div style="margin-top: 11px">
+              <button
+                class="normal-button"
+                id="resetDaylightButton"
+                type="button"
+              >
+                <icon>restore</icon>
+
+                <span data-i18n="resetDaylight"> Reset daylight </span>
+              </button>
+            </div>
+          </section>
+
+          <!-- Cheats -->
+
+          <section class="settings-section">
+            <h3 class="section-heading">
+              <icon>sports_esports</icon>
+
+              <span data-i18n="funCheats"> Fun Cheats </span>
+            </h3>
+
+            <p class="section-description" data-i18n="funCheatsDescription">
+              Optional gameplay modifiers just for fun.
+            </p>
+
+            <div class="settings-group">
+              <div class="setting-row toggle-setting cheat-master">
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="enableCheats">
+                    Enable Fun Cheats
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="enableCheatsDescription"
+                  >
+                    Enables the options below.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle"
+                  id="cheatsMasterToggle"
+                  type="button"
+                ></button>
+              </div>
+
+              <div class="setting-row toggle-setting cheat-row" data-cheat-row>
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="unlimitedCandy">
+                    Unlimited Candy
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="unlimitedCandyDescription"
+                  >
+                    Displays unlimited candy.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle"
+                  id="unlimitedCandyToggle"
+                  type="button"
+                ></button>
+              </div>
+
+              <div class="setting-row toggle-setting cheat-row" data-cheat-row>
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="unlimitedShield">
+                    Unlimited Shield
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="unlimitedShieldDescription"
+                  >
+                    Pumpkin protection never expires.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle"
+                  id="unlimitedShieldToggle"
+                  type="button"
+                ></button>
+              </div>
+
+              <div class="setting-row toggle-setting cheat-row" data-cheat-row>
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="neverDie">
+                    Never Die
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="neverDieDescription"
+                  >
+                    Enemies cannot remove lives.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle"
+                  id="neverDieToggle"
+                  type="button"
+                ></button>
+              </div>
+
+              <div class="setting-row toggle-setting cheat-row" data-cheat-row>
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="superSpeed">
+                    Super Speed
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="superSpeedDescription"
+                  >
+                    Move much faster.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle"
+                  id="superSpeedToggle"
+                  type="button"
+                ></button>
+              </div>
+
+              <div class="setting-row toggle-setting cheat-row" data-cheat-row>
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="freezeEnemies">
+                    Freeze Enemies
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="freezeEnemiesDescription"
+                  >
+                    Enemies stop moving without freezing the game.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle"
+                  id="freezeEnemiesToggle"
+                  type="button"
+                ></button>
+              </div>
+
+              <div class="setting-row toggle-setting cheat-row" data-cheat-row>
+                <div class="setting-info">
+                  <span class="setting-name" data-i18n="candyMagnet">
+                    Candy Magnet
+                  </span>
+
+                  <span
+                    class="setting-description"
+                    data-i18n="candyMagnetDescription"
+                  >
+                    Nearby candy moves toward you.
+                  </span>
+                </div>
+
+                <button
+                  class="toggle"
+                  id="candyMagnetToggle"
+                  type="button"
+                ></button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <footer class="settings-footer">
+          <button
+            class="normal-button primary"
+            id="settingsDoneButton"
+            type="button"
+          >
+            <icon>check</icon>
+
+            <span data-i18n="done"> Done </span>
+          </button>
+        </footer>
+      </section>
+    </div>
+
+    <script>
+      window.addEventListener("DOMContentLoaded", () => {
+        "use strict";
+
+        /*
+            --------------------------------------------------
+            Constants
+            --------------------------------------------------
+          */
+
+        const MUSIC_URL = "https://www.munetios.com/halloweenmusic.mp3";
+
+        const GAME_SECONDS = 90;
+
+        /*
+            Because +1 second is added every 5 seconds,
+            a 90 second starting timer lasts approximately
+            112 real seconds.
+
+            The daylight cycle therefore uses 112 seconds
+            for one full game-day.
+          */
+
+        const DAY_CYCLE_REAL_SECONDS = 112;
+
+        const WORLD_WIDTH = 1600;
+
+        const WORLD_HEIGHT = 900;
+
+        const MAX_PARTICLES = 280;
+
+        const MAX_POPUPS = 60;
+
+        const MAX_GHOSTS = 12;
+
+        const MAX_BATS = 8;
+
+        const MAX_SPIDERS = 7;
+
+        const STORAGE_SETTINGS = "munetgame-halloween-settings-v4";
+
+        const STORAGE_SCORE = "munetgame-halloween-high-score";
+
+        /*
+            7:27 NM
+          */
+        const DEFAULT_SUNRISE = 7 * 60 + 27;
+
+        /*
+            5:28 AN = 17:28
+          */
+        const DEFAULT_SUNSET = 17 * 60 + 28;
+
+        /*
+            Start the visual day before sunrise.
+          */
+        const WORLD_START_MINUTE = 6 * 60;
+
+        /*
+            --------------------------------------------------
+            Translation
+            --------------------------------------------------
+          */
+
+        const translations = {
+          en: {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Trick or Treat • October 1–31",
+
+            candy: "Candy",
+
+            lives: "Lives",
+
+            timeLeft: "Time left",
+
+            best: "Best",
+
+            currentTime: "Current time",
+
+            pumpkinShield: "Pumpkin shield",
+
+            funCheatsActive: "Fun cheats active",
+
+            timeBonus: "+1 second",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Trick or treat through a haunted neighborhood, collect candy, visit houses, grab magic pumpkins, and survive the spooky creatures.",
+
+            collectCandy: "Collect Candy",
+
+            collectCandyDescription:
+              "Pick up candy scattered around the neighborhood.",
+
+            visitHouses: "Visit Houses",
+
+            visitHousesDescription:
+              "Visit glowing doors for trick-or-treat bonuses.",
+
+            grabPumpkins: "Grab Pumpkins",
+
+            grabPumpkinsDescription: "Pumpkin power protects you from enemies.",
+
+            play: "Play Trick or Treat",
+
+            keyboardHelp: "WASD / Arrow Keys • Space: Dash • P: Pause",
+
+            settings: "Settings",
+
+            paused: "Paused",
+
+            pausedDescription: "Halloween is waiting for you.",
+
+            resume: "Resume",
+
+            restart: "Restart",
+
+            gameComplete: "Halloween Complete!",
+
+            gameCompleteDescription:
+              "Halloween is over. Here's how much candy you collected.",
+
+            caught: "The Ghosts Got You!",
+
+            caughtDescription:
+              "You ran out of lives, but your candy still counts.",
+
+            candyScore: "Candy score",
+
+            housesVisited: "Houses visited",
+
+            bestScore: "Best score",
+
+            playAgain: "Play Again",
+
+            footer: "MunetGame Halloween • October 1–31",
+
+            general: "General",
+
+            generalDescription:
+              "Customize language, time symbols, music, and sound.",
+
+            language: "Language",
+
+            languageDescription: "Changes the language used by the game.",
+
+            timeSymbols: "Time symbols",
+
+            timeSymbolsDescription: "Choose NM/AN or AM/PM.",
+
+            soundMusic: "Music & Sound",
+
+            soundMusicDescription:
+              "Plays Halloween music and Tone.js sound effects.",
+
+            daylight: "Daylight",
+
+            daylightDescription:
+              "Enter custom sunrise and sunset times and optionally apply independent daylight-saving adjustments.",
+
+            sunriseTime: "Sunrise time",
+
+            sunriseTimeDescription: "Text input — no native time picker.",
+
+            sunsetTime: "Sunset time",
+
+            sunsetTimeDescription: "Text input — no native time picker.",
+
+            sunriseDst: "Sunrise daylight-saving adjustment",
+
+            sunsetDst: "Sunset daylight-saving adjustment",
+
+            dstMinutesDescription: "Enter an offset from -180 to +180 minutes.",
+
+            effectiveSunrise: "Effective sunrise",
+
+            effectiveSunset: "Effective sunset",
+
+            invalidDaylight: "Sunset must be later than sunrise.",
+
+            resetDaylight: "Reset daylight",
+
+            funCheats: "Fun Cheats",
+
+            funCheatsDescription: "Optional gameplay modifiers just for fun.",
+
+            enableCheats: "Enable Fun Cheats",
+
+            enableCheatsDescription: "Enables the options below.",
+
+            unlimitedCandy: "Unlimited Candy",
+
+            unlimitedCandyDescription: "Displays unlimited candy.",
+
+            unlimitedShield: "Unlimited Shield",
+
+            unlimitedShieldDescription: "Pumpkin protection never expires.",
+
+            neverDie: "Never Die",
+
+            neverDieDescription: "Enemies cannot remove lives.",
+
+            superSpeed: "Super Speed",
+
+            superSpeedDescription: "Move much faster.",
+
+            freezeEnemies: "Freeze Enemies",
+
+            freezeEnemiesDescription:
+              "Enemies stop moving without freezing the game.",
+
+            candyMagnet: "Candy Magnet",
+
+            candyMagnetDescription: "Nearby candy moves toward you.",
+
+            done: "Done",
+
+            protected: "Protected",
+
+            shield: "Shield",
+
+            trickOrTreat: "TRICK OR TREAT",
+          },
+
+          "es-US": {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Dulce o truco • 1–31 de octubre",
+
+            candy: "Dulces",
+
+            lives: "Vidas",
+
+            timeLeft: "Tiempo restante",
+
+            best: "Récord",
+
+            currentTime: "Hora actual",
+
+            pumpkinShield: "Escudo de calabaza",
+
+            funCheatsActive: "Trucos divertidos activos",
+
+            timeBonus: "+1 segundo",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Recorre un vecindario embrujado, recoge dulces, visita casas, consigue calabazas mágicas y evita las criaturas.",
+
+            collectCandy: "Recoge dulces",
+
+            collectCandyDescription: "Recoge los dulces del vecindario.",
+
+            visitHouses: "Visita casas",
+
+            visitHousesDescription:
+              "Visita las puertas iluminadas para recibir bonos.",
+
+            grabPumpkins: "Consigue calabazas",
+
+            grabPumpkinsDescription:
+              "Las calabazas te protegen de los enemigos.",
+
+            play: "Jugar Dulce o truco",
+
+            keyboardHelp: "WASD / Flechas • Espacio: Impulso • P: Pausa",
+
+            settings: "Configuración",
+
+            paused: "Pausado",
+
+            pausedDescription: "Halloween te está esperando.",
+
+            resume: "Continuar",
+
+            restart: "Reiniciar",
+
+            gameComplete: "¡Halloween completado!",
+
+            gameCompleteDescription:
+              "Halloween terminó. Estos son los dulces que recogiste.",
+
+            caught: "¡Los fantasmas te atraparon!",
+
+            caughtDescription:
+              "Te quedaste sin vidas, pero tus dulces todavía cuentan.",
+
+            candyScore: "Puntuación de dulces",
+
+            housesVisited: "Casas visitadas",
+
+            bestScore: "Mejor puntuación",
+
+            playAgain: "Jugar otra vez",
+
+            footer: "MunetGame Halloween • 1–31 de octubre",
+
+            general: "General",
+
+            generalDescription:
+              "Personaliza el idioma, los símbolos horarios, la música y el sonido.",
+
+            language: "Idioma",
+
+            languageDescription: "Cambia el idioma utilizado por el juego.",
+
+            timeSymbols: "Símbolos horarios",
+
+            timeSymbolsDescription: "Elige NM/AN o AM/PM.",
+
+            soundMusic: "Música y sonido",
+
+            soundMusicDescription:
+              "Reproduce música de Halloween y efectos con Tone.js.",
+
+            daylight: "Luz del día",
+
+            daylightDescription:
+              "Introduce horas personalizadas para el amanecer y el atardecer y aplica ajustes de horario de verano independientes.",
+
+            sunriseTime: "Hora del amanecer",
+
+            sunriseTimeDescription:
+              "Campo de texto, sin selector de hora nativo.",
+
+            sunsetTime: "Hora del atardecer",
+
+            sunsetTimeDescription:
+              "Campo de texto, sin selector de hora nativo.",
+
+            sunriseDst: "Ajuste del amanecer",
+
+            sunsetDst: "Ajuste del atardecer",
+
+            dstMinutesDescription: "Introduce entre -180 y +180 minutos.",
+
+            effectiveSunrise: "Amanecer efectivo",
+
+            effectiveSunset: "Atardecer efectivo",
+
+            invalidDaylight: "El atardecer debe ser posterior al amanecer.",
+
+            resetDaylight: "Restablecer luz del día",
+
+            funCheats: "Trucos divertidos",
+
+            funCheatsDescription:
+              "Modificadores opcionales solo por diversión.",
+
+            enableCheats: "Activar trucos divertidos",
+
+            enableCheatsDescription: "Activa las opciones siguientes.",
+
+            unlimitedCandy: "Dulces ilimitados",
+
+            unlimitedCandyDescription: "Muestra dulces ilimitados.",
+
+            unlimitedShield: "Escudo ilimitado",
+
+            unlimitedShieldDescription:
+              "La protección de calabaza nunca termina.",
+
+            neverDie: "Nunca morir",
+
+            neverDieDescription: "Los enemigos no pueden quitarte vidas.",
+
+            superSpeed: "Súper velocidad",
+
+            superSpeedDescription: "Te permite moverte mucho más rápido.",
+
+            freezeEnemies: "Congelar enemigos",
+
+            freezeEnemiesDescription:
+              "Los enemigos dejan de moverse sin congelar el juego.",
+
+            candyMagnet: "Imán de dulces",
+
+            candyMagnetDescription: "Los dulces cercanos se mueven hacia ti.",
+
+            done: "Listo",
+
+            protected: "Protegido",
+
+            shield: "Escudo",
+
+            trickOrTreat: "DULCE O TRUCO",
+          },
+
+          "es-MX": {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Dulce o truco • 1–31 de octubre",
+
+            candy: "Dulces",
+
+            lives: "Vidas",
+
+            timeLeft: "Tiempo restante",
+
+            best: "Récord",
+
+            currentTime: "Hora actual",
+
+            pumpkinShield: "Escudo de calabaza",
+
+            funCheatsActive: "Trucos divertidos activos",
+
+            timeBonus: "+1 segundo",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Recorre un vecindario embrujado, recoge dulces, visita casas, consigue calabazas mágicas y evita las criaturas.",
+
+            collectCandy: "Recoge dulces",
+
+            collectCandyDescription: "Recoge los dulces del vecindario.",
+
+            visitHouses: "Visita casas",
+
+            visitHousesDescription:
+              "Visita las puertas iluminadas para recibir bonos.",
+
+            grabPumpkins: "Consigue calabazas",
+
+            grabPumpkinsDescription:
+              "Las calabazas te protegen de los enemigos.",
+
+            play: "Jugar Dulce o truco",
+
+            keyboardHelp: "WASD / Flechas • Espacio: Impulso • P: Pausa",
+
+            settings: "Configuración",
+
+            paused: "Pausado",
+
+            pausedDescription: "Halloween te está esperando.",
+
+            resume: "Continuar",
+
+            restart: "Reiniciar",
+
+            gameComplete: "¡Halloween completado!",
+
+            gameCompleteDescription:
+              "Halloween terminó. Estos son los dulces que recogiste.",
+
+            caught: "¡Los fantasmas te atraparon!",
+
+            caughtDescription:
+              "Te quedaste sin vidas, pero tus dulces todavía cuentan.",
+
+            candyScore: "Puntuación de dulces",
+
+            housesVisited: "Casas visitadas",
+
+            bestScore: "Mejor puntuación",
+
+            playAgain: "Jugar otra vez",
+
+            footer: "MunetGame Halloween • 1–31 de octubre",
+
+            general: "General",
+
+            generalDescription:
+              "Personaliza el idioma, los símbolos horarios, la música y el sonido.",
+
+            language: "Idioma",
+
+            languageDescription: "Cambia el idioma utilizado por el juego.",
+
+            timeSymbols: "Símbolos horarios",
+
+            timeSymbolsDescription: "Elige NM/AN o AM/PM.",
+
+            soundMusic: "Música y sonido",
+
+            soundMusicDescription:
+              "Reproduce música de Halloween y efectos con Tone.js.",
+
+            daylight: "Luz del día",
+
+            daylightDescription:
+              "Introduce horas personalizadas para el amanecer y el atardecer y aplica ajustes independientes.",
+
+            sunriseTime: "Hora del amanecer",
+
+            sunriseTimeDescription:
+              "Campo de texto, sin selector de hora nativo.",
+
+            sunsetTime: "Hora del atardecer",
+
+            sunsetTimeDescription:
+              "Campo de texto, sin selector de hora nativo.",
+
+            sunriseDst: "Ajuste del amanecer",
+
+            sunsetDst: "Ajuste del atardecer",
+
+            dstMinutesDescription: "Introduce entre -180 y +180 minutos.",
+
+            effectiveSunrise: "Amanecer efectivo",
+
+            effectiveSunset: "Atardecer efectivo",
+
+            invalidDaylight: "El atardecer debe ser posterior al amanecer.",
+
+            resetDaylight: "Restablecer luz del día",
+
+            funCheats: "Trucos divertidos",
+
+            funCheatsDescription:
+              "Modificadores opcionales solo por diversión.",
+
+            enableCheats: "Activar trucos divertidos",
+
+            enableCheatsDescription: "Activa las opciones siguientes.",
+
+            unlimitedCandy: "Dulces ilimitados",
+
+            unlimitedCandyDescription: "Muestra dulces ilimitados.",
+
+            unlimitedShield: "Escudo ilimitado",
+
+            unlimitedShieldDescription:
+              "La protección de calabaza nunca termina.",
+
+            neverDie: "Nunca morir",
+
+            neverDieDescription: "Los enemigos no pueden quitarte vidas.",
+
+            superSpeed: "Súper velocidad",
+
+            superSpeedDescription: "Te permite moverte mucho más rápido.",
+
+            freezeEnemies: "Congelar enemigos",
+
+            freezeEnemiesDescription:
+              "Los enemigos dejan de moverse sin congelar el juego.",
+
+            candyMagnet: "Imán de dulces",
+
+            candyMagnetDescription: "Los dulces cercanos se mueven hacia ti.",
+
+            done: "Listo",
+
+            protected: "Protegido",
+
+            shield: "Escudo",
+
+            trickOrTreat: "DULCE O TRUCO",
+          },
+
+          "es-ES": {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Truco o trato • 1–31 de octubre",
+
+            candy: "Caramelos",
+
+            lives: "Vidas",
+
+            timeLeft: "Tiempo restante",
+
+            best: "Récord",
+
+            currentTime: "Hora actual",
+
+            pumpkinShield: "Escudo de calabaza",
+
+            funCheatsActive: "Trucos divertidos activos",
+
+            timeBonus: "+1 segundo",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Recorre un barrio encantado, recoge caramelos, visita casas, consigue calabazas mágicas y evita las criaturas.",
+
+            collectCandy: "Recoge caramelos",
+
+            collectCandyDescription: "Recoge los caramelos del barrio.",
+
+            visitHouses: "Visita casas",
+
+            visitHousesDescription:
+              "Visita las puertas iluminadas para recibir bonificaciones.",
+
+            grabPumpkins: "Consigue calabazas",
+
+            grabPumpkinsDescription:
+              "Las calabazas te protegen de los enemigos.",
+
+            play: "Jugar Truco o trato",
+
+            keyboardHelp: "WASD / Flechas • Espacio: Impulso • P: Pausa",
+
+            settings: "Ajustes",
+
+            paused: "Pausado",
+
+            pausedDescription: "Halloween te está esperando.",
+
+            resume: "Continuar",
+
+            restart: "Reiniciar",
+
+            gameComplete: "¡Halloween completado!",
+
+            gameCompleteDescription:
+              "Halloween ha terminado. Estos son los caramelos que has recogido.",
+
+            caught: "¡Los fantasmas te han atrapado!",
+
+            caughtDescription:
+              "Te has quedado sin vidas, pero tus caramelos siguen contando.",
+
+            candyScore: "Puntuación de caramelos",
+
+            housesVisited: "Casas visitadas",
+
+            bestScore: "Mejor puntuación",
+
+            playAgain: "Jugar de nuevo",
+
+            footer: "MunetGame Halloween • 1–31 de octubre",
+
+            general: "General",
+
+            generalDescription:
+              "Personaliza el idioma, los símbolos horarios, la música y el sonido.",
+
+            language: "Idioma",
+
+            languageDescription: "Cambia el idioma utilizado por el juego.",
+
+            timeSymbols: "Símbolos horarios",
+
+            timeSymbolsDescription: "Elige NM/AN o AM/PM.",
+
+            soundMusic: "Música y sonido",
+
+            soundMusicDescription:
+              "Reproduce música de Halloween y efectos con Tone.js.",
+
+            daylight: "Luz diurna",
+
+            daylightDescription:
+              "Introduce horas personalizadas para el amanecer y el atardecer y aplica ajustes independientes.",
+
+            sunriseTime: "Hora del amanecer",
+
+            sunriseTimeDescription:
+              "Campo de texto, sin selector de hora nativo.",
+
+            sunsetTime: "Hora del atardecer",
+
+            sunsetTimeDescription:
+              "Campo de texto, sin selector de hora nativo.",
+
+            sunriseDst: "Ajuste del amanecer",
+
+            sunsetDst: "Ajuste del atardecer",
+
+            dstMinutesDescription: "Introduce entre -180 y +180 minutos.",
+
+            effectiveSunrise: "Amanecer efectivo",
+
+            effectiveSunset: "Atardecer efectivo",
+
+            invalidDaylight: "El atardecer debe ser posterior al amanecer.",
+
+            resetDaylight: "Restablecer luz diurna",
+
+            funCheats: "Trucos divertidos",
+
+            funCheatsDescription:
+              "Modificadores opcionales solo por diversión.",
+
+            enableCheats: "Activar trucos divertidos",
+
+            enableCheatsDescription: "Activa las opciones siguientes.",
+
+            unlimitedCandy: "Caramelos ilimitados",
+
+            unlimitedCandyDescription: "Muestra caramelos ilimitados.",
+
+            unlimitedShield: "Escudo ilimitado",
+
+            unlimitedShieldDescription:
+              "La protección de calabaza nunca termina.",
+
+            neverDie: "No morir nunca",
+
+            neverDieDescription: "Los enemigos no pueden quitarte vidas.",
+
+            superSpeed: "Súper velocidad",
+
+            superSpeedDescription: "Te permite moverte mucho más rápido.",
+
+            freezeEnemies: "Congelar enemigos",
+
+            freezeEnemiesDescription:
+              "Los enemigos dejan de moverse sin congelar el juego.",
+
+            candyMagnet: "Imán de caramelos",
+
+            candyMagnetDescription:
+              "Los caramelos cercanos se mueven hacia ti.",
+
+            done: "Hecho",
+
+            protected: "Protegido",
+
+            shield: "Escudo",
+
+            trickOrTreat: "TRUCO O TRATO",
+          },
+
+          "pt-BR": {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Gostosuras ou travessuras • 1–31 de outubro",
+
+            candy: "Doces",
+
+            lives: "Vidas",
+
+            timeLeft: "Tempo restante",
+
+            best: "Recorde",
+
+            currentTime: "Hora atual",
+
+            pumpkinShield: "Escudo de abóbora",
+
+            funCheatsActive: "Trapaças divertidas ativas",
+
+            timeBonus: "+1 segundo",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Explore um bairro assombrado, colete doces, visite casas, pegue abóboras mágicas e evite criaturas assustadoras.",
+
+            collectCandy: "Colete doces",
+
+            collectCandyDescription: "Colete doces pelo bairro.",
+
+            visitHouses: "Visite casas",
+
+            visitHousesDescription:
+              "Visite portas iluminadas para receber bônus.",
+
+            grabPumpkins: "Pegue abóboras",
+
+            grabPumpkinsDescription: "As abóboras protegem você dos inimigos.",
+
+            play: "Jogar Halloween",
+
+            keyboardHelp: "WASD / Setas • Espaço: Impulso • P: Pausa",
+
+            settings: "Configurações",
+
+            paused: "Pausado",
+
+            pausedDescription: "O Halloween está esperando por você.",
+
+            resume: "Continuar",
+
+            restart: "Reiniciar",
+
+            gameComplete: "Halloween concluído!",
+
+            gameCompleteDescription:
+              "O Halloween terminou. Veja quantos doces você coletou.",
+
+            caught: "Os fantasmas pegaram você!",
+
+            caughtDescription:
+              "Você ficou sem vidas, mas seus doces ainda contam.",
+
+            candyScore: "Pontuação de doces",
+
+            housesVisited: "Casas visitadas",
+
+            bestScore: "Melhor pontuação",
+
+            playAgain: "Jogar novamente",
+
+            footer: "MunetGame Halloween • 1–31 de outubro",
+
+            general: "Geral",
+
+            generalDescription:
+              "Personalize idioma, símbolos de hora, música e som.",
+
+            language: "Idioma",
+
+            languageDescription: "Altera o idioma utilizado pelo jogo.",
+
+            timeSymbols: "Símbolos de hora",
+
+            timeSymbolsDescription: "Escolha NM/AN ou AM/PM.",
+
+            soundMusic: "Música e som",
+
+            soundMusicDescription:
+              "Reproduz música de Halloween e efeitos com Tone.js.",
+
+            daylight: "Luz do dia",
+
+            daylightDescription:
+              "Digite horários personalizados para nascer e pôr do sol e aplique ajustes independentes.",
+
+            sunriseTime: "Hora do nascer do sol",
+
+            sunriseTimeDescription:
+              "Campo de texto, sem seletor de hora nativo.",
+
+            sunsetTime: "Hora do pôr do sol",
+
+            sunsetTimeDescription:
+              "Campo de texto, sem seletor de hora nativo.",
+
+            sunriseDst: "Ajuste do nascer do sol",
+
+            sunsetDst: "Ajuste do pôr do sol",
+
+            dstMinutesDescription: "Digite um valor entre -180 e +180 minutos.",
+
+            effectiveSunrise: "Nascer do sol efetivo",
+
+            effectiveSunset: "Pôr do sol efetivo",
+
+            invalidDaylight:
+              "O pôr do sol deve ocorrer depois do nascer do sol.",
+
+            resetDaylight: "Redefinir luz do dia",
+
+            funCheats: "Trapaças divertidas",
+
+            funCheatsDescription:
+              "Modificadores opcionais apenas por diversão.",
+
+            enableCheats: "Ativar trapaças divertidas",
+
+            enableCheatsDescription: "Ativa as opções abaixo.",
+
+            unlimitedCandy: "Doces ilimitados",
+
+            unlimitedCandyDescription: "Exibe doces ilimitados.",
+
+            unlimitedShield: "Escudo ilimitado",
+
+            unlimitedShieldDescription: "A proteção de abóbora nunca termina.",
+
+            neverDie: "Nunca morrer",
+
+            neverDieDescription: "Os inimigos não podem remover vidas.",
+
+            superSpeed: "Supervelocidade",
+
+            superSpeedDescription: "Move você muito mais rápido.",
+
+            freezeEnemies: "Congelar inimigos",
+
+            freezeEnemiesDescription: "Os inimigos param sem congelar o jogo.",
+
+            candyMagnet: "Ímã de doces",
+
+            candyMagnetDescription: "Doces próximos se movem em sua direção.",
+
+            done: "Concluído",
+
+            protected: "Protegido",
+
+            shield: "Escudo",
+
+            trickOrTreat: "GOSTOSURAS OU TRAVESSURAS",
+          },
+
+          "pt-PT": {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Doçura ou travessura • 1–31 de outubro",
+
+            candy: "Doces",
+
+            lives: "Vidas",
+
+            timeLeft: "Tempo restante",
+
+            best: "Recorde",
+
+            currentTime: "Hora atual",
+
+            pumpkinShield: "Escudo de abóbora",
+
+            funCheatsActive: "Batotas divertidas ativas",
+
+            timeBonus: "+1 segundo",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Explora um bairro assombrado, recolhe doces, visita casas, apanha abóboras mágicas e evita criaturas assustadoras.",
+
+            collectCandy: "Recolher doces",
+
+            collectCandyDescription: "Recolhe doces pelo bairro.",
+
+            visitHouses: "Visitar casas",
+
+            visitHousesDescription:
+              "Visita portas iluminadas para receber bónus.",
+
+            grabPumpkins: "Apanhar abóboras",
+
+            grabPumpkinsDescription: "As abóboras protegem-te dos inimigos.",
+
+            play: "Jogar Halloween",
+
+            keyboardHelp: "WASD / Setas • Espaço: Impulso • P: Pausa",
+
+            settings: "Definições",
+
+            paused: "Em pausa",
+
+            pausedDescription: "O Halloween está à tua espera.",
+
+            resume: "Continuar",
+
+            restart: "Reiniciar",
+
+            gameComplete: "Halloween concluído!",
+
+            gameCompleteDescription:
+              "O Halloween terminou. Vê quantos doces recolheste.",
+
+            caught: "Os fantasmas apanharam-te!",
+
+            caughtDescription:
+              "Ficaste sem vidas, mas os teus doces ainda contam.",
+
+            candyScore: "Pontuação de doces",
+
+            housesVisited: "Casas visitadas",
+
+            bestScore: "Melhor pontuação",
+
+            playAgain: "Jogar novamente",
+
+            footer: "MunetGame Halloween • 1–31 de outubro",
+
+            general: "Geral",
+
+            generalDescription:
+              "Personaliza idioma, símbolos de hora, música e som.",
+
+            language: "Idioma",
+
+            languageDescription: "Altera o idioma utilizado pelo jogo.",
+
+            timeSymbols: "Símbolos de hora",
+
+            timeSymbolsDescription: "Escolhe NM/AN ou AM/PM.",
+
+            soundMusic: "Música e som",
+
+            soundMusicDescription:
+              "Reproduz música de Halloween e efeitos com Tone.js.",
+
+            daylight: "Luz do dia",
+
+            daylightDescription:
+              "Introduz horários personalizados para nascer e pôr do sol e aplica ajustes independentes.",
+
+            sunriseTime: "Hora do nascer do sol",
+
+            sunriseTimeDescription:
+              "Campo de texto, sem seletor de hora nativo.",
+
+            sunsetTime: "Hora do pôr do sol",
+
+            sunsetTimeDescription:
+              "Campo de texto, sem seletor de hora nativo.",
+
+            sunriseDst: "Ajuste do nascer do sol",
+
+            sunsetDst: "Ajuste do pôr do sol",
+
+            dstMinutesDescription:
+              "Introduz um valor entre -180 e +180 minutos.",
+
+            effectiveSunrise: "Nascer do sol efetivo",
+
+            effectiveSunset: "Pôr do sol efetivo",
+
+            invalidDaylight:
+              "O pôr do sol deve ocorrer depois do nascer do sol.",
+
+            resetDaylight: "Repor luz do dia",
+
+            funCheats: "Batotas divertidas",
+
+            funCheatsDescription:
+              "Modificadores opcionais apenas por diversão.",
+
+            enableCheats: "Ativar batotas divertidas",
+
+            enableCheatsDescription: "Ativa as opções abaixo.",
+
+            unlimitedCandy: "Doces ilimitados",
+
+            unlimitedCandyDescription: "Apresenta doces ilimitados.",
+
+            unlimitedShield: "Escudo ilimitado",
+
+            unlimitedShieldDescription: "A proteção de abóbora nunca termina.",
+
+            neverDie: "Nunca morrer",
+
+            neverDieDescription: "Os inimigos não podem retirar vidas.",
+
+            superSpeed: "Supervelocidade",
+
+            superSpeedDescription: "Permite mover-te muito mais depressa.",
+
+            freezeEnemies: "Congelar inimigos",
+
+            freezeEnemiesDescription: "Os inimigos param sem bloquear o jogo.",
+
+            candyMagnet: "Íman de doces",
+
+            candyMagnetDescription:
+              "Os doces próximos movem-se na tua direção.",
+
+            done: "Concluído",
+
+            protected: "Protegido",
+
+            shield: "Escudo",
+
+            trickOrTreat: "DOÇURA OU TRAVESSURA",
+          },
+
+          fr: {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Des bonbons ou un sort • 1–31 octobre",
+
+            candy: "Bonbons",
+
+            lives: "Vies",
+
+            timeLeft: "Temps restant",
+
+            best: "Record",
+
+            currentTime: "Heure actuelle",
+
+            pumpkinShield: "Bouclier citrouille",
+
+            funCheatsActive: "Triches amusantes actives",
+
+            timeBonus: "+1 seconde",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Parcourez un quartier hanté, ramassez des bonbons, visitez des maisons, récupérez des citrouilles magiques et évitez les créatures effrayantes.",
+
+            collectCandy: "Ramasser des bonbons",
+
+            collectCandyDescription:
+              "Ramassez les bonbons dispersés dans le quartier.",
+
+            visitHouses: "Visiter les maisons",
+
+            visitHousesDescription:
+              "Visitez les portes éclairées pour obtenir des bonus.",
+
+            grabPumpkins: "Ramasser des citrouilles",
+
+            grabPumpkinsDescription:
+              "Les citrouilles vous protègent des ennemis.",
+
+            play: "Jouer à Halloween",
+
+            keyboardHelp: "WASD / Flèches • Espace : Sprint • P : Pause",
+
+            settings: "Paramètres",
+
+            paused: "En pause",
+
+            pausedDescription: "Halloween vous attend.",
+
+            resume: "Reprendre",
+
+            restart: "Recommencer",
+
+            gameComplete: "Halloween terminé !",
+
+            gameCompleteDescription:
+              "Halloween est terminé. Voici le nombre de bonbons que vous avez ramassés.",
+
+            caught: "Les fantômes vous ont attrapé !",
+
+            caughtDescription:
+              "Vous n'avez plus de vies, mais vos bonbons comptent toujours.",
+
+            candyScore: "Score de bonbons",
+
+            housesVisited: "Maisons visitées",
+
+            bestScore: "Meilleur score",
+
+            playAgain: "Rejouer",
+
+            footer: "MunetGame Halloween • 1–31 octobre",
+
+            general: "Général",
+
+            generalDescription:
+              "Personnalisez la langue, les symboles horaires, la musique et le son.",
+
+            language: "Langue",
+
+            languageDescription: "Modifie la langue utilisée dans le jeu.",
+
+            timeSymbols: "Symboles horaires",
+
+            timeSymbolsDescription: "Choisissez NM/AN ou AM/PM.",
+
+            soundMusic: "Musique et son",
+
+            soundMusicDescription:
+              "Lit la musique d'Halloween et les effets sonores avec Tone.js.",
+
+            daylight: "Lumière du jour",
+
+            daylightDescription:
+              "Saisissez des heures personnalisées pour le lever et le coucher du soleil et appliquez des réglages indépendants d'heure d'été.",
+
+            sunriseTime: "Heure du lever du soleil",
+
+            sunriseTimeDescription:
+              "Champ de texte, sans sélecteur d'heure natif.",
+
+            sunsetTime: "Heure du coucher du soleil",
+
+            sunsetTimeDescription:
+              "Champ de texte, sans sélecteur d'heure natif.",
+
+            sunriseDst: "Réglage du lever du soleil",
+
+            sunsetDst: "Réglage du coucher du soleil",
+
+            dstMinutesDescription:
+              "Saisissez un décalage compris entre -180 et +180 minutes.",
+
+            effectiveSunrise: "Lever du soleil effectif",
+
+            effectiveSunset: "Coucher du soleil effectif",
+
+            invalidDaylight:
+              "Le coucher du soleil doit être plus tard que le lever du soleil.",
+
+            resetDaylight: "Réinitialiser la lumière du jour",
+
+            funCheats: "Triches amusantes",
+
+            funCheatsDescription:
+              "Modificateurs de jeu facultatifs, uniquement pour s'amuser.",
+
+            enableCheats: "Activer les triches amusantes",
+
+            enableCheatsDescription: "Active les options ci-dessous.",
+
+            unlimitedCandy: "Bonbons illimités",
+
+            unlimitedCandyDescription:
+              "Affiche une quantité illimitée de bonbons.",
+
+            unlimitedShield: "Bouclier illimité",
+
+            unlimitedShieldDescription:
+              "La protection de la citrouille n'expire jamais.",
+
+            neverDie: "Ne jamais mourir",
+
+            neverDieDescription: "Les ennemis ne peuvent pas retirer de vies.",
+
+            superSpeed: "Super vitesse",
+
+            superSpeedDescription:
+              "Permet de se déplacer beaucoup plus rapidement.",
+
+            freezeEnemies: "Geler les ennemis",
+
+            freezeEnemiesDescription:
+              "Les ennemis cessent de bouger sans bloquer le jeu.",
+
+            candyMagnet: "Aimant à bonbons",
+
+            candyMagnetDescription:
+              "Les bonbons proches se déplacent vers vous.",
+
+            done: "Terminé",
+
+            protected: "Protégé",
+
+            shield: "Bouclier",
+
+            trickOrTreat: "DES BONBONS OU UN SORT",
+          },
+
+          de: {
+            appTitle: "MunetGame Halloween",
+
+            eventSubtitle: "Süßes oder Saures • 1.–31. Oktober",
+
+            candy: "Süßigkeiten",
+
+            lives: "Leben",
+
+            timeLeft: "Verbleibende Zeit",
+
+            best: "Bestwert",
+
+            currentTime: "Aktuelle Zeit",
+
+            pumpkinShield: "Kürbisschild",
+
+            funCheatsActive: "Spaß-Cheats aktiv",
+
+            timeBonus: "+1 Sekunde",
+
+            startTitle: "MunetGame",
+
+            halloween: "Halloween",
+
+            startDescription:
+              "Erkunde eine verwunschene Nachbarschaft, sammle Süßigkeiten, besuche Häuser, hole magische Kürbisse und entkomme den gruseligen Kreaturen.",
+
+            collectCandy: "Süßigkeiten sammeln",
+
+            collectCandyDescription:
+              "Sammle die Süßigkeiten in der Nachbarschaft.",
+
+            visitHouses: "Häuser besuchen",
+
+            visitHousesDescription:
+              "Besuche leuchtende Türen, um Boni zu erhalten.",
+
+            grabPumpkins: "Kürbisse sammeln",
+
+            grabPumpkinsDescription: "Kürbisse schützen dich vor Gegnern.",
+
+            play: "Halloween spielen",
+
+            keyboardHelp: "WASD / Pfeiltasten • Leertaste: Sprint • P: Pause",
+
+            settings: "Einstellungen",
+
+            paused: "Pausiert",
+
+            pausedDescription: "Halloween wartet auf dich.",
+
+            resume: "Fortsetzen",
+
+            restart: "Neu starten",
+
+            gameComplete: "Halloween abgeschlossen!",
+
+            gameCompleteDescription:
+              "Halloween ist vorbei. Das ist deine gesammelte Süßigkeitenmenge.",
+
+            caught: "Die Geister haben dich erwischt!",
+
+            caughtDescription:
+              "Du hast keine Leben mehr, aber deine Süßigkeiten zählen weiterhin.",
+
+            candyScore: "Süßigkeiten-Punktzahl",
+
+            housesVisited: "Besuchte Häuser",
+
+            bestScore: "Beste Punktzahl",
+
+            playAgain: "Noch einmal spielen",
+
+            footer: "MunetGame Halloween • 1.–31. Oktober",
+
+            general: "Allgemein",
+
+            generalDescription: "Passe Sprache, Zeitsymbole, Musik und Ton an.",
+
+            language: "Sprache",
+
+            languageDescription: "Ändert die im Spiel verwendete Sprache.",
+
+            timeSymbols: "Zeitsymbole",
+
+            timeSymbolsDescription: "Wähle NM/AN oder AM/PM.",
+
+            soundMusic: "Musik und Ton",
+
+            soundMusicDescription:
+              "Spielt Halloween-Musik und Tone.js-Soundeffekte ab.",
+
+            daylight: "Tageslicht",
+
+            daylightDescription:
+              "Gib eigene Zeiten für Sonnenaufgang und Sonnenuntergang ein und wende unabhängige Sommerzeit-Anpassungen an.",
+
+            sunriseTime: "Sonnenaufgang",
+
+            sunriseTimeDescription: "Texteingabe, ohne nativen Zeitwähler.",
+
+            sunsetTime: "Sonnenuntergang",
+
+            sunsetTimeDescription: "Texteingabe, ohne nativen Zeitwähler.",
+
+            sunriseDst: "Anpassung des Sonnenaufgangs",
+
+            sunsetDst: "Anpassung des Sonnenuntergangs",
+
+            dstMinutesDescription:
+              "Gib einen Wert zwischen -180 und +180 Minuten ein.",
+
+            effectiveSunrise: "Effektiver Sonnenaufgang",
+
+            effectiveSunset: "Effektiver Sonnenuntergang",
+
+            invalidDaylight:
+              "Der Sonnenuntergang muss später als der Sonnenaufgang sein.",
+
+            resetDaylight: "Tageslicht zurücksetzen",
+
+            funCheats: "Spaß-Cheats",
+
+            funCheatsDescription: "Optionale Spielmodifikatoren nur zum Spaß.",
+
+            enableCheats: "Spaß-Cheats aktivieren",
+
+            enableCheatsDescription: "Aktiviert die Optionen unten.",
+
+            unlimitedCandy: "Unbegrenzte Süßigkeiten",
+
+            unlimitedCandyDescription: "Zeigt unbegrenzt viele Süßigkeiten an.",
+
+            unlimitedShield: "Unbegrenzter Schild",
+
+            unlimitedShieldDescription: "Der Kürbisschutz läuft niemals ab.",
+
+            neverDie: "Niemals sterben",
+
+            neverDieDescription: "Gegner können keine Leben entfernen.",
+
+            superSpeed: "Supergeschwindigkeit",
+
+            superSpeedDescription: "Erhöht die Bewegungsgeschwindigkeit stark.",
+
+            freezeEnemies: "Gegner einfrieren",
+
+            freezeEnemiesDescription:
+              "Gegner bewegen sich nicht mehr, ohne das Spiel einzufrieren.",
+
+            candyMagnet: "Süßigkeiten-Magnet",
+
+            candyMagnetDescription:
+              "Süßigkeiten in der Nähe bewegen sich zu dir.",
+
+            done: "Fertig",
+
+            protected: "Geschützt",
+
+            shield: "Schild",
+
+            trickOrTreat: "SÜSSES ODER SAURES",
+          },
+        };
+
+        const languageNames = {
+          en: "English",
+
+          "es-US": "Español (US)",
+
+          "es-MX": "Español (MX)",
+
+          "es-ES": "Español (ES)",
+
+          "pt-BR": "Português (BR)",
+
+          "pt-PT": "Português (PT)",
+
+          fr: "Français",
+
+          de: "Deutsch",
+        };
+
+        const defaultSettings = {
+          language: "en",
+
+          timeSymbols: "NM_AN",
+
+          sound: true,
+
+          sunriseMinutes: DEFAULT_SUNRISE,
+
+          sunsetMinutes: DEFAULT_SUNSET,
+
+          sunriseDst: 0,
+
+          sunsetDst: 0,
+
+          cheatsEnabled: false,
+
+          unlimitedCandy: false,
+
+          unlimitedShield: false,
+
+          neverDie: false,
+
+          superSpeed: false,
+
+          freezeEnemies: false,
+
+          candyMagnet: false,
+        };
+
+        function loadSettings() {
+          try {
+            const stored = JSON.parse(
+              localStorage.getItem(STORAGE_SETTINGS) || "{}",
+            );
+
+            return {
+              ...defaultSettings,
+              ...stored,
+            };
+          } catch {
+            return {
+              ...defaultSettings,
+            };
+          }
+        }
+
+        let settings = loadSettings();
+
+        function saveSettings() {
+          localStorage.setItem(STORAGE_SETTINGS, JSON.stringify(settings));
+        }
+
+        function t(key) {
+          const pack = translations[settings.language] || translations.en;
+
+          return pack[key] ?? translations.en[key] ?? key;
+        }
+
+        /*
+            --------------------------------------------------
+            DOM
+            --------------------------------------------------
+          */
+
+        const canvas = document.getElementById("gameCanvas");
+
+        const ctx = canvas.getContext("2d");
+
+        const gameShell = document.getElementById("gameShell");
+
+        const scoreValue = document.getElementById("scoreValue");
+
+        const livesValue = document.getElementById("livesValue");
+
+        const timerValue = document.getElementById("timerValue");
+
+        const highScoreValue = document.getElementById("highScoreValue");
+
+        const worldClock = document.getElementById("worldClock");
+
+        const clockIcon = document.getElementById("clockIcon");
+
+        const hudSunrise = document.getElementById("hudSunrise");
+
+        const hudSunset = document.getElementById("hudSunset");
+
+        const powerStatus = document.getElementById("powerStatus");
+
+        const powerTime = document.getElementById("powerTime");
+
+        const cheatStatus = document.getElementById("cheatStatus");
+
+        const timeBonusStatus = document.getElementById("timeBonusStatus");
+
+        const startScreen = document.getElementById("startScreen");
+
+        const pauseScreen = document.getElementById("pauseScreen");
+
+        const gameOverScreen = document.getElementById("gameOverScreen");
+
+        const settingsOverlay = document.getElementById("settingsOverlay");
+
+        const settingsButton = document.getElementById("settingsButton");
+
+        const startSettingsButton = document.getElementById(
+          "startSettingsButton",
+        );
+
+        const pauseSettingsButton = document.getElementById(
+          "pauseSettingsButton",
+        );
+
+        const closeSettingsButton = document.getElementById(
+          "closeSettingsButton",
+        );
+
+        const settingsDoneButton =
+          document.getElementById("settingsDoneButton");
+
+        const soundButton = document.getElementById("soundButton");
+
+        const soundIcon = document.getElementById("soundIcon");
+
+        const pauseButton = document.getElementById("pauseButton");
+
+        const pauseIcon = document.getElementById("pauseIcon");
+
+        const restartButton = document.getElementById("restartButton");
+
+        const playButton = document.getElementById("playButton");
+
+        const resumeButton = document.getElementById("resumeButton");
+
+        const pauseRestartButton =
+          document.getElementById("pauseRestartButton");
+
+        const playAgainButton = document.getElementById("playAgainButton");
+
+        const finalScore = document.getElementById("finalScore");
+
+        const housesVisitedElement = document.getElementById("housesVisited");
+
+        const finalBest = document.getElementById("finalBest");
+
+        const gameOverTitle = document.getElementById("gameOverTitle");
+
+        const gameOverMessage = document.getElementById("gameOverMessage");
+
+        const languageDropdownButton = document.getElementById(
+          "languageDropdownButton",
+        );
+
+        const languageDropdownLabel = document.getElementById(
+          "languageDropdownLabel",
+        );
+
+        const timeDropdownButton =
+          document.getElementById("timeDropdownButton");
+
+        const timeDropdownLabel = document.getElementById("timeDropdownLabel");
+
+        const soundToggle = document.getElementById("soundToggle");
+
+        const sunriseTimeInput = document.getElementById("sunriseTimeInput");
+
+        const sunsetTimeInput = document.getElementById("sunsetTimeInput");
+
+        const sunriseDstInput = document.getElementById("sunriseDstInput");
+
+        const sunsetDstInput = document.getElementById("sunsetDstInput");
+
+        const sunriseEarlierButton = document.getElementById(
+          "sunriseEarlierButton",
+        );
+
+        const sunriseLaterButton =
+          document.getElementById("sunriseLaterButton");
+
+        const sunsetEarlierButton = document.getElementById(
+          "sunsetEarlierButton",
+        );
+
+        const sunsetLaterButton = document.getElementById("sunsetLaterButton");
+
+        const sunrisePreview = document.getElementById("sunrisePreview");
+
+        const sunsetPreview = document.getElementById("sunsetPreview");
+
+        const daylightWarning = document.getElementById("daylightWarning");
+
+        const resetDaylightButton = document.getElementById(
+          "resetDaylightButton",
+        );
+
+        const cheatsMasterToggle =
+          document.getElementById("cheatsMasterToggle");
+
+        const unlimitedCandyToggle = document.getElementById(
+          "unlimitedCandyToggle",
+        );
+
+        const unlimitedShieldToggle = document.getElementById(
+          "unlimitedShieldToggle",
+        );
+
+        const neverDieToggle = document.getElementById("neverDieToggle");
+
+        const superSpeedToggle = document.getElementById("superSpeedToggle");
+
+        const freezeEnemiesToggle = document.getElementById(
+          "freezeEnemiesToggle",
+        );
+
+        const candyMagnetToggle = document.getElementById("candyMagnetToggle");
+
+        const cheatRows = document.querySelectorAll("[data-cheat-row]");
+
+        const dashButton = document.getElementById("dashButton");
+
+        const touchButtons = document.querySelectorAll("[data-control]");
+
+        /*
+            --------------------------------------------------
+            Game state
+            --------------------------------------------------
+          */
+
+        let viewWidth = 1;
+
+        let viewHeight = 1;
+
+        let deviceScale = 1;
+
+        let gameRunning = false;
+
+        let paused = false;
+
+        let gameEnded = false;
+
+        let settingsWasPaused = false;
+
+        let settingsOpenedDuringGame = false;
+
+        let score = 0;
+
+        let lives = 5;
+
+        let remainingTime = GAME_SECONDS;
+
+        let timeBonusAccumulator = 0;
+
+        let timeBonusVisualTimer = 0;
+
+        let worldElapsed = 0;
+
+        let worldMinutes = WORLD_START_MINUTE;
+
+        let visitedHouses = 0;
+
+        let highScore = Number(localStorage.getItem(STORAGE_SCORE) || 0);
+
+        let lastFrameTime = performance.now();
+
+        let cameraShake = 0;
+
+        let candySpawnTimer = 0;
+
+        let pumpkinSpawnTimer = 0;
+
+        let ghostSpawnTimer = 0;
+
+        let batSpawnTimer = 0;
+
+        let spiderSpawnTimer = 0;
+
+        const keys = {
+          up: false,
+          down: false,
+          left: false,
+          right: false,
+        };
+
+        const touchState = {
+          up: false,
+          down: false,
+          left: false,
+          right: false,
+        };
+
+        const player = {
+          x: WORLD_WIDTH / 2,
+
+          y: WORLD_HEIGHT / 2,
+
+          radius: 24,
+
+          speed: 285,
+
+          dashTime: 0,
+
+          dashCooldown: 0,
+
+          invincibleTime: 0,
+
+          pumpkinShieldTime: 0,
+
+          walkPhase: 0,
+        };
+
+        const candies = [];
+
+        const pumpkins = [];
+
+        const ghosts = [];
+
+        const bats = [];
+
+        const spiders = [];
+
+        const particles = [];
+
+        const popups = [];
+
+        const stars = [];
+
+        const clouds = [];
+
+        const houses = [];
+
+        const trees = [];
+
+        const gravestones = [];
+
+        /*
+            --------------------------------------------------
+            Tone.js + supplied Halloween MP3
+            --------------------------------------------------
+          */
+
+        let toneInitialized = false;
+
+        let musicPlayer = null;
+
+        let sfxSynth = null;
+
+        let musicLoaded = false;
+
+        function setupToneObjects() {
+          if (typeof Tone === "undefined" || toneInitialized) {
+            return;
+          }
+
+          toneInitialized = true;
+
+          sfxSynth = new Tone.Synth({
+            oscillator: {
+              type: "triangle",
+            },
+
+            envelope: {
+              attack: 0.005,
+              decay: 0.09,
+              sustain: 0.04,
+              release: 0.2,
+            },
+
+            volume: -11,
+          }).toDestination();
+
+          try {
+            musicPlayer = new Tone.Player({
+              url: MUSIC_URL,
+
+              loop: true,
+
+              autostart: false,
+
+              volume: -8,
+
+              onload: () => {
+                musicLoaded = true;
+              },
+            }).toDestination();
+          } catch {
+            musicPlayer = null;
+          }
+        }
+
+        setupToneObjects();
+
+        async function activateAudio() {
+          if (typeof Tone === "undefined") {
+            return;
+          }
+
+          try {
+            await Tone.start();
+
+            setupToneObjects();
+
+            Tone.Destination.mute = !settings.sound;
+          } catch {
+            return;
+          }
+        }
+
+        function startMusic() {
+          if (!settings.sound || !musicPlayer || !musicLoaded) {
+            return;
+          }
+
+          try {
+            if (musicPlayer.state === "started") {
+              musicPlayer.stop();
+            }
+
+            musicPlayer.start();
+          } catch {
+            return;
+          }
+        }
+
+        function stopMusic() {
+          if (!musicPlayer) {
+            return;
+          }
+
+          try {
+            if (musicPlayer.state === "started") {
+              musicPlayer.stop();
+            }
+          } catch {
+            return;
+          }
+        }
+
+        function setMusicMuted(muted) {
+          if (typeof Tone !== "undefined") {
+            Tone.Destination.mute = muted;
+          }
+        }
+
+        function playSfx(note, duration = "16n", velocity = 0.4) {
+          if (!settings.sound || !sfxSynth || typeof Tone === "undefined") {
+            return;
+          }
+
+          try {
+            sfxSynth.triggerAttackRelease(note, duration, Tone.now(), velocity);
+          } catch {
+            return;
+          }
+        }
+
+        function playCandySound() {
+          playSfx("E5", "32n", 0.38);
+
+          window.setTimeout(() => {
+            playSfx("A5", "32n", 0.26);
+          }, 42);
+        }
+
+        function playPumpkinSound() {
+          playSfx("C4", "16n", 0.45);
+
+          window.setTimeout(() => {
+            playSfx("G4", "16n", 0.38);
+          }, 70);
+        }
+
+        function playHitSound() {
+          playSfx("C2", "8n", 0.55);
+        }
+
+        function playDashSound() {
+          playSfx("D4", "16n", 0.34);
+        }
+
+        function playTimeBonusSound() {
+          playSfx("B5", "32n", 0.24);
+        }
+
+        /*
+            --------------------------------------------------
+            Helpers
+            --------------------------------------------------
+          */
+
+        function random(min, max) {
+          return min + Math.random() * (max - min);
+        }
+
+        function randomInt(min, max) {
+          return Math.floor(random(min, max + 1));
+        }
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function distance(ax, ay, bx, by) {
+          return Math.hypot(bx - ax, by - ay);
+        }
+
+        function normalize(x, y) {
+          const length = Math.hypot(x, y);
+
+          if (length === 0) {
+            return {
+              x: 0,
+              y: 0,
+            };
+          }
+
+          return {
+            x: x / length,
+
+            y: y / length,
+          };
+        }
+
+        function smoothstep(edge0, edge1, value) {
+          const x = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+
+          return x * x * (3 - 2 * x);
+        }
+
+        function normalizeMinutes(value) {
+          return ((Math.round(value) % 1440) + 1440) % 1440;
+        }
+
+        /*
+            --------------------------------------------------
+            Custom time text inputs
+
+            Supported:
+            7:27 NM
+            5:28 AN
+            7:27 AM
+            5:28 PM
+
+            No input type="time" is used.
+            --------------------------------------------------
+          */
+
+        function parseCustomTime(text) {
+          const cleaned = String(text)
+            .trim()
+            .toUpperCase()
+            .replace(/\s+/g, " ");
+
+          const match = cleaned.match(/^(\d{1,2}):(\d{2})\s*(NM|AN|AM|PM)$/);
+
+          if (!match) {
+            return null;
+          }
+
+          let hour = Number(match[1]);
+
+          const minute = Number(match[2]);
+
+          const period = match[3];
+
+          if (hour < 1 || hour > 12 || minute < 0 || minute > 59) {
+            return null;
+          }
+
+          const morning = period === "NM" || period === "AM";
+
+          if (hour === 12) {
+            hour = 0;
+          }
+
+          let result = hour * 60 + minute;
+
+          if (!morning) {
+            result += 720;
+          }
+
+          return result;
+        }
+
+        function formatTime(totalMinutes) {
+          const minuteValue = normalizeMinutes(totalMinutes);
+
+          const hour24 = Math.floor(minuteValue / 60);
+
+          const minute = minuteValue % 60;
+
+          const hour12 = hour24 % 12 || 12;
+
+          const morning = hour24 < 12;
+
+          let suffix;
+
+          if (settings.timeSymbols === "AM_PM") {
+            suffix = morning ? "AM" : "PM";
+          } else {
+            suffix = morning ? "NM" : "AN";
+          }
+
+          return `${hour12}:` + `${String(minute).padStart(2, "0")} ` + suffix;
+        }
+
+        function getEffectiveSunrise() {
+          return Number(settings.sunriseMinutes) + Number(settings.sunriseDst);
+        }
+
+        function getEffectiveSunset() {
+          return Number(settings.sunsetMinutes) + Number(settings.sunsetDst);
+        }
+
+        function validateDaylight() {
+          const sunrise = getEffectiveSunrise();
+
+          const sunset = getEffectiveSunset();
+
+          const valid =
+            sunrise >= 0 &&
+            sunrise < 1440 &&
+            sunset >= 0 &&
+            sunset < 1440 &&
+            sunset > sunrise + 60;
+
+          daylightWarning.classList.toggle("visible", !valid);
+
+          return valid;
+        }
+
+        function getSafeSunrise() {
+          if (validateDaylight()) {
+            return getEffectiveSunrise();
+          }
+
+          return DEFAULT_SUNRISE;
+        }
+
+        function getSafeSunset() {
+          if (validateDaylight()) {
+            return getEffectiveSunset();
+          }
+
+          return DEFAULT_SUNSET;
+        }
+
+        function getDaylightFactor() {
+          const minute = normalizeMinutes(worldMinutes);
+
+          const sunrise = getSafeSunrise();
+
+          const sunset = getSafeSunset();
+
+          const transition = 30;
+
+          const morning = smoothstep(
+            sunrise - transition,
+            sunrise + transition,
+            minute,
+          );
+
+          const evening =
+            1 - smoothstep(sunset - transition, sunset + transition, minute);
+
+          return clamp(morning * evening, 0, 1);
+        }
+
+        function isDaytime() {
+          const minute = normalizeMinutes(worldMinutes);
+
+          return minute >= getSafeSunrise() && minute < getSafeSunset();
+        }
+
+        /*
+            --------------------------------------------------
+            Sun and moon positions
+            --------------------------------------------------
+          */
+
+        function getSunPosition() {
+          const sunrise = getSafeSunrise();
+
+          const sunset = getSafeSunset();
+
+          const current = clamp(
+            normalizeMinutes(worldMinutes),
+            sunrise,
+            sunset,
+          );
+
+          const progress = clamp(
+            (current - sunrise) / (sunset - sunrise),
+            0,
+            1,
+          );
+
+          return {
+            x: 120 + progress * (WORLD_WIDTH - 240),
+
+            y: 275 - Math.sin(progress * Math.PI) * 200,
+          };
+        }
+
+        function getMoonPosition() {
+          const sunrise = getSafeSunrise();
+
+          const sunset = getSafeSunset();
+
+          const current = normalizeMinutes(worldMinutes);
+
+          const nightLength = 1440 - (sunset - sunrise);
+
+          let elapsed;
+
+          if (current >= sunset) {
+            elapsed = current - sunset;
+          } else {
+            elapsed = 1440 - sunset + current;
+          }
+
+          const progress = clamp(elapsed / nightLength, 0, 1);
+
+          return {
+            x: 120 + progress * (WORLD_WIDTH - 240),
+
+            y: 260 - Math.sin(progress * Math.PI) * 185,
+          };
+        }
+
+        /*
+            --------------------------------------------------
+            Canvas
+            --------------------------------------------------
+          */
+
+        function resizeCanvas() {
+          const rect = gameShell.getBoundingClientRect();
+
+          viewWidth = Math.max(1, rect.width);
+
+          viewHeight = Math.max(1, rect.height);
+
+          deviceScale = Math.min(window.devicePixelRatio || 1, 2);
+
+          canvas.width = Math.round(viewWidth * deviceScale);
+
+          canvas.height = Math.round(viewHeight * deviceScale);
+        }
+
+        /*
+            --------------------------------------------------
+            World generation
+            --------------------------------------------------
+          */
+
+        function createWorld() {
+          stars.length = 0;
+          clouds.length = 0;
+          houses.length = 0;
+          trees.length = 0;
+          gravestones.length = 0;
+
+          for (let i = 0; i < 160; i++) {
+            stars.push({
+              x: random(0, WORLD_WIDTH),
+
+              y: random(0, 430),
+
+              size: random(0.6, 2),
+
+              alpha: random(0.2, 0.9),
+
+              phase: random(0, Math.PI * 2),
+            });
+          }
+
+          for (let i = 0; i < 11; i++) {
+            clouds.push({
+              x: random(-300, WORLD_WIDTH),
+
+              y: random(50, 320),
+
+              width: random(180, 360),
+
+              speed: random(4, 10),
+            });
+          }
+
+          houses.push(
+            {
+              x: 120,
+              y: 180,
+              w: 190,
+              h: 145,
+              visited: false,
+            },
+
+            {
+              x: 560,
+              y: 120,
+              w: 205,
+              h: 150,
+              visited: false,
+            },
+
+            {
+              x: 1060,
+              y: 155,
+              w: 215,
+              h: 155,
+              visited: false,
+            },
+
+            {
+              x: 260,
+              y: 650,
+              w: 205,
+              h: 150,
+              visited: false,
+            },
+
+            {
+              x: 810,
+              y: 625,
+              w: 220,
+              h: 160,
+              visited: false,
+            },
+
+            {
+              x: 1260,
+              y: 615,
+              w: 185,
+              h: 145,
+              visited: false,
+            },
+          );
+
+          for (let i = 0; i < 24; i++) {
+            trees.push({
+              x: random(20, WORLD_WIDTH - 20),
+
+              y: random(280, WORLD_HEIGHT - 30),
+
+              size: random(0.7, 1.4),
+            });
+          }
+
+          for (let i = 0; i < 38; i++) {
+            gravestones.push({
+              x: random(20, WORLD_WIDTH - 20),
+
+              y: random(350, WORLD_HEIGHT - 30),
+
+              size: random(0.7, 1.2),
+            });
+          }
+        }
+
+        function safePosition(playerDistance = 130) {
+          let x = WORLD_WIDTH / 2;
+
+          let y = WORLD_HEIGHT / 2;
+
+          let attempts = 0;
+
+          do {
+            x = random(60, WORLD_WIDTH - 60);
+
+            y = random(120, WORLD_HEIGHT - 60);
+
+            attempts++;
+          } while (
+            distance(x, y, player.x, player.y) < playerDistance &&
+            attempts < 20
+          );
+
+          return {
+            x,
+            y,
+          };
+        }
+
+        function spawnCandy() {
+          const p = safePosition(70);
+
+          const colors = [
+            "#ff7e1e",
+            "#b643ff",
+            "#51d9ff",
+            "#ff4c79",
+            "#6ce76e",
+            "#ffd04c",
+          ];
+
+          candies.push({
+            x: p.x,
+
+            y: p.y,
+
+            radius: random(10, 14),
+
+            color: colors[randomInt(0, colors.length - 1)],
+
+            pulse: random(0, Math.PI * 2),
+
+            value: Math.random() < 0.15 ? 25 : 10,
+          });
+        }
+
+        function spawnPumpkin() {
+          const p = safePosition(200);
+
+          pumpkins.push({
+            x: p.x,
+
+            y: p.y,
+
+            radius: 25,
+
+            pulse: random(0, Math.PI * 2),
+          });
+        }
+
+        function spawnGhost() {
+          if (ghosts.length >= MAX_GHOSTS) {
+            return;
+          }
+
+          const side = randomInt(0, 3);
+
+          let x;
+          let y;
+
+          if (side === 0) {
+            x = random(0, WORLD_WIDTH);
+
+            y = -70;
+          } else if (side === 1) {
+            x = WORLD_WIDTH + 70;
+
+            y = random(0, WORLD_HEIGHT);
+          } else if (side === 2) {
+            x = random(0, WORLD_WIDTH);
+
+            y = WORLD_HEIGHT + 70;
+          } else {
+            x = -70;
+
+            y = random(0, WORLD_HEIGHT);
+          }
+
+          ghosts.push({
+            x,
+            y,
+
+            radius: random(24, 31),
+
+            speed: random(72, 110),
+
+            phase: random(0, Math.PI * 2),
+
+            contactCooldown: 0,
+          });
+        }
+
+        function spawnBat() {
+          if (bats.length >= MAX_BATS) {
+            return;
+          }
+
+          const left = Math.random() < 0.5;
+
+          bats.push({
+            x: left ? -80 : WORLD_WIDTH + 80,
+
+            y: random(100, WORLD_HEIGHT - 100),
+
+            direction: left ? 1 : -1,
+
+            speed: random(180, 250),
+
+            radius: 20,
+
+            phase: random(0, Math.PI * 2),
+
+            contactCooldown: 0,
+          });
+        }
+
+        function spawnSpider() {
+          if (spiders.length >= MAX_SPIDERS) {
+            return;
+          }
+
+          const p = safePosition(190);
+
+          const angle = random(0, Math.PI * 2);
+
+          spiders.push({
+            x: p.x,
+
+            y: p.y,
+
+            radius: 20,
+
+            vx: Math.cos(angle),
+
+            vy: Math.sin(angle),
+
+            speed: random(65, 95),
+
+            directionTimer: random(1, 3),
+
+            phase: random(0, Math.PI * 2),
+
+            contactCooldown: 0,
+          });
+        }
+
+        function createGameObjects() {
+          candies.length = 0;
+          pumpkins.length = 0;
+          ghosts.length = 0;
+          bats.length = 0;
+          spiders.length = 0;
+          particles.length = 0;
+          popups.length = 0;
+
+          for (let i = 0; i < 30; i++) {
+            spawnCandy();
+          }
+
+          spawnPumpkin();
+          spawnPumpkin();
+
+          spawnGhost();
+          spawnGhost();
+          spawnGhost();
+
+          spawnBat();
+          spawnBat();
+
+          spawnSpider();
+          spawnSpider();
+        }
+
+        /*
+            --------------------------------------------------
+            Performance-safe visual effects
+            --------------------------------------------------
+          */
+
+        function addPopup(x, y, text, color = "#ffffff") {
+          if (popups.length >= MAX_POPUPS) {
+            popups.shift();
+          }
+
+          popups.push({
+            x,
+            y,
+            text,
+            color,
+            life: 1,
+          });
+        }
+
+        function addParticles(x, y, color, amount = 12) {
+          const available = Math.max(0, MAX_PARTICLES - particles.length);
+
+          const count = Math.min(amount, available);
+
+          for (let i = 0; i < count; i++) {
+            const angle = random(0, Math.PI * 2);
+
+            particles.push({
+              x,
+              y,
+
+              vx: Math.cos(angle) * random(50, 160),
+
+              vy: Math.sin(angle) * random(50, 160),
+
+              color,
+
+              radius: random(2, 5),
+
+              life: random(0.3, 0.7),
+            });
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Start / reset / end
+            --------------------------------------------------
+          */
+
+        function resetGame() {
+          score = 0;
+
+          lives = 5;
+
+          remainingTime = GAME_SECONDS;
+
+          timeBonusAccumulator = 0;
+
+          timeBonusVisualTimer = 0;
+
+          worldElapsed = 0;
+
+          worldMinutes = WORLD_START_MINUTE;
+
+          visitedHouses = 0;
+
+          cameraShake = 0;
+
+          player.x = WORLD_WIDTH / 2;
+
+          player.y = WORLD_HEIGHT / 2;
+
+          player.dashTime = 0;
+
+          player.dashCooldown = 0;
+
+          player.invincibleTime = 0;
+
+          player.pumpkinShieldTime = 0;
+
+          for (const house of houses) {
+            house.visited = false;
+          }
+
+          createGameObjects();
+
+          updateHUD();
+        }
+
+        async function startGame() {
+          await activateAudio();
+
+          resetGame();
+
+          gameRunning = true;
+
+          paused = false;
+
+          gameEnded = false;
+
+          startScreen.classList.remove("active");
+
+          pauseScreen.classList.remove("active");
+
+          gameOverScreen.classList.remove("active");
+
+          pauseIcon.textContent = "pause";
+
+          lastFrameTime = performance.now();
+
+          startMusic();
+        }
+
+        function endGame(lostLives = false) {
+          if (gameEnded) {
+            return;
+          }
+
+          gameEnded = true;
+
+          gameRunning = false;
+
+          paused = false;
+
+          stopMusic();
+
+          if (
+            !(settings.cheatsEnabled && settings.unlimitedCandy) &&
+            score > highScore
+          ) {
+            highScore = score;
+
+            localStorage.setItem(STORAGE_SCORE, String(highScore));
+          }
+
+          finalScore.textContent = getDisplayedScore();
+
+          housesVisitedElement.textContent = visitedHouses;
+
+          finalBest.textContent = highScore;
+
+          gameOverTitle.textContent = lostLives
+            ? t("caught")
+            : t("gameComplete");
+
+          gameOverMessage.textContent = lostLives
+            ? t("caughtDescription")
+            : t("gameCompleteDescription");
+
+          gameOverScreen.classList.add("active");
+        }
+
+        function setPaused(state, showScreen = true) {
+          if (!gameRunning || gameEnded) {
+            return;
+          }
+
+          paused = state;
+
+          pauseIcon.textContent = paused ? "play_arrow" : "pause";
+
+          if (paused && showScreen) {
+            pauseScreen.classList.add("active");
+          } else if (!paused) {
+            pauseScreen.classList.remove("active");
+
+            lastFrameTime = performance.now();
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Timer
+
+            Every five seconds of ACTIVE gameplay,
+            +1 second is added.
+            --------------------------------------------------
+          */
+
+        function updateTimer(dt) {
+          remainingTime -= dt;
+
+          timeBonusAccumulator += dt;
+
+          while (timeBonusAccumulator >= 5) {
+            timeBonusAccumulator -= 5;
+
+            remainingTime += 1;
+
+            timeBonusVisualTimer = 1.35;
+
+            timeBonusStatus.classList.add("visible");
+
+            playTimeBonusSound();
+          }
+
+          if (timeBonusVisualTimer > 0) {
+            timeBonusVisualTimer -= dt;
+
+            if (timeBonusVisualTimer <= 0) {
+              timeBonusStatus.classList.remove("visible");
+            }
+          }
+
+          if (remainingTime <= 0) {
+            remainingTime = 0;
+
+            endGame(false);
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Day cycle
+            --------------------------------------------------
+          */
+
+        function updateDayCycle(dt) {
+          worldElapsed += dt;
+
+          const cycleProgress = worldElapsed / DAY_CYCLE_REAL_SECONDS;
+
+          worldMinutes = normalizeMinutes(
+            WORLD_START_MINUTE + cycleProgress * 1440,
+          );
+        }
+
+        /*
+            --------------------------------------------------
+            HUD
+            --------------------------------------------------
+          */
+
+        function getDisplayedScore() {
+          if (settings.cheatsEnabled && settings.unlimitedCandy) {
+            return "∞";
+          }
+
+          return score;
+        }
+
+        function hasShield() {
+          return (
+            (settings.cheatsEnabled && settings.unlimitedShield) ||
+            player.pumpkinShieldTime > 0
+          );
+        }
+
+        function updateHUD() {
+          scoreValue.textContent = getDisplayedScore();
+
+          livesValue.textContent =
+            settings.cheatsEnabled && settings.neverDie ? "∞" : lives;
+
+          const seconds = Math.max(0, Math.ceil(remainingTime));
+
+          const minute = Math.floor(seconds / 60);
+
+          timerValue.textContent =
+            `${minute}:` + `${String(seconds % 60).padStart(2, "0")}`;
+
+          highScoreValue.textContent = highScore;
+
+          worldClock.textContent = formatTime(worldMinutes);
+
+          clockIcon.textContent = isDaytime() ? "light_mode" : "dark_mode";
+
+          hudSunrise.textContent = formatTime(getSafeSunrise());
+
+          hudSunset.textContent = formatTime(getSafeSunset());
+
+          if (hasShield()) {
+            powerStatus.style.display = "flex";
+
+            powerTime.textContent =
+              settings.cheatsEnabled && settings.unlimitedShield
+                ? "∞"
+                : `${Math.max(0, player.pumpkinShieldTime).toFixed(1)}s`;
+          } else {
+            powerStatus.style.display = "none";
+          }
+
+          cheatStatus.style.display = settings.cheatsEnabled ? "flex" : "none";
+        }
+
+        /*
+            --------------------------------------------------
+            Player
+            --------------------------------------------------
+          */
+
+        function updatePlayer(dt) {
+          let x = 0;
+
+          let y = 0;
+
+          if (keys.left || touchState.left) {
+            x--;
+          }
+
+          if (keys.right || touchState.right) {
+            x++;
+          }
+
+          if (keys.up || touchState.up) {
+            y--;
+          }
+
+          if (keys.down || touchState.down) {
+            y++;
+          }
+
+          const direction = normalize(x, y);
+
+          let speed = player.speed;
+
+          if (settings.cheatsEnabled && settings.superSpeed) {
+            speed *= 1.9;
+          }
+
+          if (player.dashTime > 0) {
+            speed *= 2.3;
+
+            player.dashTime -= dt;
+          }
+
+          player.x += direction.x * speed * dt;
+
+          player.y += direction.y * speed * dt;
+
+          player.x = clamp(
+            player.x,
+            player.radius,
+            WORLD_WIDTH - player.radius,
+          );
+
+          player.y = clamp(
+            player.y,
+            player.radius,
+            WORLD_HEIGHT - player.radius,
+          );
+
+          if (direction.x !== 0 || direction.y !== 0) {
+            player.walkPhase += dt * 12;
+          }
+
+          player.dashCooldown = Math.max(0, player.dashCooldown - dt);
+
+          player.invincibleTime = Math.max(0, player.invincibleTime - dt);
+
+          player.pumpkinShieldTime = Math.max(0, player.pumpkinShieldTime - dt);
+        }
+
+        function doDash() {
+          if (!gameRunning || paused || player.dashCooldown > 0) {
+            return;
+          }
+
+          player.dashTime = 0.22;
+
+          player.dashCooldown = 1.2;
+
+          playDashSound();
+
+          addParticles(player.x, player.y, "#b65cff", 12);
+        }
+
+        /*
+            --------------------------------------------------
+            Collectibles
+            --------------------------------------------------
+          */
+
+        function updateCandyMagnet(dt) {
+          if (!(settings.cheatsEnabled && settings.candyMagnet)) {
+            return;
+          }
+
+          for (const candy of candies) {
+            const d = distance(candy.x, candy.y, player.x, player.y);
+
+            if (d > 10 && d < 270) {
+              const direction = normalize(
+                player.x - candy.x,
+                player.y - candy.y,
+              );
+
+              const force = Math.min(620, 250 + (270 - d) * 2);
+
+              candy.x += direction.x * force * dt;
+
+              candy.y += direction.y * force * dt;
+            }
+          }
+        }
+
+        function collectCandy() {
+          for (let i = candies.length - 1; i >= 0; i--) {
+            const candy = candies[i];
+
+            if (
+              distance(candy.x, candy.y, player.x, player.y) <
+              player.radius + candy.radius
+            ) {
+              score += candy.value;
+
+              addPopup(candy.x, candy.y, `+${candy.value}`, "#ffd35f");
+
+              addParticles(candy.x, candy.y, candy.color, 9);
+
+              candies.splice(i, 1);
+
+              playCandySound();
+            }
+          }
+        }
+
+        function collectPumpkins() {
+          for (let i = pumpkins.length - 1; i >= 0; i--) {
+            const pumpkin = pumpkins[i];
+
+            if (
+              distance(pumpkin.x, pumpkin.y, player.x, player.y) <
+              player.radius + pumpkin.radius
+            ) {
+              player.pumpkinShieldTime = Math.max(player.pumpkinShieldTime, 7);
+
+              score += 50;
+
+              addPopup(pumpkin.x, pumpkin.y, `+50 ${t("shield")}`, "#ffb249");
+
+              addParticles(pumpkin.x, pumpkin.y, "#ff8721", 18);
+
+              pumpkins.splice(i, 1);
+
+              playPumpkinSound();
+            }
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Enemy collision safety
+
+            Each enemy receives a contact cooldown.
+
+            This prevents Freeze Enemies + Shield/Never Die
+            from repeatedly triggering hundreds of collision
+            events every frame.
+            --------------------------------------------------
+          */
+
+        function hitPlayer(enemyX, enemyY) {
+          if (player.invincibleTime > 0) {
+            return;
+          }
+
+          if (hasShield()) {
+            addPopup(player.x, player.y - 35, t("protected"), "#ffd472");
+
+            player.invincibleTime = 0.35;
+
+            return;
+          }
+
+          if (settings.cheatsEnabled && settings.neverDie) {
+            player.invincibleTime = 0.5;
+
+            addPopup(player.x, player.y - 35, t("protected"), "#8effbd");
+
+            return;
+          }
+
+          lives--;
+
+          player.invincibleTime = 1.8;
+
+          cameraShake = 12;
+
+          const direction = normalize(player.x - enemyX, player.y - enemyY);
+
+          player.x += direction.x * 50;
+
+          player.y += direction.y * 50;
+
+          playHitSound();
+
+          if (lives <= 0) {
+            lives = 0;
+
+            endGame(true);
+          }
+        }
+
+        function updateGhosts(dt) {
+          const frozen = settings.cheatsEnabled && settings.freezeEnemies;
+
+          for (const ghost of ghosts) {
+            ghost.contactCooldown = Math.max(0, ghost.contactCooldown - dt);
+
+            ghost.phase += dt * 2;
+
+            if (!frozen) {
+              let targetX = player.x;
+
+              let targetY = player.y;
+
+              if (hasShield()) {
+                targetX = ghost.x - (player.x - ghost.x);
+
+                targetY = ghost.y - (player.y - ghost.y);
+              }
+
+              const direction = normalize(targetX - ghost.x, targetY - ghost.y);
+
+              ghost.x += direction.x * ghost.speed * dt;
+
+              ghost.y += direction.y * ghost.speed * dt;
+            }
+
+            const touching =
+              distance(ghost.x, ghost.y, player.x, player.y) <
+              ghost.radius + player.radius;
+
+            if (touching && ghost.contactCooldown <= 0) {
+              ghost.contactCooldown = 0.75;
+
+              if (hasShield()) {
+                score += 20;
+
+                addPopup(ghost.x, ghost.y, "+20", "#d69cff");
+
+                ghost.x = random(50, WORLD_WIDTH - 50);
+
+                ghost.y = -90;
+              } else {
+                hitPlayer(ghost.x, ghost.y);
+              }
+            }
+          }
+        }
+
+        function updateBats(dt) {
+          const frozen = settings.cheatsEnabled && settings.freezeEnemies;
+
+          for (let i = bats.length - 1; i >= 0; i--) {
+            const bat = bats[i];
+
+            bat.contactCooldown = Math.max(0, bat.contactCooldown - dt);
+
+            bat.phase += dt * 7;
+
+            if (!frozen) {
+              bat.x += bat.speed * bat.direction * dt;
+
+              bat.y += Math.sin(bat.phase) * 35 * dt;
+            }
+
+            if (
+              distance(bat.x, bat.y, player.x, player.y) <
+                bat.radius + player.radius &&
+              bat.contactCooldown <= 0
+            ) {
+              bat.contactCooldown = 0.75;
+
+              if (hasShield()) {
+                score += 15;
+
+                bats.splice(i, 1);
+
+                continue;
+              }
+
+              hitPlayer(bat.x, bat.y);
+            }
+
+            if (bat.x < -160 || bat.x > WORLD_WIDTH + 160) {
+              bats.splice(i, 1);
+            }
+          }
+        }
+
+        function updateSpiders(dt) {
+          const frozen = settings.cheatsEnabled && settings.freezeEnemies;
+
+          for (const spider of spiders) {
+            spider.contactCooldown = Math.max(0, spider.contactCooldown - dt);
+
+            spider.phase += dt * 8;
+
+            if (!frozen) {
+              spider.directionTimer -= dt;
+
+              if (spider.directionTimer <= 0) {
+                const toward = Math.random() < 0.65;
+
+                if (toward) {
+                  const direction = normalize(
+                    player.x - spider.x,
+                    player.y - spider.y,
+                  );
+
+                  spider.vx = direction.x;
+
+                  spider.vy = direction.y;
+                } else {
+                  const angle = random(0, Math.PI * 2);
+
+                  spider.vx = Math.cos(angle);
+
+                  spider.vy = Math.sin(angle);
+                }
+
+                spider.directionTimer = random(1.3, 3.2);
+              }
+
+              spider.x += spider.vx * spider.speed * dt;
+
+              spider.y += spider.vy * spider.speed * dt;
+
+              spider.x = clamp(spider.x, 20, WORLD_WIDTH - 20);
+
+              spider.y = clamp(spider.y, 100, WORLD_HEIGHT - 20);
+            }
+
+            if (
+              distance(spider.x, spider.y, player.x, player.y) <
+                spider.radius + player.radius &&
+              spider.contactCooldown <= 0
+            ) {
+              spider.contactCooldown = 0.8;
+
+              if (hasShield()) {
+                score += 10;
+
+                spider.x = random(50, WORLD_WIDTH - 50);
+
+                spider.y = random(150, WORLD_HEIGHT - 50);
+              } else {
+                hitPlayer(spider.x, spider.y);
+              }
+            }
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Houses
+            --------------------------------------------------
+          */
+
+        function updateHouses() {
+          for (const house of houses) {
+            if (house.visited) {
+              continue;
+            }
+
+            const doorX = house.x + house.w / 2;
+
+            const doorY = house.y + house.h;
+
+            if (distance(player.x, player.y, doorX, doorY) < 58) {
+              house.visited = true;
+
+              visitedHouses++;
+
+              const bonus = randomInt(70, 140);
+
+              score += bonus;
+
+              addPopup(
+                doorX,
+                doorY - 40,
+                `${t("trickOrTreat")} +${bonus}`,
+                "#ffb652",
+              );
+
+              addParticles(doorX, doorY, "#ff9631", 20);
+            }
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Spawning
+            --------------------------------------------------
+          */
+
+        function updateSpawns(dt) {
+          candySpawnTimer -= dt;
+
+          pumpkinSpawnTimer -= dt;
+
+          ghostSpawnTimer -= dt;
+
+          batSpawnTimer -= dt;
+
+          spiderSpawnTimer -= dt;
+
+          if (candySpawnTimer <= 0 && candies.length < 40) {
+            spawnCandy();
+
+            candySpawnTimer = random(0.4, 0.9);
+          }
+
+          if (pumpkinSpawnTimer <= 0 && pumpkins.length < 3) {
+            spawnPumpkin();
+
+            pumpkinSpawnTimer = random(9, 14);
+          }
+
+          if (ghostSpawnTimer <= 0) {
+            spawnGhost();
+
+            ghostSpawnTimer = random(4.2, 6.8);
+          }
+
+          if (batSpawnTimer <= 0) {
+            spawnBat();
+
+            batSpawnTimer = random(3, 5.7);
+          }
+
+          if (spiderSpawnTimer <= 0) {
+            spawnSpider();
+
+            spiderSpawnTimer = random(7, 12);
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Effects update
+            --------------------------------------------------
+          */
+
+        function updateParticles(dt) {
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+
+            p.x += p.vx * dt;
+
+            p.y += p.vy * dt;
+
+            p.vx *= 0.97;
+
+            p.vy *= 0.97;
+
+            p.life -= dt;
+
+            if (p.life <= 0) {
+              particles.splice(i, 1);
+            }
+          }
+        }
+
+        function updatePopups(dt) {
+          for (let i = popups.length - 1; i >= 0; i--) {
+            const popup = popups[i];
+
+            popup.y -= 36 * dt;
+
+            popup.life -= dt;
+
+            if (popup.life <= 0) {
+              popups.splice(i, 1);
+            }
+          }
+        }
+
+        function updateClouds(dt) {
+          for (const cloud of clouds) {
+            cloud.x += cloud.speed * dt;
+
+            if (cloud.x > WORLD_WIDTH + cloud.width) {
+              cloud.x = -cloud.width;
+            }
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Main update
+            --------------------------------------------------
+          */
+
+        function update(dt) {
+          updateClouds(dt);
+
+          updateParticles(dt);
+
+          updatePopups(dt);
+
+          if (!gameRunning || paused || gameEnded) {
+            return;
+          }
+
+          updateTimer(dt);
+
+          if (gameEnded) {
+            return;
+          }
+
+          updateDayCycle(dt);
+
+          updatePlayer(dt);
+
+          updateCandyMagnet(dt);
+
+          collectCandy();
+
+          collectPumpkins();
+
+          updateHouses();
+
+          updateGhosts(dt);
+
+          updateBats(dt);
+
+          updateSpiders(dt);
+
+          updateSpawns(dt);
+
+          cameraShake = Math.max(0, cameraShake - 40 * dt);
+
+          updateHUD();
+        }
+
+        /*
+            --------------------------------------------------
+            Drawing
+            --------------------------------------------------
+          */
+
+        function getView() {
+          const scale = Math.max(
+            viewWidth / WORLD_WIDTH,
+            viewHeight / WORLD_HEIGHT,
+          );
+
+          const visibleWidth = viewWidth / scale;
+
+          const visibleHeight = viewHeight / scale;
+
+          let x = player.x - visibleWidth / 2;
+
+          let y = player.y - visibleHeight / 2;
+
+          x = clamp(x, 0, Math.max(0, WORLD_WIDTH - visibleWidth));
+
+          y = clamp(y, 0, Math.max(0, WORLD_HEIGHT - visibleHeight));
+
+          if (cameraShake > 0) {
+            x += random(-cameraShake, cameraShake);
+
+            y += random(-cameraShake, cameraShake);
+          }
+
+          return {
+            scale,
+            x,
+            y,
+          };
+        }
+
+        function drawSun(alpha) {
+          if (alpha < 0.01) {
+            return;
+          }
+
+          const pos = getSunPosition();
+
+          ctx.save();
+
+          ctx.globalAlpha = alpha;
+
+          const glow = ctx.createRadialGradient(
+            pos.x,
+            pos.y,
+            10,
+            pos.x,
+            pos.y,
+            120,
+          );
+
+          glow.addColorStop(0, "rgba(255,248,185,1)");
+
+          glow.addColorStop(0.35, "rgba(255,198,73,0.9)");
+
+          glow.addColorStop(1, "rgba(255,130,20,0)");
+
+          ctx.fillStyle = glow;
+
+          ctx.beginPath();
+
+          ctx.arc(pos.x, pos.y, 120, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.fillStyle = "#ffdc70";
+
+          ctx.beginPath();
+
+          ctx.arc(pos.x, pos.y, 58, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawMoon(alpha) {
+          if (alpha < 0.01) {
+            return;
+          }
+
+          const pos = getMoonPosition();
+
+          ctx.save();
+
+          ctx.globalAlpha = alpha;
+
+          const glow = ctx.createRadialGradient(
+            pos.x,
+            pos.y,
+            10,
+            pos.x,
+            pos.y,
+            110,
+          );
+
+          glow.addColorStop(0, "rgba(255,240,194,0.95)");
+
+          glow.addColorStop(0.4, "rgba(255,159,55,0.44)");
+
+          glow.addColorStop(1, "rgba(255,100,25,0)");
+
+          ctx.fillStyle = glow;
+
+          ctx.beginPath();
+
+          ctx.arc(pos.x, pos.y, 110, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.fillStyle = "#ffd27a";
+
+          ctx.beginPath();
+
+          ctx.arc(pos.x, pos.y, 55, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawSky() {
+          const daylight = getDaylightFactor();
+
+          const night = ctx.createLinearGradient(0, 0, 0, WORLD_HEIGHT);
+
+          night.addColorStop(0, "#08000f");
+
+          night.addColorStop(0.48, "#23032d");
+
+          night.addColorStop(1, "#0a000d");
+
+          ctx.fillStyle = night;
+
+          ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+          if (daylight > 0) {
+            ctx.save();
+
+            ctx.globalAlpha = daylight;
+
+            const day = ctx.createLinearGradient(0, 0, 0, WORLD_HEIGHT);
+
+            day.addColorStop(0, "#5960c5");
+
+            day.addColorStop(0.48, "#a876c5");
+
+            day.addColorStop(1, "#e78267");
+
+            ctx.fillStyle = day;
+
+            ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+
+            ctx.restore();
+          }
+
+          for (const star of stars) {
+            star.phase += 0.015;
+
+            const alpha =
+              (1 - daylight) * star.alpha * (0.7 + Math.sin(star.phase) * 0.2);
+
+            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+
+            ctx.beginPath();
+
+            ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+
+            ctx.fill();
+          }
+
+          drawSun(daylight);
+
+          drawMoon(1 - daylight);
+
+          for (const cloud of clouds) {
+            ctx.fillStyle = `rgba(190,145,200,${0.04 + daylight * 0.045})`;
+
+            ctx.beginPath();
+
+            ctx.ellipse(
+              cloud.x,
+              cloud.y,
+              cloud.width / 2,
+              34,
+              0,
+              0,
+              Math.PI * 2,
+            );
+
+            ctx.fill();
+          }
+        }
+
+        function drawGround() {
+          const daylight = getDaylightFactor();
+
+          const ground = ctx.createLinearGradient(0, 280, 0, WORLD_HEIGHT);
+
+          ground.addColorStop(0, daylight > 0.45 ? "#342539" : "#17101f");
+
+          ground.addColorStop(1, daylight > 0.45 ? "#161619" : "#070709");
+
+          ctx.fillStyle = ground;
+
+          ctx.fillRect(0, 280, WORLD_WIDTH, WORLD_HEIGHT - 280);
+        }
+
+        function drawHouse(house) {
+          const doorX = house.x + house.w / 2;
+
+          const doorY = house.y + house.h;
+
+          ctx.fillStyle = "#26102d";
+
+          ctx.fillRect(house.x, house.y, house.w, house.h);
+
+          ctx.fillStyle = "#50125f";
+
+          ctx.beginPath();
+
+          ctx.moveTo(house.x - 20, house.y);
+
+          ctx.lineTo(house.x + house.w / 2, house.y - 90);
+
+          ctx.lineTo(house.x + house.w + 20, house.y);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.fillStyle = "#150819";
+
+          ctx.fillRect(
+            house.x + house.w * 0.42,
+            house.y + house.h * 0.48,
+            house.w * 0.16,
+            house.h * 0.52,
+          );
+
+          ctx.fillStyle = house.visited ? "#5fe18e" : "#ffad3d";
+
+          ctx.fillRect(house.x + 25, house.y + 45, 28, 31);
+
+          ctx.fillRect(house.x + house.w - 53, house.y + 45, 28, 31);
+
+          if (!house.visited) {
+            ctx.fillStyle = "rgba(255,165,48,0.25)";
+
+            ctx.beginPath();
+
+            ctx.arc(doorX, doorY + 8, 38, 0, Math.PI * 2);
+
+            ctx.fill();
+          }
+        }
+
+        function drawTree(tree) {
+          ctx.save();
+
+          ctx.translate(tree.x, tree.y);
+
+          ctx.scale(tree.size, tree.size);
+
+          ctx.strokeStyle = "#09070a";
+
+          ctx.lineWidth = 10;
+
+          ctx.lineCap = "round";
+
+          ctx.beginPath();
+
+          ctx.moveTo(0, 25);
+
+          ctx.lineTo(0, -55);
+
+          ctx.lineTo(-30, -90);
+
+          ctx.moveTo(-3, -45);
+
+          ctx.lineTo(33, -80);
+
+          ctx.moveTo(0, -67);
+
+          ctx.lineTo(0, -115);
+
+          ctx.stroke();
+
+          ctx.restore();
+        }
+
+        function drawGravestone(stone) {
+          ctx.save();
+
+          ctx.translate(stone.x, stone.y);
+
+          ctx.scale(stone.size, stone.size);
+
+          ctx.fillStyle = "#27262c";
+
+          ctx.beginPath();
+
+          ctx.moveTo(-13, 18);
+
+          ctx.lineTo(-13, -7);
+
+          ctx.quadraticCurveTo(-13, -22, 0, -22);
+
+          ctx.quadraticCurveTo(13, -22, 13, -7);
+
+          ctx.lineTo(13, 18);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawCandy(candy) {
+          candy.pulse += 0.04;
+
+          const scale = 1 + Math.sin(candy.pulse) * 0.06;
+
+          ctx.save();
+
+          ctx.translate(candy.x, candy.y);
+
+          ctx.scale(scale, scale);
+
+          ctx.shadowColor = candy.color;
+
+          ctx.shadowBlur = 12;
+
+          ctx.fillStyle = candy.color;
+
+          ctx.beginPath();
+
+          ctx.roundRect(-candy.radius, -8, candy.radius * 2, 16, 6);
+
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          ctx.beginPath();
+
+          ctx.moveTo(-candy.radius, -6);
+
+          ctx.lineTo(-candy.radius - 10, -12);
+
+          ctx.lineTo(-candy.radius - 8, 12);
+
+          ctx.lineTo(-candy.radius, 6);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.beginPath();
+
+          ctx.moveTo(candy.radius, -6);
+
+          ctx.lineTo(candy.radius + 10, -12);
+
+          ctx.lineTo(candy.radius + 8, 12);
+
+          ctx.lineTo(candy.radius, 6);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawPumpkin(pumpkin) {
+          pumpkin.pulse += 0.035;
+
+          ctx.save();
+
+          ctx.translate(pumpkin.x, pumpkin.y);
+
+          ctx.shadowColor = "#ff8525";
+
+          ctx.shadowBlur = 16 + Math.sin(pumpkin.pulse) * 6;
+
+          ctx.fillStyle = "#f56d18";
+
+          ctx.beginPath();
+
+          ctx.ellipse(0, 0, 28, 23, 0, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.shadowBlur = 0;
+
+          ctx.fillStyle = "#ffd43e";
+
+          ctx.beginPath();
+
+          ctx.moveTo(-13, -5);
+
+          ctx.lineTo(-4, -12);
+
+          ctx.lineTo(-2, -3);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.beginPath();
+
+          ctx.moveTo(13, -5);
+
+          ctx.lineTo(4, -12);
+
+          ctx.lineTo(2, -3);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawGhost(ghost) {
+          ctx.save();
+
+          ctx.translate(ghost.x, ghost.y + Math.sin(ghost.phase) * 5);
+
+          ctx.fillStyle = "#dfc7f4";
+
+          ctx.beginPath();
+
+          ctx.arc(0, -7, ghost.radius, Math.PI, 0);
+
+          ctx.lineTo(ghost.radius, ghost.radius);
+
+          ctx.lineTo(ghost.radius / 2, ghost.radius * 0.65);
+
+          ctx.lineTo(0, ghost.radius);
+
+          ctx.lineTo(-ghost.radius / 2, ghost.radius * 0.65);
+
+          ctx.lineTo(-ghost.radius, ghost.radius);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.fillStyle = "#291332";
+
+          ctx.beginPath();
+
+          ctx.arc(-8, -10, 4, 0, Math.PI * 2);
+
+          ctx.arc(8, -10, 4, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawBat(bat) {
+          ctx.save();
+
+          ctx.translate(bat.x, bat.y);
+
+          ctx.fillStyle = "#0a0710";
+
+          ctx.beginPath();
+
+          ctx.moveTo(0, 0);
+
+          ctx.lineTo(-35, -12);
+
+          ctx.lineTo(-24, 12);
+
+          ctx.lineTo(0, 5);
+
+          ctx.lineTo(24, 12);
+
+          ctx.lineTo(35, -12);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawSpider(spider) {
+          ctx.save();
+
+          ctx.translate(spider.x, spider.y);
+
+          ctx.strokeStyle = "#22102a";
+
+          ctx.lineWidth = 3;
+
+          for (let i = -1; i <= 1; i += 2) {
+            for (let j = 0; j < 4; j++) {
+              const y = -13 + j * 9;
+
+              ctx.beginPath();
+
+              ctx.moveTo(i * 5, y * 0.35);
+
+              ctx.lineTo(i * (20 + j * 2), y);
+
+              ctx.stroke();
+            }
+          }
+
+          ctx.fillStyle = "#19081e";
+
+          ctx.beginPath();
+
+          ctx.arc(0, 0, 14, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        function drawPlayer() {
+          ctx.save();
+
+          ctx.translate(player.x, player.y);
+
+          if (hasShield()) {
+            ctx.strokeStyle = "rgba(255,190,73,0.75)";
+
+            ctx.lineWidth = 3;
+
+            ctx.beginPath();
+
+            ctx.arc(
+              0,
+              0,
+              38 + Math.sin(performance.now() / 120) * 3,
+              0,
+              Math.PI * 2,
+            );
+
+            ctx.stroke();
+          }
+
+          if (
+            player.invincibleTime > 0 &&
+            Math.floor(player.invincibleTime * 10) % 2 === 0
+          ) {
+            ctx.globalAlpha = 0.4;
+          }
+
+          const gradient = ctx.createLinearGradient(-20, -25, 20, 30);
+
+          gradient.addColorStop(0, "#bc2aff");
+
+          gradient.addColorStop(1, "#265aff");
+
+          ctx.fillStyle = gradient;
+
+          ctx.beginPath();
+
+          ctx.roundRect(-19, -22, 38, 48, 13);
+
+          ctx.fill();
+
+          ctx.fillStyle = "#ffb34e";
+
+          ctx.beginPath();
+
+          ctx.arc(0, -25, 13, 0, Math.PI * 2);
+
+          ctx.fill();
+
+          ctx.fillStyle = "#25102d";
+
+          ctx.beginPath();
+
+          ctx.moveTo(-16, -29);
+
+          ctx.lineTo(0, -49);
+
+          ctx.lineTo(16, -29);
+
+          ctx.closePath();
+
+          ctx.fill();
+
+          ctx.fillStyle = "white";
+
+          ctx.font = '400 17px "Munetios Sans", "Google Sans Flex", sans-serif';
+
+          ctx.textAlign = "center";
+
+          ctx.textBaseline = "middle";
+
+          ctx.fillText("M", 0, 3);
+
+          ctx.restore();
+        }
+
+        function drawParticles() {
+          for (const p of particles) {
+            ctx.globalAlpha = clamp(p.life / 0.7, 0, 1);
+
+            ctx.fillStyle = p.color;
+
+            ctx.beginPath();
+
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+
+            ctx.fill();
+          }
+
+          ctx.globalAlpha = 1;
+        }
+
+        function drawPopups() {
+          ctx.textAlign = "center";
+
+          ctx.font = '400 20px "Munetios Sans", "Google Sans Flex", sans-serif';
+
+          for (const popup of popups) {
+            ctx.globalAlpha = clamp(popup.life, 0, 1);
+
+            ctx.strokeStyle = "rgba(0,0,0,0.7)";
+
+            ctx.lineWidth = 5;
+
+            ctx.strokeText(popup.text, popup.x, popup.y);
+
+            ctx.fillStyle = popup.color;
+
+            ctx.fillText(popup.text, popup.x, popup.y);
+          }
+
+          ctx.globalAlpha = 1;
+        }
+
+        function draw() {
+          ctx.setTransform(deviceScale, 0, 0, deviceScale, 0, 0);
+
+          ctx.clearRect(0, 0, viewWidth, viewHeight);
+
+          const view = getView();
+
+          ctx.save();
+
+          ctx.scale(view.scale, view.scale);
+
+          ctx.translate(-view.x, -view.y);
+
+          drawSky();
+
+          drawGround();
+
+          for (const stone of gravestones) {
+            drawGravestone(stone);
+          }
+
+          for (const tree of trees) {
+            drawTree(tree);
+          }
+
+          for (const house of houses) {
+            drawHouse(house);
+          }
+
+          for (const candy of candies) {
+            drawCandy(candy);
+          }
+
+          for (const pumpkin of pumpkins) {
+            drawPumpkin(pumpkin);
+          }
+
+          for (const spider of spiders) {
+            drawSpider(spider);
+          }
+
+          for (const ghost of ghosts) {
+            drawGhost(ghost);
+          }
+
+          for (const bat of bats) {
+            drawBat(bat);
+          }
+
+          drawPlayer();
+
+          drawParticles();
+
+          drawPopups();
+
+          ctx.restore();
+        }
+
+        function gameLoop(now) {
+          const dt = Math.min(0.04, Math.max(0, (now - lastFrameTime) / 1000));
+
+          lastFrameTime = now;
+
+          update(dt);
+
+          draw();
+
+          requestAnimationFrame(gameLoop);
+        }
+
+        /*
+            --------------------------------------------------
+            Settings UI
+            --------------------------------------------------
+          */
+
+        function setToggle(button, enabled) {
+          button.classList.toggle("active", enabled);
+
+          button.setAttribute("aria-checked", String(enabled));
+        }
+
+        function updateSoundUI() {
+          setToggle(soundToggle, settings.sound);
+
+          soundIcon.textContent = settings.sound ? "volume_up" : "volume_off";
+
+          setMusicMuted(!settings.sound);
+        }
+
+        function updateCheatUI() {
+          setToggle(cheatsMasterToggle, settings.cheatsEnabled);
+
+          const cheats = [
+            [unlimitedCandyToggle, "unlimitedCandy"],
+
+            [unlimitedShieldToggle, "unlimitedShield"],
+
+            [neverDieToggle, "neverDie"],
+
+            [superSpeedToggle, "superSpeed"],
+
+            [freezeEnemiesToggle, "freezeEnemies"],
+
+            [candyMagnetToggle, "candyMagnet"],
+          ];
+
+          for (const [element, key] of cheats) {
+            setToggle(element, Boolean(settings[key]));
+
+            element.disabled = !settings.cheatsEnabled;
+          }
+
+          for (const row of cheatRows) {
+            row.classList.toggle("disabled", !settings.cheatsEnabled);
+          }
+
+          updateHUD();
+        }
+
+        function updateTimeInputs() {
+          sunriseTimeInput.value = formatTime(settings.sunriseMinutes);
+
+          sunsetTimeInput.value = formatTime(settings.sunsetMinutes);
+
+          sunriseDstInput.value = String(settings.sunriseDst);
+
+          sunsetDstInput.value = String(settings.sunsetDst);
+
+          sunrisePreview.textContent = formatTime(getSafeSunrise());
+
+          sunsetPreview.textContent = formatTime(getSafeSunset());
+
+          validateDaylight();
+
+          updateHUD();
+        }
+
+        function commitTimeInput(input, settingName) {
+          const parsed = parseCustomTime(input.value);
+
+          if (parsed === null) {
+            input.classList.add("invalid");
+
+            input.value = formatTime(settings[settingName]);
+
+            window.setTimeout(() => {
+              input.classList.remove("invalid");
+            }, 1000);
+
+            return;
+          }
+
+          settings[settingName] = parsed;
+
+          input.classList.remove("invalid");
+
+          saveSettings();
+
+          updateTimeInputs();
+        }
+
+        function commitDstInput(input, settingName) {
+          const number = Number(input.value.trim());
+
+          if (!Number.isFinite(number)) {
+            input.classList.add("invalid");
+
+            input.value = String(settings[settingName]);
+
+            return;
+          }
+
+          settings[settingName] = clamp(Math.round(number), -180, 180);
+
+          input.classList.remove("invalid");
+
+          saveSettings();
+
+          updateTimeInputs();
+        }
+
+        function adjustTime(settingName, minutes) {
+          settings[settingName] = normalizeMinutes(
+            Number(settings[settingName]) + minutes,
+          );
+
+          saveSettings();
+
+          updateTimeInputs();
+        }
+
+        function applyLanguage() {
+          document.documentElement.lang = settings.language;
+
+          for (const element of document.querySelectorAll("[data-i18n]")) {
+            element.textContent = t(element.dataset.i18n);
+          }
+
+          languageDropdownLabel.textContent = languageNames[settings.language];
+
+          timeDropdownLabel.textContent =
+            settings.timeSymbols === "NM_AN" ? "NM / AN" : "AM / PM";
+
+          updateTimeInputs();
+
+          updateDropdownSelections();
+
+          updateHUD();
+        }
+
+        /*
+            --------------------------------------------------
+            Settings open/close
+
+            Preserves the exact previous pause state.
+            --------------------------------------------------
+          */
+
+        function openSettings() {
+          closeDropdowns();
+
+          settingsOpenedDuringGame = gameRunning && !gameEnded;
+
+          settingsWasPaused = paused;
+
+          if (settingsOpenedDuringGame && !paused) {
+            setPaused(true, false);
+          }
+
+          pauseScreen.classList.remove("active");
+
+          settingsOverlay.classList.add("open");
+
+          settingsOverlay.setAttribute("aria-hidden", "false");
+        }
+
+        function closeSettings() {
+          closeDropdowns();
+
+          settingsOverlay.classList.remove("open");
+
+          settingsOverlay.setAttribute("aria-hidden", "true");
+
+          if (settingsOpenedDuringGame) {
+            if (settingsWasPaused) {
+              paused = true;
+
+              pauseIcon.textContent = "play_arrow";
+
+              pauseScreen.classList.add("active");
+            } else {
+              setPaused(false, false);
+            }
+          }
+
+          settingsOpenedDuringGame = false;
+        }
+
+        /*
+            --------------------------------------------------
+            Custom dropdown
+            --------------------------------------------------
+          */
+
+        function closeDropdowns() {
+          for (const menu of document.querySelectorAll(
+            ".custom-dropdown-menu",
+          )) {
+            menu.classList.remove("open");
+          }
+        }
+
+        function openDropdown(button) {
+          const menu = document.getElementById(button.dataset.dropdown);
+
+          if (!menu) {
+            return;
+          }
+
+          const alreadyOpen = menu.classList.contains("open");
+
+          closeDropdowns();
+
+          if (alreadyOpen) {
+            return;
+          }
+
+          const rect = button.getBoundingClientRect();
+
+          const width = Math.max(200, rect.width);
+
+          menu.style.width = `${width}px`;
+
+          menu.style.left = `${clamp(
+            rect.left,
+            12,
+            window.innerWidth - width - 12,
+          )}px`;
+
+          menu.style.top = `${rect.bottom + 8}px`;
+
+          menu.classList.add("open");
+
+          const menuRect = menu.getBoundingClientRect();
+
+          if (menuRect.bottom > window.innerHeight - 12) {
+            menu.style.top = `${Math.max(
+              12,
+              rect.top - menuRect.height - 8,
+            )}px`;
+          }
+        }
+
+        function updateDropdownSelections() {
+          for (const option of document.querySelectorAll(
+            "#languageDropdownMenu .dropdown-option",
+          )) {
+            option.classList.toggle(
+              "selected",
+              option.dataset.value === settings.language,
+            );
+          }
+
+          for (const option of document.querySelectorAll(
+            "#timeDropdownMenu .dropdown-option",
+          )) {
+            option.classList.toggle(
+              "selected",
+              option.dataset.value === settings.timeSymbols,
+            );
+          }
+        }
+
+        /*
+            --------------------------------------------------
+            Controls
+            --------------------------------------------------
+          */
+
+        const keyMap = {
+          ArrowUp: "up",
+
+          KeyW: "up",
+
+          ArrowDown: "down",
+
+          KeyS: "down",
+
+          ArrowLeft: "left",
+
+          KeyA: "left",
+
+          ArrowRight: "right",
+
+          KeyD: "right",
+        };
+
+        window.addEventListener("keydown", (event) => {
+          if (settingsOverlay.classList.contains("open")) {
+            if (event.code === "Escape") {
+              closeSettings();
+            }
+
+            return;
+          }
+
+          if (event.code === "Space") {
+            event.preventDefault();
+
+            doDash();
+
+            return;
+          }
+
+          if (event.code === "KeyP" || event.code === "Escape") {
+            event.preventDefault();
+
+            if (gameRunning && !gameEnded) {
+              setPaused(!paused, true);
+            }
+
+            return;
+          }
+
+          const control = keyMap[event.code];
+
+          if (control) {
+            keys[control] = true;
+
+            event.preventDefault();
+          }
+        });
+
+        window.addEventListener("keyup", (event) => {
+          const control = keyMap[event.code];
+
+          if (control) {
+            keys[control] = false;
+          }
+        });
+
+        for (const button of touchButtons) {
+          const control = button.dataset.control;
+
+          button.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+
+            touchState[control] = true;
+
+            button.classList.add("active");
+          });
+
+          const release = () => {
+            touchState[control] = false;
+
+            button.classList.remove("active");
+          };
+
+          button.addEventListener("pointerup", release);
+
+          button.addEventListener("pointercancel", release);
+
+          button.addEventListener("pointerleave", release);
+        }
+
+        dashButton.addEventListener("pointerdown", doDash);
+
+        /*
+            --------------------------------------------------
+            Buttons
+            --------------------------------------------------
+          */
+
+        playButton.addEventListener("click", startGame);
+
+        playAgainButton.addEventListener("click", startGame);
+
+        restartButton.addEventListener("click", startGame);
+
+        pauseRestartButton.addEventListener("click", startGame);
+
+        pauseButton.addEventListener("click", () => {
+          if (gameRunning && !gameEnded) {
+            setPaused(!paused, true);
+          }
+        });
+
+        resumeButton.addEventListener("click", () => {
+          setPaused(false, true);
+        });
+
+        settingsButton.addEventListener("click", openSettings);
+
+        startSettingsButton.addEventListener("click", openSettings);
+
+        pauseSettingsButton.addEventListener("click", openSettings);
+
+        closeSettingsButton.addEventListener("click", closeSettings);
+
+        settingsDoneButton.addEventListener("click", closeSettings);
+
+        /*
+            --------------------------------------------------
+            Audio buttons
+            --------------------------------------------------
+          */
+
+        async function toggleSound() {
+          settings.sound = !settings.sound;
+
+          saveSettings();
+
+          await activateAudio();
+
+          updateSoundUI();
+
+          if (settings.sound && gameRunning && !gameEnded) {
+            startMusic();
+          } else if (!settings.sound) {
+            stopMusic();
+          }
+        }
+
+        soundButton.addEventListener("click", toggleSound);
+
+        soundToggle.addEventListener("click", toggleSound);
+
+        /*
+            --------------------------------------------------
+            Daylight input listeners
+            --------------------------------------------------
+          */
+
+        sunriseTimeInput.addEventListener("change", () => {
+          commitTimeInput(sunriseTimeInput, "sunriseMinutes");
+        });
+
+        sunriseTimeInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            sunriseTimeInput.blur();
+          }
+        });
+
+        sunsetTimeInput.addEventListener("change", () => {
+          commitTimeInput(sunsetTimeInput, "sunsetMinutes");
+        });
+
+        sunsetTimeInput.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") {
+            sunsetTimeInput.blur();
+          }
+        });
+
+        sunriseDstInput.addEventListener("change", () => {
+          commitDstInput(sunriseDstInput, "sunriseDst");
+        });
+
+        sunsetDstInput.addEventListener("change", () => {
+          commitDstInput(sunsetDstInput, "sunsetDst");
+        });
+
+        sunriseEarlierButton.addEventListener("click", () => {
+          adjustTime("sunriseMinutes", -1);
+        });
+
+        sunriseLaterButton.addEventListener("click", () => {
+          adjustTime("sunriseMinutes", 1);
+        });
+
+        sunsetEarlierButton.addEventListener("click", () => {
+          adjustTime("sunsetMinutes", -1);
+        });
+
+        sunsetLaterButton.addEventListener("click", () => {
+          adjustTime("sunsetMinutes", 1);
+        });
+
+        resetDaylightButton.addEventListener("click", () => {
+          settings.sunriseMinutes = DEFAULT_SUNRISE;
+
+          settings.sunsetMinutes = DEFAULT_SUNSET;
+
+          settings.sunriseDst = 0;
+
+          settings.sunsetDst = 0;
+
+          saveSettings();
+
+          updateTimeInputs();
+        });
+
+        /*
+            --------------------------------------------------
+            Cheats
+            --------------------------------------------------
+          */
+
+        cheatsMasterToggle.addEventListener("click", () => {
+          settings.cheatsEnabled = !settings.cheatsEnabled;
+
+          saveSettings();
+
+          updateCheatUI();
+        });
+
+        function bindCheat(element, key) {
+          element.addEventListener("click", () => {
+            if (!settings.cheatsEnabled) {
+              return;
+            }
+
+            settings[key] = !settings[key];
+
+            saveSettings();
+
+            updateCheatUI();
+          });
+        }
+
+        bindCheat(unlimitedCandyToggle, "unlimitedCandy");
+
+        bindCheat(unlimitedShieldToggle, "unlimitedShield");
+
+        bindCheat(neverDieToggle, "neverDie");
+
+        bindCheat(superSpeedToggle, "superSpeed");
+
+        bindCheat(freezeEnemiesToggle, "freezeEnemies");
+
+        bindCheat(candyMagnetToggle, "candyMagnet");
+
+        /*
+            --------------------------------------------------
+            Dropdown listeners
+            --------------------------------------------------
+          */
+
+        languageDropdownButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+
+          openDropdown(languageDropdownButton);
+        });
+
+        timeDropdownButton.addEventListener("click", (event) => {
+          event.stopPropagation();
+
+          openDropdown(timeDropdownButton);
+        });
+
+        document
+          .getElementById("languageDropdownMenu")
+          .addEventListener("click", (event) => {
+            const option = event.target.closest(".dropdown-option");
+
+            if (!option) {
+              return;
+            }
+
+            settings.language = option.dataset.value;
+
+            saveSettings();
+
+            applyLanguage();
+
+            closeDropdowns();
+          });
+
+        document
+          .getElementById("timeDropdownMenu")
+          .addEventListener("click", (event) => {
+            const option = event.target.closest(".dropdown-option");
+
+            if (!option) {
+              return;
+            }
+
+            settings.timeSymbols = option.dataset.value;
+
+            saveSettings();
+
+            applyLanguage();
+
+            closeDropdowns();
+          });
+
+        document.addEventListener("click", (event) => {
+          if (
+            !event.target.closest(".custom-dropdown-menu") &&
+            !event.target.closest(".dropdown-button")
+          ) {
+            closeDropdowns();
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          resizeCanvas();
+
+          closeDropdowns();
+        });
+
+        /*
+            --------------------------------------------------
+            Initialize
+            --------------------------------------------------
+          */
+
+        createWorld();
+
+        createGameObjects();
+
+        resizeCanvas();
+
+        highScoreValue.textContent = highScore;
+
+        updateSoundUI();
+
+        updateCheatUI();
+
+        applyLanguage();
+
+        updateTimeInputs();
+
+        updateHUD();
+
+        requestAnimationFrame(gameLoop);
+      });
+    </script>
+
+    <!--
+      Custom dropdowns are deliberately appended at the
+      end of the HTML rather than being children of the
+      dropdown button or setting row.
+    -->
+
+    <div class="custom-dropdown-menu" id="languageDropdownMenu" role="listbox">
+      <button class="dropdown-option" data-value="en" type="button">
+        <span>English</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="es-US" type="button">
+        <span>Español (US)</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="es-MX" type="button">
+        <span>Español (MX)</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="es-ES" type="button">
+        <span>Español (ES)</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="pt-BR" type="button">
+        <span>Português (BR)</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="pt-PT" type="button">
+        <span>Português (PT)</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="fr" type="button">
+        <span>Français</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="de" type="button">
+        <span>Deutsch</span>
+        <icon>check</icon>
+      </button>
+    </div>
+
+    <div class="custom-dropdown-menu" id="timeDropdownMenu" role="listbox">
+      <button class="dropdown-option" data-value="NM_AN" type="button">
+        <span>NM / AN</span>
+        <icon>check</icon>
+      </button>
+
+      <button class="dropdown-option" data-value="AM_PM" type="button">
+        <span>AM / PM</span>
+        <icon>check</icon>
+      </button>
+    </div>
+  </body>
+</html>
