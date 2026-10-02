@@ -133,7 +133,10 @@
 
       .app {
         width: min(1500px, 100%);
+        height: calc(100vh - 24px);
+        height: calc(100dvh - 24px);
         min-height: calc(100vh - 24px);
+        min-height: calc(100dvh - 24px);
 
         margin: 0 auto;
 
@@ -343,6 +346,9 @@
       }
 
       canvas {
+        position: absolute;
+        inset: 0;
+
         width: 100%;
         height: 100%;
 
@@ -1064,7 +1070,7 @@
         padding: 13px;
 
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(3, 1fr);
 
         gap: 10px;
 
@@ -1090,8 +1096,12 @@
         color: #ffd067;
       }
 
-      .preview-time:last-child icon {
+      .preview-time:nth-child(2) icon {
         color: #b98cff;
+      }
+
+      .preview-time:last-child icon {
+        color: #8ee9bd;
       }
 
       .preview-label {
@@ -1355,7 +1365,10 @@
         }
 
         .app {
+          height: 100vh;
+          height: 100dvh;
           min-height: 100vh;
+          min-height: 100dvh;
           gap: 0;
         }
 
@@ -2184,6 +2197,20 @@
                   </span>
                 </div>
               </div>
+
+              <div class="preview-time">
+                <icon>schedule</icon>
+
+                <div>
+                  <span class="preview-label" data-i18n="totalDaylight">
+                    Total daylight
+                  </span>
+
+                  <span class="preview-value" id="daylightDurationPreview">
+                    10h 1m
+                  </span>
+                </div>
+              </div>
             </div>
 
             <p
@@ -2191,7 +2218,7 @@
               id="daylightWarning"
               data-i18n="invalidDaylight"
             >
-              Sunset must be later than sunrise.
+              Sunset must be at least one hour after sunrise.
             </p>
 
             <div style="margin-top: 11px">
@@ -2567,7 +2594,15 @@
 
             effectiveSunset: "Effective sunset",
 
-            invalidDaylight: "Sunset must be later than sunrise.",
+            totalDaylight: "Total daylight",
+
+            previousDay: "previous day",
+
+            nextDay: "next day",
+
+            hoursMinutes: "{hours}h {minutes}m",
+
+            invalidDaylight: "Sunset must be at least one hour after sunrise.",
 
             resetDaylight: "Reset daylight",
 
@@ -3993,6 +4028,10 @@
 
         const sunsetPreview = document.getElementById("sunsetPreview");
 
+        const daylightDurationPreview = document.getElementById(
+          "daylightDurationPreview",
+        );
+
         const daylightWarning = document.getElementById("daylightWarning");
 
         const resetDaylightButton = document.getElementById(
@@ -4061,6 +4100,10 @@
         let worldElapsed = 0;
 
         let worldMinutes = WORLD_START_MINUTE;
+
+        let completedNights = 0;
+
+        let wasDaytime = false;
 
         let visitedHouses = 0;
 
@@ -4409,12 +4452,42 @@
           return `${hour12}:` + `${String(minute).padStart(2, "0")} ` + suffix;
         }
 
+        function formatEffectiveTime(totalMinutes) {
+          const dayOffset = Math.floor(totalMinutes / 1440);
+          let dayLabel = "";
+
+          if (dayOffset < 0) {
+            dayLabel = ` (${t("previousDay")})`;
+          } else if (dayOffset > 0) {
+            dayLabel = ` (${t("nextDay")})`;
+          }
+
+          return formatTime(totalMinutes) + dayLabel;
+        }
+
+        function formatDaylightDuration(totalMinutes) {
+          const hours = Math.floor(totalMinutes / 60);
+          const minutes = Math.round(totalMinutes % 60);
+
+          return t("hoursMinutes")
+            .replace("{hours}", String(hours))
+            .replace("{minutes}", String(minutes));
+        }
+
         function getEffectiveSunrise() {
-          return Number(settings.sunriseMinutes) + Number(settings.sunriseDst);
+          return (
+            Number(settings.sunriseMinutes) +
+            Number(settings.sunriseDst) +
+            completedNights * 2
+          );
         }
 
         function getEffectiveSunset() {
-          return Number(settings.sunsetMinutes) + Number(settings.sunsetDst);
+          return (
+            Number(settings.sunsetMinutes) +
+            Number(settings.sunsetDst) -
+            completedNights * 2
+          );
         }
 
         function validateDaylight() {
@@ -4423,11 +4496,9 @@
           const sunset = getEffectiveSunset();
 
           const valid =
-            sunrise >= 0 &&
-            sunrise < 1440 &&
-            sunset >= 0 &&
-            sunset < 1440 &&
-            sunset > sunrise + 60;
+            Number.isFinite(sunrise) &&
+            Number.isFinite(sunset) &&
+            sunset >= sunrise + 60;
 
           daylightWarning.classList.toggle("visible", !valid);
 
@@ -4551,6 +4622,18 @@
           canvas.width = Math.round(viewWidth * deviceScale);
 
           canvas.height = Math.round(viewHeight * deviceScale);
+        }
+
+        let resizeFrame = 0;
+
+        function scheduleCanvasResize() {
+          cancelAnimationFrame(resizeFrame);
+
+          resizeFrame = requestAnimationFrame(() => {
+            resizeFrame = 0;
+
+            resizeCanvas();
+          });
         }
 
         /*
@@ -4917,6 +5000,10 @@
 
           worldMinutes = WORLD_START_MINUTE;
 
+          completedNights = 0;
+
+          wasDaytime = isDaytime();
+
           visitedHouses = 0;
 
           cameraShake = 0;
@@ -5078,6 +5165,16 @@
           worldMinutes = normalizeMinutes(
             WORLD_START_MINUTE + cycleProgress * 1440,
           );
+
+          const daytime = isDaytime();
+
+          if (wasDaytime && !daytime) {
+            completedNights += 1;
+
+            updateTimeInputs();
+          }
+
+          wasDaytime = isDaytime();
         }
 
         /*
@@ -5120,9 +5217,9 @@
 
           clockIcon.textContent = isDaytime() ? "light_mode" : "dark_mode";
 
-          hudSunrise.textContent = formatTime(getSafeSunrise());
+          hudSunrise.textContent = formatEffectiveTime(getSafeSunrise());
 
-          hudSunset.textContent = formatTime(getSafeSunset());
+          hudSunset.textContent = formatEffectiveTime(getSafeSunset());
 
           if (hasShield()) {
             powerStatus.style.display = "flex";
@@ -6458,9 +6555,13 @@
 
           sunsetDstInput.value = String(settings.sunsetDst);
 
-          sunrisePreview.textContent = formatTime(getSafeSunrise());
+          sunrisePreview.textContent = formatEffectiveTime(getSafeSunrise());
 
-          sunsetPreview.textContent = formatTime(getSafeSunset());
+          sunsetPreview.textContent = formatEffectiveTime(getSafeSunset());
+
+          daylightDurationPreview.textContent = formatDaylightDuration(
+            getSafeSunset() - getSafeSunrise(),
+          );
 
           validateDaylight();
 
@@ -6985,10 +7086,23 @@
         });
 
         window.addEventListener("resize", () => {
-          resizeCanvas();
+          scheduleCanvasResize();
 
           closeDropdowns();
         });
+
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener(
+            "resize",
+            scheduleCanvasResize,
+          );
+        }
+
+        if (typeof ResizeObserver !== "undefined") {
+          const gameResizeObserver = new ResizeObserver(scheduleCanvasResize);
+
+          gameResizeObserver.observe(gameShell);
+        }
 
         /*
             --------------------------------------------------
