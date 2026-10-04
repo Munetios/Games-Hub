@@ -5649,10 +5649,10 @@
 
           spiderSpawnTimer -= dt;
 
-          if (candySpawnTimer <= 0 && candies.length < 500) {
+          if (candySpawnTimer <= 0 && candies.length < 10000) {
             spawnCandy();
 
-            candySpawnTimer = 0.1;
+            candySpawnTimer = 0.01;
           }
 
           if (pumpkinSpawnTimer <= 0 && pumpkins.length < 30) {
