@@ -2435,7 +2435,7 @@
             for one full game-day.
           */
 
-        const DAY_CYCLE_REAL_SECONDS = 112;
+        const DAY_CYCLE_REAL_SECONDS = 90;
 
         const WORLD_WIDTH = 1600;
 
@@ -2456,14 +2456,14 @@
         const STORAGE_SCORE = "munetgame-halloween-high-score";
 
         /*
-            7:27 NM
+            7:44 NM
           */
-        const DEFAULT_SUNRISE = 7 * 60 + 27;
+        const DEFAULT_SUNRISE = 7 * 60 + 44;
 
         /*
-            5:28 AN = 17:28
+            5:55 AN = 17:28
           */
-        const DEFAULT_SUNSET = 17 * 60 + 28;
+        const DEFAULT_SUNSET = 17 * 60 + 55;
 
         /*
             Start the visual day before sunrise.
@@ -4089,7 +4089,7 @@
 
         let score = 0;
 
-        let lives = 5;
+        let lives = 10;
 
         let remainingTime = GAME_SECONDS;
 
@@ -5649,13 +5649,13 @@
 
           spiderSpawnTimer -= dt;
 
-          if (candySpawnTimer <= 0 && candies.length < 40) {
+          if (candySpawnTimer <= 0 && candies.length < 500) {
             spawnCandy();
 
-            candySpawnTimer = random(0.4, 0.9);
+            candySpawnTimer = 0.1;
           }
 
-          if (pumpkinSpawnTimer <= 0 && pumpkins.length < 3) {
+          if (pumpkinSpawnTimer <= 0 && pumpkins.length < 30) {
             spawnPumpkin();
 
             pumpkinSpawnTimer = random(9, 14);
