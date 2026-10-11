@@ -226,6 +226,23 @@
       @media(min-width:1024px){ #game-layout-container { flex-direction:row; } #game-canvas-container{margin:0} #game-layout-container>div:last-child{margin:0} }
       @media(max-width:470px){ #logo-and-title { display:flex; } #logo-and-title span { font-size:14px; } #logo-icon { display:none; } nav { padding-inline:12px!important; } }
       @media(prefers-reduced-motion:reduce){ *,*::before,*::after { animation:none!important;transition:none!important; } }
+      .dropdown-list { position:fixed; min-width:0; right:auto; z-index:1200; }
+      .custom-modal-overlay { background:transparent; pointer-events:none; z-index:800; }
+      .custom-modal-content,.dark .custom-modal-content { position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); pointer-events:auto; width:min(430px,calc(100vw - 32px)); min-width:0; max-width:none; max-height:calc(100dvh - 32px); overflow:auto; background:rgba(240,232,250,.50); border-radius:28px; backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+      .dark .custom-modal-content { background:rgba(48,32,63,.50); }
+      #custom-toast { top:18px; bottom:auto!important; padding:12px 20px; border-radius:22px; z-index:1400; opacity:0; visibility:hidden; pointer-events:none; max-width:min(560px,calc(100vw - 32px)); text-align:center; color:inherit; transition:opacity .2s,transform .2s; transform:translate(-50%,-8px); }
+      #custom-toast.toast-visible { opacity:1; visibility:visible; transform:translate(-50%,0); }
+      #custom-toast[data-type="error"] { border-color:rgba(230,111,170,.50); }
+      #editor-grid { width:clamp(220px,60vw,320px); gap:3px; }
+      #editor-grid button { width:100%; height:auto; aspect-ratio:1; border-radius:clamp(3px,1vw,8px); }
+      .editor-actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
+      .piece-mini { gap:1px; } .piece-mini span { width:var(--mini-cell,8px); height:var(--mini-cell,8px); border-radius:2px; }
+      #hold-canvas { width:100px;height:100px;margin:auto; } button:disabled { opacity:.45; cursor:default; transform:none!important; }
+      .leaderboard-scroll { overflow-x:auto; } .leaderboard-table { width:100%; border-collapse:collapse; text-align:left; }
+      .leaderboard-table th,.leaderboard-table td { padding:16px 14px; white-space:nowrap; border-bottom:1px solid rgba(143,81,215,.18); }
+      .leaderboard-table th { font-size:13px; opacity:.7; } .leaderboard-table td { font-weight:600; }
+      @media(max-width:600px){ .leaderboard-table th,.leaderboard-table td { padding:12px 10px; } }
+
     </style>
   </head>
   <body class="antialiased">
@@ -385,7 +402,7 @@
             class="flex flex-col lg:flex-row gap-8 items-start justify-center"
           >
             <div id="game-canvas-container" class="flex flex-col items-center">
-              <div class="board-heading w-full"><span data-lang-key="you">You</span><span data-lang-key="target">Clear 5 lines</span></div><canvas aria-label="Tetris" id="tetris-canvas" width="300" height="600"></canvas>
+              <div class="board-heading w-full"><span data-lang-key="you">You</span><span id="target-label" data-lang-key="target">Clear 5 lines</span></div><canvas aria-label="Tetris" id="tetris-canvas" width="300" height="600"></canvas>
               <div
                 id="on-screen-controls"
                 class="mt-4 grid grid-cols-4 gap-2 w-full max-w-sm"
@@ -541,6 +558,7 @@
                   </div>
                 </div>
               </div>
+              <section class="liquid-glass p-5"><h2 class="font-bold" data-lang-key="hold">Hold piece</h2><canvas id="hold-canvas" width="120" height="120" aria-label="Held piece"></canvas><p id="held-label" class="text-sm opacity-70"></p><div class="flex gap-2 mt-3"><button id="hold-btn" class="btn-primary px-4 py-2" data-lang-key="hold">Hold piece</button><button id="undo-btn" class="btn-primary px-4 py-2" data-lang-key="undo">Undo placement</button></div></section><button id="leaderboard-btn" class="btn-primary w-full py-3" data-lang-key="leaderboard">Leaderboard</button>
               <button id="pause-btn" class="btn-primary w-full py-3" data-lang-key="pause">Pause</button>
               <button
                 id="try-again-btn"
@@ -615,7 +633,7 @@
                   />
                 </div>
                 <div class="surface p-4 rounded-lg shadow-lg">
-                  <div id="editor-grid" class="grid grid-cols-4 gap-1"></div>
+                  <p class="mb-2 text-sm opacity-70"><span id="editor-dimensions"></span> · <span data-lang-key="board_grid">Board-sized grid</span></p><div id="editor-grid" class="grid"></div><div class="editor-actions mt-3"><button id="editor-mirror-btn" class="btn-primary px-3 py-2" data-lang-key="mirror">Mirror</button><button id="editor-flip-btn" class="btn-primary px-3 py-2" data-lang-key="flip">Flip</button><button id="editor-clear-btn" class="btn-primary px-3 py-2" data-lang-key="clear_grid">Clear grid</button></div>
                 </div>
               </div>
             </div>
@@ -630,9 +648,11 @@
           </div>
         </div>
 
+        <section id="leaderboard-tab" class="tab-content hidden"><div class="liquid-glass p-6"><h2 class="text-3xl font-bold mb-2" data-lang-key="leaderboard">Leaderboard</h2><p data-lang-key="leaderboard_desc" class="opacity-70 mb-5">Compare Player, AI opponent, and Autoplay AI. Totals include the current game and are saved on this device.</p><div class="leaderboard-scroll"><table class="leaderboard-table"><thead><tr><th>#</th><th data-lang-key="participant">Participant</th><th data-lang-key="score">Score</th><th data-lang-key="lines">Lines</th><th data-lang-key="wins">Wins</th><th data-lang-key="best_score">Best score</th><th data-lang-key="games">Games</th></tr></thead><tbody id="leaderboard-body"></tbody></table></div><p class="mt-5 text-sm opacity-70" data-lang-key="local_leaderboard">Local leaderboard · no accounts or data sharing</p></div><button class="btn-primary px-6 py-3 mt-5 nav-link" data-tab="game" data-lang-key="nav_game">Game</button></section>
         <!-- Settings Tab -->
         <div id="settings-tab" class="tab-content hidden">
           <div class="max-w-2xl mx-auto space-y-8">
+            <div class="surface p-6 rounded-lg shadow-lg"><h3 class="text-xl font-bold mb-2" data-lang-key="data">Data</h3><p class="opacity-70 mb-4" data-lang-key="data_desc">Manage this game's locally saved settings, blocks, scores, and leaderboard.</p><button id="clear-data-btn" class="btn-primary px-5 py-3" data-lang-key="clear_data">Clear data</button></div>
             <div class="surface p-6 rounded-lg shadow-lg">
               <h3
                 class="text-2xl font-bold border-b pb-2 mb-4"
@@ -753,24 +773,6 @@
     </div>
 
     <div id="custom-toast"></div>
-
-    <div id="confirm-modal" class="custom-modal-overlay hidden">
-      <div class="custom-modal-content surface shadow-xl">
-        <h3 id="confirm-title" class="text-xl font-bold mb-4">
-          Confirm Action
-        </h3>
-        <p id="confirm-message" class="mb-6">Are you sure?</p>
-        <div class="flex justify-end space-x-4">
-          <button
-            id="confirm-cancel-btn"
-            class="py-2 px-4 rounded-2xl bg-gray-300 dark:bg-gray-600"
-            data-lang-key="cancel"
-          >
-            Cancel</button
-          ><button id="confirm-ok-btn" class="btn-primary py-2 px-4">OK</button>
-        </div>
-      </div>
-    </div>
 
     <script>
       document.addEventListener("DOMContentLoaded", () => {
@@ -1220,8 +1222,10 @@
         // --- Sound Effects ---
         let audioContext;
         const synth = { triggerAttackRelease(note) {
-          audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
-          audioContext.resume();
+          const Audio = window.AudioContext || window.webkitAudioContext;
+          if (!Audio) return;
+          audioContext ||= new Audio();
+          audioContext.resume().catch(() => {});
           const osc=audioContext.createOscillator(), gain=audioContext.createGain();
           osc.frequency.value=({C2:65,E2:82,G2:98,C3:131,C4:262,G4:392,C5:523})[note] || 262;
           gain.gain.setValueAtTime(.08,audioContext.currentTime);
@@ -1317,10 +1321,7 @@
             case "speed":
               dropInterval = parseFloat(value) * 1000;
               config.el.value = value;
-              if (gameRunning) {
-                clearInterval(gameLoop);
-                gameLoop = setInterval(playerDrop, dropInterval);
-              }
+              if (gameRunning) resetGravity();
               break;
             case "ai":
               isAiOn = value;
@@ -1365,11 +1366,20 @@
 
         // --- Custom Pieces Storage ---
         function loadCustomPieces() {
-          customPieces =
-            readStorage("gamerytCustomPieces", []);
-          removedDefaults = readStorage("munetiosRemovedBlocks", []);
-          defaultOverrides = readStorage("munetiosBlockOverrides", {});
+          let failed = false;
+          const read = (key, fallback) => {
+            try { const value = localStorage.getItem(key); return value === null ? fallback : JSON.parse(value); }
+            catch { failed = true; return fallback; }
+          };
+          const savedCustom = read("gamerytCustomPieces", []);
+          const savedRemoved = read("munetiosRemovedBlocks", []);
+          const savedOverrides = read("munetiosBlockOverrides", {});
+          if (!Array.isArray(savedCustom) || !Array.isArray(savedRemoved) || !savedOverrides || typeof savedOverrides !== "object" || Array.isArray(savedOverrides)) failed = true;
+          customPieces = (Array.isArray(savedCustom) ? savedCustom : []).filter(piece => { const valid = validPiece(piece); if (!valid) failed = true; return valid; });
+          removedDefaults = [...new Set((Array.isArray(savedRemoved) ? savedRemoved : []).filter(id => { const valid = Number.isInteger(id) && id >= 0 && id < defaultPieces.length; if (!valid) failed = true; return valid; }))];
+          defaultOverrides = Object.fromEntries(Object.entries(savedOverrides && typeof savedOverrides === "object" && !Array.isArray(savedOverrides) ? savedOverrides : {}).filter(([id, piece]) => { const valid = /^\d+$/.test(id) && Number(id) < defaultPieces.length && validPiece(piece); if (!valid) failed = true; return valid; }));
           updateAllPieces();
+          if (failed) showToast("blocks_failed", "error");
         }
         function saveCustomPieces() {
           localStorage.setItem(
@@ -1396,6 +1406,7 @@
           localStorage.setItem("munetiosTetrisLanguage",JSON.stringify(lang));
           document.getElementById("ai-status").textContent=t(isAiOn?"bot_on":"bot_off");
           dropdowns.forEach(dropdown=>dropdown.refresh());
+          renderLeaderboard(); updateGameTools();
           document.querySelectorAll("[data-lang-label]").forEach(el=>el.setAttribute("aria-label",t(el.dataset.langLabel)));
           renderBlockSelection();
         }
@@ -1413,38 +1424,70 @@
           document.getElementById("mobile-menu").classList.add("hidden");
         }
         const toastEl = document.getElementById("custom-toast");
+        toastEl.setAttribute("role", "status");
+        toastEl.setAttribute("aria-live", "polite");
+        let toastTimer;
+        const activeModals = new Set();
+        let modalSequence = 0;
         function showToast(messageKey, type = "info") {
-          const translatedMessage = t(messageKey);
-          toastEl.textContent = translatedMessage;
-          toastEl.className =
-            "fixed bottom-[-100px] left-1/2 -translate-x-1/2 p-4 rounded-2xl text-white font-medium z-[100] transition-all duration-500";
-          if (type === "success") toastEl.classList.add("bg-green-600");
-          else if (type === "error") toastEl.classList.add("bg-red-600");
-          else toastEl.classList.add("bg-gray-800");
-          toastEl.style.bottom = "20px";
-          setTimeout(() => {
-            toastEl.style.bottom = "-100px";
-          }, 3000);
+          clearTimeout(toastTimer);
+          toastEl.textContent = t(messageKey);
+          toastEl.className = "liquid-glass toast-visible";
+          toastEl.dataset.type = type;
+          toastTimer = setTimeout(() => toastEl.classList.remove("toast-visible"), 4000);
         }
-        const confirmModal = document.getElementById("confirm-modal");
+        function element(tag, className, text) {
+          const node = document.createElement(tag);
+          if (className) node.className = className;
+          if (text !== undefined) node.textContent = text;
+          return node;
+        }
         function showConfirm(title, messageKey, onOk) {
-          document.getElementById("confirm-title").textContent = t(title);
-          document.getElementById("confirm-message").textContent = t(messageKey);
-          confirmModal.classList.remove("hidden");
-          const okBtn = document.getElementById("confirm-ok-btn");
-          const cancelBtn = document.getElementById("confirm-cancel-btn");
-          const okHandler = () => {
-            onOk();
-            hide();
-          };
-          const cancelHandler = () => hide();
-          function hide() {
-            confirmModal.classList.add("hidden");
-            okBtn.removeEventListener("click", okHandler);
-            cancelBtn.removeEventListener("click", cancelHandler);
+          const sequence = ++modalSequence;
+          const opener = document.activeElement;
+          const overlay = element("div", "custom-modal-overlay");
+          const panel = element("section", "custom-modal-content liquid-glass");
+          panel.setAttribute("role", "dialog");
+          panel.setAttribute("aria-modal", "false");
+          panel.setAttribute("aria-labelledby", `confirm-title-${sequence}`);
+          panel.setAttribute("aria-describedby", `confirm-message-${sequence}`);
+          const heading = element("h3", "text-xl font-bold mb-4", t(title));
+          heading.id = `confirm-title-${sequence}`;
+          heading.dataset.langKey = title;
+          const message = element("p", "mb-6", t(messageKey));
+          message.id = `confirm-message-${sequence}`;
+          message.dataset.langKey = messageKey;
+          const actions = element("div", "flex justify-end gap-3");
+          const cancel = element("button", "btn-primary py-2 px-4", t("cancel"));
+          const ok = element("button", "btn-primary py-2 px-4", t("confirm"));
+          cancel.type = ok.type = "button";
+          cancel.dataset.langKey = "cancel";
+          ok.dataset.langKey = "confirm";
+          actions.append(cancel, ok);
+          panel.append(heading, message, actions);
+          overlay.append(panel);
+          const modal = { overlay, panel, heading, message, cancel, ok, close };
+          function close() {
+            overlay.remove();
+            activeModals.delete(modal);
+            const remaining = [...activeModals].at(-1);
+            if (remaining) remaining.cancel.focus();
+            else if (opener?.isConnected) opener.focus();
           }
-          okBtn.addEventListener("click", okHandler);
-          cancelBtn.addEventListener("click", cancelHandler);
+          cancel.addEventListener("click", () => { playSound("click"); close(); });
+          ok.addEventListener("click", () => {
+            if (ok.disabled) return;
+            ok.disabled = true;
+            playSound("click");
+            try { onOk(); } finally { close(); }
+          });
+          panel.addEventListener("keydown", event => {
+            if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); close(); }
+          });
+          activeModals.add(modal);
+          document.body.append(overlay);
+          cancel.focus();
+          return modal;
         }
 
         // --- Tetris Game Logic ---
@@ -1498,7 +1541,7 @@
             clearInterval(gameLoop);
             playSound("gameOver");
             showToast(versus ? "ai_wins" : "game_over", "error");
-            finishMatch("ai_wins");
+            finishMatch(versus ? "ai_wins" : "game_over");
             overs++;
             document.getElementById("overs-count").innerText = overs;
             saveGameStats();
@@ -1568,7 +1611,9 @@
           lockPiece();
         }
         function lockPiece() {
+          undoSnapshot = !versus && !isAiOn ? { board: cloneBoard(board), player: structuredClone(player), nextPlayer: structuredClone(nextPlayer), score, lines: totalLinesCleared, placed: placedCount, held: heldPiece, holdUsed } : null;
           merge(board, player);
+          holdUsed = false;
           visualPlayer = null;
           canvas.classList.remove("celebrate"); void canvas.offsetWidth; canvas.classList.add("celebrate");
           placedCount++;
@@ -1579,6 +1624,7 @@
             playerReset();
             queueAiMove();
           }
+          updateGameTools(); renderLeaderboard();
         }
         function sweep() {
           let clearedLines = 0;
@@ -1593,12 +1639,11 @@
           if (clearedLines > 0) {
             updateScore(clearedLines);
             totalLinesCleared += clearedLines;
-            document.getElementById("lines-count").textContent =
-              `${totalLinesCleared} / ${WIN_CONDITION_LINES}`;
+            updateLineLabel(); resetGravity();
             playSound("clear");
             showToast("line_cleared", "success");
 
-            if (totalLinesCleared >= WIN_CONDITION_LINES) {
+            if (!endless && totalLinesCleared >= WIN_CONDITION_LINES) {
               gameRunning = false;
               clearInterval(gameLoop);
               wins++;
@@ -1611,8 +1656,7 @@
           }
         }
         function updateScore(lines) {
-          const points = [0, 100, 300, 500, 800];
-          score += points[lines] || 0;
+          score += pointsForLines(lines);
           document.getElementById("score").innerText = score;
           document.getElementById("placed").innerText = placedCount;
         }
@@ -1625,7 +1669,8 @@
             const px=(x+offset.x)*scale+1.5,py=(y+offset.y)*scale+1.5,size=scale-3;
             ctx.fillStyle=typeof value === "string" ? value : colors[value % colors.length] || "#a666e8";
             ctx.beginPath();ctx.roundRect(px,py,size,size,scale*.24);ctx.fill();
-            ctx.fillStyle="rgba(255,255,255,.22)";ctx.beginPath();ctx.roundRect(px+3,py+3,size-6,3,2);ctx.fill();
+            const inset=Math.min(3,size*.15),highlightHeight=Math.min(3,size*.12);
+            ctx.fillStyle="rgba(255,255,255,.22)";ctx.beginPath();ctx.roundRect(px+inset,py+inset,size-inset*2,highlightHeight,highlightHeight/2);ctx.fill();
           }));ctx.restore();
         }
         function drawBoard(ctx, cells) {
@@ -1644,19 +1689,24 @@
             if(!paused){const factor=matchMedia("(prefers-reduced-motion: reduce)").matches?1:.35;visualPlayer.x+=(player.pos.x-visualPlayer.x)*factor;visualPlayer.y+=(player.pos.y-visualPlayer.y)*factor;}
             drawMatrix(context,player.matrix,{x:visualPlayer.x,y:visualPlayer.y},30);
           }
-          nextContext.clearRect(0,0,120,120);
-          if(nextPlayer){const m=nextPlayer.matrix;drawMatrix(nextContext,m,{x:(5-m[0].length)/2,y:(5-m.length)/2},24);}
+          drawPreview(nextContext,nextPlayer?.matrix,120,120);
+          drawPreview(holdContext,heldPiece,120,120);
           if(versus && opponent){drawBoard(aiContext,opponent.board);if(opponent.player)drawMatrix(aiContext,opponent.player.matrix,opponent.player.pos,30);}
         }
         function startGame() {
+          recordRun(null); clearInterval(gameLoop); gameRunning = false;
           clearTimeout(aiMoveTimer); clearInterval(opponentTimer);
           if(!allPieces.length){showToast("need_block","error");return;}
-          paused=false; visualPlayer=null; pieceCursor=0;matchPieces=[]; matchCatalog=allPieces.map(p=>p.map(r=>r.slice()));
+          paused=false; heldPiece=null; holdUsed=false; undoSnapshot=null; visualPlayer=null; pieceCursor=0;matchPieces=[]; matchCatalog=allPieces.map(p=>p.map(r=>r.slice()));
           if(versus)for(let i=0;i<8;i++)appendMatchPiece();
           document.getElementById("pause-btn").dataset.langKey="pause";
           document.getElementById("pause-btn").textContent=t("pause");
           document.getElementById("match-status").textContent=t("race");
-          if(versus)startOpponent();
+          document.getElementById("match-status").dataset.langKey = "race";
+          const targetLabel = document.getElementById("target-label");
+          targetLabel.dataset.langKey = endless ? "endless_target" : "target";
+          targetLabel.textContent = t(targetLabel.dataset.langKey);
+          opponent = null;
           board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
           score = 0;
           placedCount = 0;
@@ -1665,10 +1715,12 @@
           document.getElementById("lines-count").textContent =
             `0 / ${WIN_CONDITION_LINES}`;
           nextPlayer = null;
+          run = { actor: isAiOn ? "autoplay_ai" : "player", versus, recorded: false };
           gameRunning = true;
+          if (versus) startOpponent();
           playerReset();
           if (gameLoop) clearInterval(gameLoop);
-          gameLoop = setInterval(playerDrop, dropInterval);
+          resetGravity(); updateLineLabel(); updateGameTools(); renderLeaderboard();
           queueAiMove();
         }
 
@@ -1736,51 +1788,102 @@
           }, 140);
         }
 
-        const editorGrid=document.getElementById("editor-grid"), editorColorPicker=document.getElementById("editor-color-picker"),blockSelectionList=document.getElementById("block-selection-list");
-        let editorCells=[], currentEditingIndex="new", selectionEntries=[];
-        function pieceColor(piece){const value=piece.flat().find(Boolean);return typeof value==="string"?value:colors[value % colors.length] || "#a666e8";}
-        function renderBlockSelection(){
+        const editorGrid = document.getElementById("editor-grid"), editorColorPicker = document.getElementById("editor-color-picker"), blockSelectionList = document.getElementById("block-selection-list");
+        const EDITOR_COLS = COLS, EDITOR_ROWS = ROWS;
+        let editorCells = [], currentEditingIndex = "new", selectionEntries = [];
+        function validPiece(piece) {
+          return Array.isArray(piece) && piece.length > 0 && piece.length <= ROWS && Array.isArray(piece[0]) && piece[0].length > 0 && piece[0].length <= COLS &&
+            piece.every(row => Array.isArray(row) && row.length === piece[0].length && row.every(value => value === 0 || (Number.isInteger(value) && value > 0 && value < colors.length) || (typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value)))) && piece.some(row => row.some(Boolean));
+        }
+        function pieceColor(piece) { const value = piece.flat().find(Boolean); return typeof value === "string" ? value : colors[value % colors.length] || "#a666e8"; }
+        function renderBlockSelection() {
           blockSelectionList.replaceChildren();
-          selectionEntries=defaultPieces.flatMap((p,i)=>removedDefaults.includes(i)?[]:[{piece:defaultOverrides[i] || p,kind:"default",index:i}]).concat(customPieces.map((p,i)=>({piece:p,kind:"custom",index:i})));
-          selectionEntries.forEach((entry,index)=>{
-            const wrapper=document.createElement("div");wrapper.className="relative";
-            const btn=document.createElement("button");btn.className="piece-choice";btn.style.backgroundColor=pieceColor(entry.piece)+"22";btn.setAttribute("aria-label",t("select_block")+" "+(index+1));btn.setAttribute("aria-pressed",String(currentEditingIndex===index));
-            const grid=document.createElement("div");grid.className="piece-mini";grid.style.gridTemplateColumns=`repeat(${entry.piece[0].length},1fr)`;
-            entry.piece.forEach(row=>row.forEach(value=>{const cell=document.createElement("span");if(value)cell.style.backgroundColor=typeof value==="string"?value:colors[value % colors.length] || "#a666e8";grid.append(cell);}));
-            btn.append(grid);btn.addEventListener("click",()=>loadPieceIntoEditor(index));wrapper.append(btn);
-            const del=document.createElement("button");del.className="piece-delete";del.textContent="×";del.setAttribute("aria-label",t("delete_block")+" "+(index+1));
-            del.addEventListener("click",()=>showConfirm("delete_block","delete_confirm",()=>{
-              if(selectionEntries.length===1){showToast("need_block","error");return;}
-              if(entry.kind==="default")removedDefaults.push(entry.index);else customPieces.splice(entry.index,1);
-              persistLibrary();currentEditingIndex="new";renderBlockSelection();loadPieceIntoEditor("new");showToast("block_deleted","success");
-            }));wrapper.append(del);blockSelectionList.append(wrapper);
+          selectionEntries = defaultPieces.flatMap((p, i) => removedDefaults.includes(i) ? [] : [{ piece: defaultOverrides[i] || p, kind: "default", index: i, id: `default-${i}` }]).concat(customPieces.map((p, i) => ({ piece: p, kind: "custom", index: i, id: `custom-${i}` })));
+          selectionEntries.forEach((entry, index) => {
+            if (!validPiece(entry.piece)) { showToast("blocks_failed", "error"); return; }
+            const wrapper = element("div", "relative");
+            const btn = element("button", "piece-choice");
+            btn.type = "button";
+            btn.style.backgroundColor = pieceColor(entry.piece) + "22";
+            btn.setAttribute("aria-label", t("select_block") + " " + (index + 1));
+            btn.setAttribute("aria-pressed", String(currentEditingIndex === index));
+            const grid = element("div", "piece-mini");
+            grid.style.gridTemplateColumns = `repeat(${entry.piece[0].length},1fr)`;
+            grid.style.setProperty("--mini-cell", `${Math.min(8, 32 / Math.max(entry.piece.length, entry.piece[0].length))}px`);
+            entry.piece.forEach(row => row.forEach(value => { const cell = element("span"); if (value) cell.style.backgroundColor = typeof value === "string" ? value : colors[value % colors.length] || "#a666e8"; grid.append(cell); }));
+            btn.append(grid);
+            btn.addEventListener("click", () => { playSound("click"); loadPieceIntoEditor(entry.id); });
+            wrapper.append(btn);
+            const del = element("button", "piece-delete", "×");
+            del.type = "button";
+            del.setAttribute("aria-label", t("delete_block") + " " + (index + 1));
+            del.addEventListener("click", () => {
+              playSound("click");
+              showConfirm("delete_block", "delete_confirm", () => {
+                const liveIndex = entry.kind === "custom" ? customPieces.indexOf(entry.piece) : entry.index;
+                if (liveIndex === -1 || (entry.kind === "default" && removedDefaults.includes(liveIndex))) { showToast("blocks_failed", "error"); return; }
+                if (allPieces.length <= 1) { showToast("need_block", "error"); return; }
+                if (entry.kind === "default") removedDefaults.push(liveIndex); else customPieces.splice(liveIndex, 1);
+                persistLibrary(); currentEditingIndex = "new"; renderBlockSelection(); loadPieceIntoEditor("new"); showToast("block_deleted", "success"); playSound("clear");
+              });
+            });
+            wrapper.append(del); blockSelectionList.append(wrapper);
           });
         }
-        function persistLibrary(){
-          localStorage.setItem("munetiosRemovedBlocks",JSON.stringify(removedDefaults));localStorage.setItem("munetiosBlockOverrides",JSON.stringify(defaultOverrides));saveCustomPieces();
+        function persistLibrary() {
+          localStorage.setItem("munetiosRemovedBlocks", JSON.stringify(removedDefaults));
+          localStorage.setItem("munetiosBlockOverrides", JSON.stringify(defaultOverrides));
+          saveCustomPieces();
         }
-        function loadPieceIntoEditor(index){
-          currentEditingIndex=index;editorCells.forEach(cell=>{cell.dataset.filled="false";cell.style.backgroundColor="";cell.setAttribute("aria-pressed","false");});
-          const entry=selectionEntries[index];editorColorPicker.value=entry?pieceColor(entry.piece):"#a666e8";
-          if(entry){const matrix=entry.piece,startY=Math.floor((4-matrix.length)/2),startX=Math.floor((4-matrix[0].length)/2);matrix.forEach((row,y)=>row.forEach((v,x)=>{if(v){const cell=editorCells[(y+startY)*4+x+startX];if(cell){cell.dataset.filled="true";cell.style.backgroundColor=editorColorPicker.value;cell.setAttribute("aria-pressed","true");}}}));}
+        function loadPieceIntoEditor(id) {
+          const index = typeof id === "string" && id !== "new" ? selectionEntries.findIndex(entry => entry.id === id) : id;
+          const entry = index === "new" ? null : selectionEntries[index];
+          if (index !== "new" && (!Number.isInteger(index) || !entry || !validPiece(entry.piece))) { showToast("blocks_failed", "error"); return false; }
+          currentEditingIndex = index;
+          editorCells.forEach(cell => { cell.dataset.filled = "false"; cell.style.backgroundColor = ""; cell.setAttribute("aria-pressed", "false"); });
+          editorColorPicker.value = entry ? pieceColor(entry.piece) : "#a666e8";
+          if (entry) {
+            const matrix = entry.piece, startY = Math.floor((EDITOR_ROWS - matrix.length) / 2), startX = Math.floor((EDITOR_COLS - matrix[0].length) / 2);
+            matrix.forEach((row, y) => row.forEach((value, x) => {
+              if (value) { const cell = editorCells[(y + startY) * EDITOR_COLS + x + startX]; cell.dataset.filled = "true"; cell.style.backgroundColor = editorColorPicker.value; cell.setAttribute("aria-pressed", "true"); }
+            }));
+          }
           renderBlockSelection();
+          return true;
         }
-        editorColorPicker.addEventListener("input",()=>editorCells.forEach(cell=>{if(cell.dataset.filled==="true")cell.style.backgroundColor=editorColorPicker.value;}));
-        document.getElementById("add-new-block-btn").addEventListener("click",()=>loadPieceIntoEditor("new"));
-        document.getElementById("restore-blocks-btn").addEventListener("click",()=>showConfirm("restore","restore_confirm",()=>{removedDefaults=[];defaultOverrides={};persistLibrary();loadPieceIntoEditor("new");showToast("restored","success");}));
-        document.getElementById("save-block-btn").addEventListener("click",()=>{
-          const occupied=editorCells.flatMap((cell,i)=>cell.dataset.filled==="true"?[{x:i%4,y:Math.floor(i/4)}]:[]);
-          if(!occupied.length){showToast("empty_block","error");return;}
-          const minX=Math.min(...occupied.map(c=>c.x)),maxX=Math.max(...occupied.map(c=>c.x)),minY=Math.min(...occupied.map(c=>c.y)),maxY=Math.max(...occupied.map(c=>c.y));
-          const matrix=Array.from({length:maxY-minY+1},(_,y)=>Array.from({length:maxX-minX+1},(_,x)=>editorCells[(y+minY)*4+x+minX].dataset.filled==="true"?editorColorPicker.value:0));
-          const entry=selectionEntries[currentEditingIndex];
-          if(!entry){customPieces.push(matrix);currentEditingIndex=selectionEntries.length;}else if(entry.kind==="default")defaultOverrides[entry.index]=matrix;else customPieces[entry.index]=matrix;
-          persistLibrary();renderBlockSelection();showToast(entry?"block_saved":"block_created","success");playSound("clear");
+        editorColorPicker.addEventListener("input", () => editorCells.forEach(cell => { if (cell.dataset.filled === "true") cell.style.backgroundColor = editorColorPicker.value; }));
+        editorColorPicker.addEventListener("change", () => playSound("click"));
+        document.getElementById("add-new-block-btn").addEventListener("click", () => { playSound("click"); loadPieceIntoEditor("new"); });
+        document.getElementById("restore-blocks-btn").addEventListener("click", () => { playSound("click"); showConfirm("restore", "restore_confirm", () => { removedDefaults = []; defaultOverrides = {}; persistLibrary(); loadPieceIntoEditor("new"); showToast("restored", "success"); playSound("clear"); }); });
+        document.getElementById("save-block-btn").addEventListener("click", () => {
+          const occupied = editorCells.flatMap((cell, i) => cell.dataset.filled === "true" ? [{ x: i % EDITOR_COLS, y: Math.floor(i / EDITOR_COLS) }] : []);
+          if (!occupied.length) { showToast("empty_block", "error"); playSound("gameOver"); return; }
+          if (currentEditingIndex !== "new" && !selectionEntries[currentEditingIndex]) { showToast("blocks_failed", "error"); return; }
+          const minX = Math.min(...occupied.map(c => c.x)), maxX = Math.max(...occupied.map(c => c.x)), minY = Math.min(...occupied.map(c => c.y)), maxY = Math.max(...occupied.map(c => c.y));
+          const matrix = Array.from({ length: maxY - minY + 1 }, (_, y) => Array.from({ length: maxX - minX + 1 }, (_, x) => editorCells[(y + minY) * EDITOR_COLS + x + minX].dataset.filled === "true" ? editorColorPicker.value : 0));
+          const entry = selectionEntries[currentEditingIndex];
+          if (!entry) { customPieces.push(matrix); currentEditingIndex = selectionEntries.length; } else if (entry.kind === "default") defaultOverrides[entry.index] = matrix; else customPieces[entry.index] = matrix;
+          persistLibrary(); renderBlockSelection(); showToast(entry ? "block_saved" : "block_created", "success"); playSound("clear");
         });
-        for(let i=0;i<16;i++){
-          const cell=document.createElement("button");cell.type="button";cell.dataset.filled="false";cell.setAttribute("aria-label",`${Math.floor(i/4)+1}, ${i%4+1}`);cell.setAttribute("aria-pressed","false");
-          cell.addEventListener("click",()=>{const filled=cell.dataset.filled!=="true";cell.dataset.filled=String(filled);cell.style.backgroundColor=filled?editorColorPicker.value:"";cell.setAttribute("aria-pressed",String(filled));});editorGrid.append(cell);editorCells.push(cell);
+        function editorMatrix() { return Array.from({ length: EDITOR_ROWS }, (_, y) => Array.from({ length: EDITOR_COLS }, (_, x) => editorCells[y * EDITOR_COLS + x].dataset.filled === "true" ? editorColorPicker.value : 0)); }
+        function transformEditor(kind) {
+          const source = editorMatrix();
+          if (kind === "clear") { editorCells.forEach(cell => { cell.dataset.filled = "false"; cell.style.backgroundColor = ""; cell.setAttribute("aria-pressed", "false"); }); }
+          else {
+            const transformed = kind === "mirror" ? source.map(row => row.slice().reverse()) : source.slice().reverse();
+            editorCells.forEach((cell, i) => { const filled = Boolean(transformed[Math.floor(i / EDITOR_COLS)][i % EDITOR_COLS]); cell.dataset.filled = String(filled); cell.style.backgroundColor = filled ? editorColorPicker.value : ""; cell.setAttribute("aria-pressed", String(filled)); });
+          }
+          playSound("rotate");
         }
+        for (let i = 0; i < EDITOR_COLS * EDITOR_ROWS; i++) {
+          const cell = element("button"); cell.type = "button"; cell.dataset.filled = "false";
+          cell.setAttribute("aria-label", `${Math.floor(i / EDITOR_COLS) + 1}, ${i % EDITOR_COLS + 1}`); cell.setAttribute("aria-pressed", "false");
+          cell.addEventListener("click", () => { const filled = cell.dataset.filled !== "true"; cell.dataset.filled = String(filled); cell.style.backgroundColor = filled ? editorColorPicker.value : ""; cell.setAttribute("aria-pressed", String(filled)); playSound(filled ? "click" : "move"); });
+          editorGrid.append(cell); editorCells.push(cell);
+        }
+        editorGrid.style.gridTemplateColumns = `repeat(${EDITOR_COLS},minmax(0,1fr))`;
+        document.getElementById("editor-dimensions").textContent = `${EDITOR_COLS} × ${EDITOR_ROWS}`;
+        ["mirror", "flip", "clear"].forEach(kind => document.getElementById(`editor-${kind}-btn`).addEventListener("click", () => transformEditor(kind)));
 
         // --- Event Listeners ---
         document
@@ -1826,7 +1929,7 @@
           });
         document.getElementById("ai-toggle").addEventListener("change", (e) => {
           applySetting("ai", e.target.checked);
-          saveSettings();
+          saveSettings(); startGame();
         });
         document
           .getElementById("toggle-score")
@@ -1847,8 +1950,10 @@
             saveSettings();
           });
         document.addEventListener("keydown", (e) => {
-          if(e.target.closest("input,textarea,.custom-dropdown") || (e.key === " " && e.target.closest("button")) || document.getElementById("game-tab").classList.contains("hidden") || !confirmModal.classList.contains("hidden"))return;
+          if(e.target.closest("input,textarea,.custom-dropdown,.dropdown-list,.custom-modal-content") || (e.key === " " && e.target.closest("button")) || document.getElementById("game-tab").classList.contains("hidden"))return;
           if(e.key.toLowerCase()==="p"){togglePause();return;}
+          if(e.key.toLowerCase()==="c"){holdCurrent();return;}
+          if(e.key.toLowerCase()==="u"){undoPlacement();return;}
           if (!gameRunning || isAiOn || paused) return;
           if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].includes(e.key))e.preventDefault();
           if (e.key === "ArrowLeft") playerMove(-1);
@@ -1967,7 +2072,7 @@
           if(collide(opponent.board,opponent.player)){opponent.player=null;if(gameRunning){wins++;document.getElementById("wins-count").textContent=wins;saveGameStats();finishMatch("you_win");showToast("you_win","success");}}
         }
         function startOpponent(){
-          opponent={board:Array.from({length:20},()=>Array(10).fill(0)),cursor:0,lines:0,phase:0,move:null,player:null};opponentSpawn();document.getElementById("ai-progress").textContent="0 / 5";
+          opponent={board:Array.from({length:20},()=>Array(10).fill(0)),cursor:0,lines:0,score:0,phase:0,move:null,player:null};opponentSpawn();document.getElementById("ai-progress").textContent="0 / 5";
           opponentTimer=setInterval(()=>{
             if(!gameRunning || paused || !opponent.player)return;
             if(opponent.phase===0){opponent.move=findBestMove(opponent.player,opponent.board);opponent.phase=1;return;}
@@ -1976,22 +2081,22 @@
             opponent.player.matrix=move.matrix;opponent.player.pos.x=move.x;
             for(let step=0;step<3;step++){opponent.player.pos.y++;if(collide(opponent.board,opponent.player)){
               opponent.player.pos.y--;merge(opponent.board,opponent.player);
-              const remaining=opponent.board.filter(row=>!row.every(Boolean));const cleared=20-remaining.length;opponent.lines+=cleared;opponent.board=Array.from({length:cleared},()=>Array(10).fill(0)).concat(remaining);
+              const remaining=opponent.board.filter(row=>!row.every(Boolean));const cleared=20-remaining.length;opponent.lines+=cleared;opponent.score+=pointsForLines(cleared);renderLeaderboard();opponent.board=Array.from({length:cleared},()=>Array(10).fill(0)).concat(remaining);
               document.getElementById("ai-progress").textContent=opponent.lines+" / 5";
               if(opponent.lines>=5){overs++;document.getElementById("overs-count").textContent=overs;saveGameStats();finishMatch("ai_wins");showToast("ai_wins","error");return;}
               opponent.phase=0;opponentSpawn();return;
             }}
           },180);
         }
-        function finishMatch(key){if(!versus)return;gameRunning=false;clearInterval(gameLoop);clearInterval(opponentTimer);clearTimeout(aiMoveTimer);document.getElementById("match-status").textContent=t(key);}
+        function finishMatch(key){gameRunning=false;clearInterval(gameLoop);clearInterval(opponentTimer);clearTimeout(aiMoveTimer);document.getElementById("match-status").textContent=t(key);document.getElementById("match-status").dataset.langKey=key;recordRun(key);updateGameTools();}
         function togglePause(){
           if(!gameRunning)return;paused=!paused;
           const button=document.getElementById("pause-btn");button.dataset.langKey=paused?"resume":"pause";button.textContent=t(button.dataset.langKey);
-          if(paused)clearTimeout(aiMoveTimer);else queueAiMove();
+          if(paused)clearTimeout(aiMoveTimer);else queueAiMove();updateGameTools();
         }
         document.getElementById("pause-btn").addEventListener("click",togglePause);
         document.getElementById("game-mode").addEventListener("change",e=>{
-          versus=e.target.value==="versus";document.getElementById("ai-board-container").classList.toggle("hidden",!versus);document.getElementById("ai-toggle").disabled=versus;
+          versus=e.target.value==="versus";endless=e.target.value==="endless";document.getElementById("ai-board-container").classList.toggle("hidden",!versus);document.getElementById("ai-toggle").disabled=versus;
           if(versus){applySetting("ai",false);saveSettings();}startGame();
         });
         document.addEventListener("visibilitychange",()=>{if(document.hidden && gameRunning && !paused)togglePause();});
@@ -2015,6 +2120,22 @@
           hero_title:"È ora di giocare.",hero_desc:"I tuoi blocchi. I tuoi colori. La tua prossima sfida.",you:"Tu",target:"Elimina 5 linee",opponent:"Avversario IA",game_mode:"Modalità di gioco",solo:"Giocatore singolo",versus:"Giocatore contro IA",autoplay:"Gioco automatico",local_bot:"Bot locale · nessuna condivisione di dati",pause:"Pausa",resume:"Riprendi",restore:"Ripristina i blocchi originali",restore_confirm:"Ripristinare forme e colori originali? I blocchi personalizzati saranno conservati.",restored:"Blocchi originali ripristinati!",delete_block:"Elimina blocco",delete_confirm:"Eliminare questo blocco dalla raccolta? Le modifiche si applicano alla prossima partita.",select_block:"Seleziona blocco",need_block:"Mantieni almeno un blocco nella raccolta.",empty_block:"Non puoi salvare un blocco vuoto.",ai_wins:"L’IA ha vinto!",race:"Vince chi elimina per primo 5 linee",bot_on:"Attivo · Il bot sta giocando",bot_off:"Disattivo · Stai giocando tu",
           language:"Lingua",speed_faster:"1 · Più veloce",speed_very_fast:"2 · Molto veloce",speed_expert:"3 · Esperto",speed_insane:"4 · Estremo",toggle_theme:"Cambia tema",open_menu:"Apri menu",offline:"Sei offline. Puoi continuare a giocare a Tetris!",move_left:"Sposta a sinistra",move_right:"Sposta a destra"
         };
+        const featureKeys = ["leaderboard","leaderboard_desc","participant","player","autoplay_ai","best_score","games","local_leaderboard","hold","held_ready","held_empty","undo","undone","endless","endless_target","board_grid","mirror","flip","clear_grid","data","data_desc","clear_data","clear_data_confirm","data_cleared","blocks_failed","confirm"];
+        const featureTranslations = {
+          en:["Leaderboard","Compare Player, AI opponent, and Autoplay AI. Totals include the current game and are saved on this device.","Participant","Player","Autoplay AI","Best score","Games","Local leaderboard · no accounts or data sharing","Hold piece","Piece held · swap once per turn","Press C to hold a piece","Undo placement","Last placement undone","Endless","Play without a line limit","Board-sized grid","Mirror","Flip","Clear grid","Data","Manage this game's locally saved settings, blocks, scores, and leaderboard.","Clear data","Clear this game's settings, custom blocks, deleted original blocks, scores, and leaderboard on this device? This cannot be undone.","Game data cleared","Failed to load blocks. Please try again","Confirm"],
+          es:["Tabla de clasificación","Compara al jugador, al rival de IA y a la IA automática. Los totales incluyen la partida actual y se guardan en este dispositivo.","Participante","Jugador","IA automática","Mejor puntuación","Partidas","Clasificación local · sin cuentas ni intercambio de datos","Reservar pieza","Pieza reservada · un cambio por turno","Pulsa C para reservar una pieza","Deshacer colocación","Última colocación deshecha","Sin fin","Juega sin límite de líneas","Cuadrícula del tamaño del tablero","Reflejar","Voltear","Vaciar cuadrícula","Datos","Administra la configuración, los bloques, las puntuaciones y la clasificación guardados en este dispositivo.","Borrar datos","¿Borrar la configuración, los bloques personalizados, los bloques originales eliminados, las puntuaciones y la clasificación de este juego en este dispositivo? Esta acción no se puede deshacer.","Datos del juego borrados","No se pudieron cargar los bloques. Inténtalo de nuevo","Confirmar"],
+          fr:["Classement","Comparez le joueur, l’adversaire IA et l’IA automatique. Les totaux incluent la partie en cours et sont enregistrés sur cet appareil.","Participant","Joueur","IA automatique","Meilleur score","Parties","Classement local · sans compte ni partage de données","Réserver la pièce","Pièce réservée · un échange par tour","Appuyez sur C pour réserver une pièce","Annuler le placement","Dernier placement annulé","Sans fin","Jouez sans limite de lignes","Grille aux dimensions du plateau","Miroir","Retourner","Vider la grille","Données","Gérez les paramètres, blocs, scores et classements enregistrés sur cet appareil.","Effacer les données","Effacer les paramètres, blocs personnalisés, blocs d’origine supprimés, scores et classements de ce jeu sur cet appareil ? Cette action est irréversible.","Données du jeu effacées","Impossible de charger les blocs. Veuillez réessayer","Confirmer"],
+          de:["Bestenliste","Vergleiche Spieler, KI-Gegner und automatische KI. Die Summen enthalten das aktuelle Spiel und werden auf diesem Gerät gespeichert.","Teilnehmer","Spieler","Automatische KI","Bester Punktestand","Spiele","Lokale Bestenliste · keine Konten oder Datenweitergabe","Stein halten","Stein gehalten · einmal pro Zug tauschen","Drücke C, um einen Stein zu halten","Platzierung rückgängig","Letzte Platzierung rückgängig gemacht","Endlos","Spiele ohne Reihenlimit","Raster in Spielfeldgröße","Spiegeln","Umklappen","Raster leeren","Daten","Verwalte die lokal gespeicherten Einstellungen, Blöcke, Punktestände und die Bestenliste.","Daten löschen","Einstellungen, eigene Blöcke, gelöschte Originalblöcke, Punktestände und Bestenliste dieses Spiels auf diesem Gerät löschen? Das kann nicht rückgängig gemacht werden.","Spieldaten gelöscht","Blöcke konnten nicht geladen werden. Bitte versuche es erneut","Bestätigen"],
+          ru:["Таблица лидеров","Сравнивайте игрока, соперника ИИ и автоигру ИИ. Итоги включают текущую игру и сохраняются на этом устройстве.","Участник","Игрок","Автоигра ИИ","Лучший счёт","Игры","Локальная таблица · без аккаунтов и передачи данных","Отложить фигуру","Фигура отложена · один обмен за ход","Нажмите C, чтобы отложить фигуру","Отменить размещение","Последнее размещение отменено","Бесконечный режим","Играйте без ограничения линий","Сетка размером с поле","Отразить","Перевернуть","Очистить сетку","Данные","Управляйте настройками, блоками, результатами и таблицей лидеров, сохранёнными на устройстве.","Очистить данные","Удалить настройки, пользовательские блоки, удалённые исходные блоки, результаты и таблицу лидеров этой игры на устройстве? Это действие нельзя отменить.","Данные игры очищены","Не удалось загрузить блоки. Попробуйте ещё раз","Подтвердить"],
+          pt:["Classificação","Compare o jogador, o adversário de IA e a IA automática. Os totais incluem a partida atual e são salvos neste dispositivo.","Participante","Jogador","IA automática","Melhor pontuação","Partidas","Classificação local · sem contas nem compartilhamento de dados","Reservar peça","Peça reservada · uma troca por turno","Pressione C para reservar uma peça","Desfazer colocação","Última colocação desfeita","Sem fim","Jogue sem limite de linhas","Grade do tamanho do tabuleiro","Espelhar","Inverter","Limpar grade","Dados","Gerencie as configurações, os blocos, as pontuações e a classificação salvos neste dispositivo.","Limpar dados","Limpar as configurações, os blocos personalizados, os blocos originais excluídos, as pontuações e a classificação deste jogo neste dispositivo? Esta ação não pode ser desfeita.","Dados do jogo limpos","Não foi possível carregar os blocos. Tente novamente","Confirmar"],
+          zh:["排行榜","比较玩家、AI对手和自动游戏AI。总计包含当前游戏，并保存在此设备上。","参与者","玩家","自动游戏AI","最高分","局数","本地排行榜 · 无需账号且不共享数据","暂存方块","已暂存 · 每回合可交换一次","按C暂存方块","撤销放置","已撤销上次放置","无尽模式","畅玩，不限消除行数","棋盘大小的网格","镜像","翻转","清空网格","数据","管理保存在此设备上的游戏设置、方块、分数和排行榜。","清除数据","清除此设备上本游戏的设置、自定义方块、已删除的原始方块、分数和排行榜？此操作无法撤销。","游戏数据已清除","无法加载方块。请重试","确认"],
+          ja:["ランキング","プレイヤー、AI対戦相手、自動プレイAIを比較します。合計には現在のゲームが含まれ、この端末に保存されます。","参加者","プレイヤー","自動プレイAI","最高スコア","ゲーム数","端末内ランキング · アカウントやデータ共有なし","ブロックを保留","保留中 · 1ターンに1回交換可能","Cキーでブロックを保留","配置を取り消す","直前の配置を取り消しました","エンドレス","ライン数の制限なしでプレイ","盤面と同じサイズのグリッド","左右反転","上下反転","グリッドを消去","データ","この端末に保存されたゲーム設定、ブロック、スコア、ランキングを管理します。","データを消去","この端末のゲーム設定、カスタムブロック、削除済みの元のブロック、スコア、ランキングを消去しますか？元には戻せません。","ゲームデータを消去しました","ブロックを読み込めませんでした。もう一度お試しください","確認"],
+          ko:["순위표","플레이어, AI 상대, 자동 플레이 AI를 비교합니다. 합계에는 현재 게임이 포함되며 이 기기에 저장됩니다.","참가자","플레이어","자동 플레이 AI","최고 점수","게임 수","기기 내 순위표 · 계정 및 데이터 공유 없음","블록 보관","보관됨 · 턴마다 한 번 교환 가능","C 키를 눌러 블록 보관","배치 되돌리기","마지막 배치를 되돌렸습니다","무한 모드","줄 수 제한 없이 플레이","보드 크기의 격자","좌우 반전","상하 반전","격자 비우기","데이터","이 기기에 저장된 게임 설정, 블록, 점수, 순위표를 관리합니다.","데이터 지우기","이 기기의 게임 설정, 사용자 지정 블록, 삭제된 기본 블록, 점수, 순위표를 지울까요? 되돌릴 수 없습니다.","게임 데이터가 지워졌습니다","블록을 불러오지 못했습니다. 다시 시도해 주세요","확인"],
+          it:["Classifica","Confronta giocatore, avversario IA e IA automatica. I totali includono la partita in corso e vengono salvati su questo dispositivo.","Partecipante","Giocatore","IA automatica","Miglior punteggio","Partite","Classifica locale · senza account né condivisione di dati","Conserva pezzo","Pezzo conservato · uno scambio per turno","Premi C per conservare un pezzo","Annulla posizionamento","Ultimo posizionamento annullato","Senza fine","Gioca senza limiti di linee","Griglia delle dimensioni del campo","Specchia","Capovolgi","Svuota griglia","Dati","Gestisci impostazioni, blocchi, punteggi e classifica salvati su questo dispositivo.","Cancella dati","Cancellare impostazioni, blocchi personalizzati, blocchi originali eliminati, punteggi e classifica di questo gioco sul dispositivo? L’operazione è irreversibile.","Dati del gioco cancellati","Impossibile caricare i blocchi. Riprova","Conferma"]
+        };
+        Object.entries(featureTranslations).forEach(([lang,values])=>featureKeys.forEach((key,i)=>translations[lang][key]=values[i]));
+
+
         const regionalLanguages={"en-US":"en","en-GB":"en","es-ES":"es","es-US":"es","es-MX":"es","es-419":"es","pt-BR":"pt","pt-PT":"pt","fr-FR":"fr","fr-CA":"fr","de-DE":"de","it-IT":"it","ru-RU":"ru","zh-CN":"zh","ja-JP":"ja","ko-KR":"ko"};
         Object.entries(regionalLanguages).forEach(([region,base])=>translations[region]={...translations[base]});
         translations["en-GB"].hero_desc="Your blocks. Your colours. Your next challenge.";
@@ -2025,6 +2146,7 @@
         translations["es-ES"].editor_add_new="Añadir nuevo";
         translations["es-ES"].editor_desc_full="Edita, crea, guarda y elimina los bloques de tu colección.";
         Object.assign(translations["pt-PT"],{
+          leaderboard_desc:"Compara o jogador, o adversário de IA e a IA automática. Os totais incluem a partida atual e são guardados neste dispositivo.",local_leaderboard:"Classificação local · sem contas nem partilha de dados",held_empty:"Prime C para reservar uma peça",board_grid:"Grelha do tamanho do tabuleiro",mirror:"Espelhar",clear_grid:"Limpar grelha",data_desc:"Gere os ajustes, os blocos, as pontuações e a classificação guardados neste dispositivo.",clear_data_confirm:"Limpar os ajustes, os blocos personalizados, os blocos originais eliminados, as pontuações e a classificação deste jogo neste dispositivo? Esta ação não pode ser desfeita.",blocks_failed:"Não foi possível carregar os blocos. Tenta novamente",
           nav_settings:"Ajustes",controls:"Controlos",try_again:"Tentar novamente",editor_desc_full:"Edita, cria, guarda e elimina os blocos da tua coleção!",editor_select:"Selecionar ou criar bloco",editor_save:"Guardar bloco",editor_add_new:"Adicionar novo",settings_layout:"Disposição e interface",settings_layout_desc:"Escolhe os elementos que aparecem no ecrã do jogo.",settings_shortcuts:"Atalhos do teclado",shortcut_move:"Mover peça",shortcut_rotate:"Rodar peça",sfx_off:"Desativados",sfx_on:"Ativados",you_win:"Ganhaste!",block_saved:"Bloco guardado!",block_deleted:"Bloco eliminado!",confirm_delete_block:"Queres eliminar este bloco personalizado?",
           hero_title:"Está na hora de jogar.",hero_desc:"Os teus blocos. As tuas cores. O teu próximo desafio.",you:"Tu",opponent:"Adversário de IA",solo:"Individual",versus:"Jogador contra IA",autoplay:"Jogo automático",local_bot:"Bot local · sem partilha de dados",restore_confirm:"Restaurar as formas e cores originais? Os teus blocos personalizados serão mantidos.",delete_block:"Eliminar bloco",delete_confirm:"Eliminar este bloco da tua coleção? As alterações aplicam-se à próxima partida.",need_block:"Mantém pelo menos um bloco na tua coleção.",empty_block:"Não é possível guardar um bloco vazio.",ai_wins:"A IA ganhou!",race:"Ganha quem completar primeiro 5 linhas",bot_on:"Ativado · O bot está a jogar",bot_off:"Desativado · Estás a jogar",offline:"Estás sem ligação. Podes continuar a jogar Tetris!"
         });
@@ -2036,6 +2158,91 @@
           {value:"pt",label:"Português"},{value:"pt-BR",label:"Português (Brasil)"},{value:"pt-PT",label:"Português (Portugal)"},
           {value:"zh",label:"中文"},{value:"zh-CN",label:"中文（简体）"},{value:"ja",label:"日本語"},{value:"ja-JP",label:"日本語（日本）"},{value:"ko",label:"한국어"},{value:"ko-KR",label:"한국어 (대한민국)"}
         ];
+        const leaderboardKey = "munetiosTetrisLeaderboard";
+        const actors = ["player", "opponent", "autoplay_ai"];
+        const emptyRecord = () => ({ score: 0, lines: 0, wins: 0, games: 0, best: 0 });
+        let leaderboard = {}, run = null, heldPiece = null, holdUsed = false, undoSnapshot = null, endless = false;
+        function loadLeaderboard() {
+          const saved = readStorage(leaderboardKey, {});
+          leaderboard = Object.fromEntries(actors.map(actor => [actor, Object.fromEntries(Object.keys(emptyRecord()).map(key => [key, Number.isFinite(saved?.[actor]?.[key]) && saved[actor][key] >= 0 ? saved[actor][key] : 0]))]));
+          renderLeaderboard();
+        }
+        function liveRecord(actor) {
+          const recorded = leaderboard[actor] || emptyRecord();
+          if (!run || run.recorded) return { ...recorded };
+          const active = actor === run.actor ? { score: score || 0, lines: totalLinesCleared || 0 } : actor === "opponent" && run.versus && opponent ? { score: opponent.score, lines: opponent.lines } : { score: 0, lines: 0 };
+          return { ...recorded, score: recorded.score + active.score, lines: recorded.lines + active.lines, best: Math.max(recorded.best, active.score) };
+        }
+        function renderLeaderboard() {
+          const body = document.getElementById("leaderboard-body");
+          body.replaceChildren();
+          actors.map(actor => ({ actor, ...liveRecord(actor) })).sort((a, b) => b.score - a.score || b.wins - a.wins).forEach((record, index) => {
+            const row = element("tr");
+            [index + 1, t(record.actor), record.score, record.lines, record.wins, record.best, record.games].forEach(value => row.append(element("td", "", String(value))));
+            body.append(row);
+          });
+        }
+        function recordRun(result) {
+          if (!run || run.recorded) return;
+          run.recorded = true;
+          const commit = (actor, points, lines, win) => {
+            const record = leaderboard[actor] ||= emptyRecord();
+            record.score += points || 0; record.lines += lines || 0; record.wins += win ? 1 : 0; record.games++; record.best = Math.max(record.best, points || 0);
+          };
+          commit(run.actor, score, totalLinesCleared, result === "you_win");
+          if (run.versus && opponent) commit("opponent", opponent.score, opponent.lines, result === "ai_wins");
+          localStorage.setItem(leaderboardKey, JSON.stringify(leaderboard));
+          renderLeaderboard();
+        }
+        function pointsForLines(lines) { return [0, 100, 300, 500, 800][lines] ?? 800 + (lines - 4) * 300; }
+        function resetGravity() {
+          clearInterval(gameLoop);
+          if (gameRunning) gameLoop = setInterval(playerDrop, endless ? Math.max(80, dropInterval * .85 ** Math.floor(totalLinesCleared / 10)) : dropInterval);
+        }
+        function updateGameTools() {
+          document.getElementById("hold-btn").disabled = !gameRunning || isAiOn || paused || holdUsed;
+          document.getElementById("undo-btn").disabled = !gameRunning || isAiOn || paused || versus || !undoSnapshot;
+          document.getElementById("held-label").textContent = heldPiece ? t("held_ready") : t("held_empty");
+        }
+        function drawPreview(ctx, matrix, width, height) {
+          ctx.clearRect(0, 0, width, height);
+          if (!matrix) return;
+          const scale = Math.min(24, (width - 12) / matrix[0].length, (height - 12) / matrix.length);
+          drawMatrix(ctx, matrix, { x: (width / scale - matrix[0].length) / 2, y: (height / scale - matrix.length) / 2 }, scale);
+        }
+        const holdContext = document.getElementById("hold-canvas").getContext("2d");
+        function holdCurrent() {
+          if (!gameRunning || paused || isAiOn || holdUsed) return;
+          const outgoing = player.matrix.map(row => row.slice());
+          if (heldPiece) { player = { matrix: heldPiece, pos: { x: 5 - Math.floor(heldPiece[0].length / 2), y: 0 } }; }
+          else { player = nextPlayer; nextPlayer = createPiece(); }
+          heldPiece = outgoing; holdUsed = true; visualPlayer = null; undoSnapshot = null;
+          if (collide(board, player)) { finishMatch(versus ? "ai_wins" : "game_over"); overs++; document.getElementById("overs-count").textContent = overs; saveGameStats(); showToast(versus ? "ai_wins" : "game_over", "error"); }
+          playSound("rotate"); updateGameTools(); draw();
+        }
+        function undoPlacement() {
+          if (!undoSnapshot || !gameRunning || paused || versus || isAiOn) return;
+          board = cloneBoard(undoSnapshot.board); player = structuredClone(undoSnapshot.player); player.pos.y = 0;
+          nextPlayer = structuredClone(undoSnapshot.nextPlayer); score = undoSnapshot.score; totalLinesCleared = undoSnapshot.lines; placedCount = undoSnapshot.placed; heldPiece = undoSnapshot.held; holdUsed = undoSnapshot.holdUsed;
+          undoSnapshot = null; visualPlayer = null; updateScore(0); updateLineLabel(); resetGravity(); updateGameTools(); renderLeaderboard(); draw(); playSound("rotate"); showToast("undone", "success");
+        }
+        function updateLineLabel() { document.getElementById("lines-count").textContent = endless ? String(totalLinesCleared) : `${totalLinesCleared} / ${WIN_CONDITION_LINES}`; }
+        function clearGameData() {
+          clearInterval(gameLoop); clearInterval(opponentTimer); clearTimeout(aiMoveTimer);
+          gameRunning = false; run = null;
+          ["gamerytTetrisSettings", "gamerytGameStats", "gamerytCustomPieces", "munetiosRemovedBlocks", "munetiosBlockOverrides", "munetiosTetrisLanguage", leaderboardKey].forEach(key => localStorage.removeItem(key));
+          [...activeModals].forEach(modal => modal.close());
+          versus = endless = false; opponent = null;
+          document.getElementById("game-mode").value = "solo"; document.getElementById("ai-toggle").disabled = false; document.getElementById("ai-board-container").classList.add("hidden");
+          loadSettings(); loadGameStats(); loadCustomPieces(); loadLeaderboard(); updateLanguage("en"); renderBlockSelection(); loadPieceIntoEditor("new"); startGame(); showToast("data_cleared", "success");
+        }
+        document.getElementById("hold-btn").addEventListener("click", holdCurrent);
+        document.getElementById("undo-btn").addEventListener("click", undoPlacement);
+        document.getElementById("clear-data-btn").addEventListener("click", () => { playSound("click"); showConfirm("clear_data", "clear_data_confirm", clearGameData); });
+        document.getElementById("leaderboard-btn").addEventListener("click", () => { renderLeaderboard(); switchTab("leaderboard"); });
+        window.addEventListener("pagehide", () => recordRun(null));
+
+
 class MunetiosDropdown {
   static instances = new Set();
 
@@ -2043,6 +2250,7 @@ class MunetiosDropdown {
     this.trigger = document.getElementById(id);
     this.wrapper = this.trigger.closest('.custom-dropdown');
     this.list = this.wrapper.querySelector('[role="listbox"]');
+    document.body.append(this.list);
     this.choices = choices;
     this.translate = translate;
     this.labelKey = labelKey;
@@ -2072,11 +2280,14 @@ class MunetiosDropdown {
     });
     this.trigger.addEventListener('click', () => this.isOpen ? this.close() : this.open());
     this.wrapper.addEventListener('keydown', event => this.onKey(event));
+    this.list.addEventListener('keydown', event => this.onKey(event));
+    window.addEventListener('resize', () => this.isOpen && this.position());
+    window.addEventListener('scroll', () => this.isOpen && this.position(), true);
     document.addEventListener('pointerdown', event => {
-      if (!this.wrapper.contains(event.target)) this.close();
+      if (!this.wrapper.contains(event.target) && !this.list.contains(event.target)) this.close();
     });
     document.addEventListener('focusin', event => {
-      if (!this.wrapper.contains(event.target)) this.close();
+      if (!this.wrapper.contains(event.target) && !this.list.contains(event.target)) this.close();
     });
     MunetiosDropdown.instances.add(this);
     this.refresh();
@@ -2099,9 +2310,21 @@ class MunetiosDropdown {
   open(index = this.choices.findIndex(choice => choice.value === this.selected)) {
     if (this.trigger.disabled) return;
     MunetiosDropdown.instances.forEach(instance => { if (instance !== this) instance.close(); });
+    document.body.append(this.list);
     this.list.hidden = false;
+    this.position();
     this.trigger.setAttribute('aria-expanded', 'true');
     this.focusOption(index);
+  }
+
+  position() {
+    if (this.trigger.getClientRects().length === 0) { this.close(); return; }
+    const rect = this.trigger.getBoundingClientRect();
+    const width = Math.min(Math.max(rect.width, this.list.scrollWidth, 160), 320, window.innerWidth - 24);
+    this.list.style.width = width + 'px';
+    const height = Math.min(this.list.scrollHeight, window.innerHeight * .5, 360);
+    this.list.style.left = Math.max(12, Math.min(rect.right - width, window.innerWidth - width - 12)) + 'px';
+    this.list.style.top = Math.max(12, Math.min(rect.bottom + 8 + height > window.innerHeight - 12 ? rect.top - height - 8 : rect.bottom + 8, window.innerHeight - height - 12)) + 'px';
   }
 
   close(restoreFocus = false) {
@@ -2126,7 +2349,7 @@ class MunetiosDropdown {
   onKey(event) {
     if (this.trigger.disabled) return;
     const key = event.key;
-    if (key === 'Tab') { this.close(); return; }
+    if (key === 'Tab') { this.close(true); return; }
     if (key === 'Escape') {
       if (this.isOpen) { event.preventDefault(); event.stopPropagation(); this.close(true); }
       return;
@@ -2157,12 +2380,13 @@ class MunetiosDropdown {
         const dropdowns=[
           new MunetiosDropdown("language-selector",languageChoices,t,"language"),
           new MunetiosDropdown("language-selector-mobile",languageChoices,t,"language"),
-          new MunetiosDropdown("game-mode",[{value:"solo",key:"solo"},{value:"versus",key:"versus"}],t,"game_mode"),
+          new MunetiosDropdown("game-mode",[{value:"solo",key:"solo"},{value:"versus",key:"versus"},{value:"endless",key:"endless"}],t,"game_mode"),
           new MunetiosDropdown("game-speed",[{value:"1",key:"speed_default"},{value:"0.8",key:"speed_faster"},{value:"0.6",key:"speed_very_fast"},{value:"0.4",key:"speed_expert"},{value:"0.2",key:"speed_insane"}],t,"settings_speed")
         ];
 
 
         loadSettings();
+        loadLeaderboard();
         loadGameStats();
         loadCustomPieces();
         updateLanguage(readStorage("munetiosTetrisLanguage", "en"));
