@@ -1,0 +1,2070 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Munetios Tetris</title>
+    <meta
+      name="description"
+      content="Our Tetris Game so you can do custom blocks, Included Sound Effects"
+    />
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <meta name="theme-color" content="#4f46e5" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="./dropdowns.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://api.munetios.com/beautiful-css/beautiful.css"
+    />
+    <style>
+      :root {
+        --background-light: #f3f4f6;
+        --text-light: #1f2937;
+        --surface-light: #ffffff;
+        --primary-light: #4f46e591;
+        --primary-hover-light: #4338ca91;
+
+        --background-dark: #111827;
+        --text-dark: #f9fafb;
+        --surface-dark: #1f2937;
+        --primary-dark: #6366f191;
+        --primary-hover-dark: #4f46e591;
+      }
+
+      body {
+        font-family: "Google Sans Flex", sans-serif;
+        background-color: var(--background-light);
+        color: var(--text-light);
+        transition:
+          background-color 0.3s,
+          color 0.3s;
+      }
+
+      .dark body {
+        background-color: var(--background-dark);
+        color: var(--text-dark);
+      }
+
+      .surface {
+        background-color: var(--surface-light);
+        transition: background-color 0.3s;
+      }
+
+      .dark .surface {
+        background-color: var(--surface-dark);
+      }
+
+      .btn-primary {
+        background-color: var(--primary-light);
+        color: white;
+        border-radius: 320px;
+
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(1.75px) saturate(180%) brightness(105%)
+          contrast(100%);
+        -webkit-backdrop-filter: blur(1.75px) saturate(200%) brightness(125%)
+          contrast(100%);
+        border-radius: 50px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: background-color 0.2s;
+      }
+
+      .btn-primary:hover {
+        background-color: var(--primary-hover-light);
+      }
+
+      .dark .btn-primary {
+        background-color: var(--primary-dark);
+      }
+
+      .dark .btn-primary:hover {
+        background-color: var(--primary-hover-dark);
+      }
+
+      .nav-link {
+        transition: color 0.2s;
+      }
+
+      .nav-link.active {
+        color: var(--primary-light);
+        font-weight: 600;
+      }
+
+      .dark .nav-link.active {
+        color: var(--primary-dark);
+      }
+
+      #tetris-canvas,
+      #next-piece-canvas {
+        border: 2px solid #e5e7eb;
+      }
+      .dark #tetris-canvas,
+      .dark #next-piece-canvas {
+        border-color: #374151;
+      }
+
+      /* Custom Toggle Switch */
+      .toggle-switch-label {
+        position: relative;
+        display: inline-block;
+        width: 50px;
+        height: 28px;
+      }
+      .toggle-switch-label input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .toggle-switch-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 28px;
+      }
+      .toggle-switch-slider:before {
+        position: absolute;
+        content: "";
+        height: 20px;
+        width: 20px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .toggle-switch-slider {
+        background-color: var(--primary-light);
+      }
+      .dark input:checked + .toggle-switch-slider {
+        background-color: var(--primary-dark);
+      }
+      input:checked + .toggle-switch-slider:before {
+        transform: translateX(22px);
+      }
+
+      /* Custom Toast */
+      #custom-toast {
+        position: fixed;
+        bottom: -100px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 1rem 1.5rem;
+        border-radius: 20px;
+        color: white;
+        font-weight: 500;
+        z-index: 100;
+        transition: bottom 0.5s ease-in-out;
+      }
+
+      /* Custom Modal Styles */
+      .custom-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50;
+      }
+      .custom-modal-content {
+        padding: 2rem;
+        border-radius: 1rem;
+        min-width: 300px;
+        max-width: 90%;
+      }
+
+      /* Responsive Logo */
+      @media (max-width: 470px) {
+        #logo-and-title {
+          display: none;
+        }
+      }
+
+      :root { --background-light:#f2edf9; --text-light:#302044; --primary-light:#793bd9; --primary-hover-light:#6428bc; --background-dark:#160f23; --text-dark:#f3eafa; --primary-dark:#9154e8; --primary-hover-dark:#a66cef; }
+      * { box-sizing:border-box; }
+      body { margin:0; font-family:"Google Sans Flex",sans-serif; font-feature-settings:"ss01"; background:radial-gradient(ellipse at 10% 0%,rgba(161,99,237,.18),transparent 60%),var(--background-light); }
+      .dark body { background:radial-gradient(ellipse at 10% 0%,rgba(161,99,237,.18),transparent 60%),var(--background-dark); }
+      button,input,select,canvas { font:inherit; }
+      .liquid-glass,.surface,.custom-modal-content { background:rgba(255,255,255,.32); border:1px solid rgba(137,90,189,.18); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); box-shadow:0 12px 36px rgba(54,21,90,.08); border-radius:28px; }
+      .dark .liquid-glass,.dark .surface { background:rgba(103,67,143,.18); }
+      header { padding-top:12px; background:transparent; }
+      header nav>div:first-child { height:56px; }
+      .topbar-glass { height:56px!important; align-items:center; box-sizing:border-box; }
+      #dark-mode-toggle,#mobile-menu-button { display:flex; width:56px; justify-content:center; flex-shrink:0; }
+      .custom-dropdown { position:relative; min-width:0; }
+      .dropdown-trigger { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:10px 16px; cursor:pointer; }
+      .dropdown-trigger::after { content:""; width:7px; height:7px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(45deg); flex-shrink:0; transition:transform .2s; }
+      .dropdown-trigger[aria-expanded="true"]::after { transform:rotate(225deg); }
+      .dropdown-trigger:disabled { opacity:.5; cursor:default; }
+      .dropdown-value { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .dropdown-list { position:absolute; top:calc(100% + 8px); right:0; z-index:60; width:max-content; min-width:100%; max-width:min(320px,calc(100vw - 48px)); max-height:min(360px,50vh); overflow-y:auto; padding:6px; border-radius:20px; background:rgba(240,232,250,.50); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); border:1px solid rgba(151,98,215,.3); box-shadow:0 12px 32px rgba(54,21,90,.20); animation:enter .15s ease; }
+      .dark .dropdown-list { background:rgba(48,32,63,.50); } .dropdown-list[hidden] { display:none; }
+      .dropdown-option { display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; text-align:left; padding:12px 14px; border:0; border-radius:14px; background:transparent; color:inherit; cursor:pointer; }
+      .dropdown-option:hover,.dropdown-option:focus-visible { background:rgba(143,81,215,.16); outline:none; }
+      .dropdown-option[aria-selected="true"] { background:rgba(143,81,215,.24); font-weight:650; }
+      .dropdown-option[aria-selected="true"]::after { content:"✓"; }
+      #language-selector { max-width:240px; } #language-selector-mobile { height:56px; } #game-speed { min-width:140px; }
+      nav>div { gap:12px; } .nav-link { border-radius:20px; padding:8px 14px; } .nav-link.active { background:rgba(139,77,219,.16); color:#9255df; }
+      main { max-width:1180px!important; } .hero { margin:16px auto 26px; text-align:center; } .hero h1 { font-size:clamp(28px,5vw,44px); font-weight:750; letter-spacing:-1.5px; } .hero p { opacity:.65; margin-top:8px; }
+      #game-layout-container { gap:24px; align-items:start; } #game-canvas-container { padding:16px; border-radius:32px; background:rgba(131,73,194,.10); border:1px solid rgba(146,90,202,.20); margin-inline:auto; }
+      #tetris-canvas,#ai-canvas { border:1px solid rgba(142,93,192,.25); border-radius:22px; width:min(300px,calc(100vw - 80px)); height:auto; display:block; background:#211431; }
+      #next-piece-canvas { border:0; border-radius:18px; }
+      #game-info-container { display:grid; grid-template-columns:repeat(3,1fr); gap:6px 14px; padding:22px; } #game-info-container h2 { font-size:12px; margin:0; font-weight:600; opacity:.65; } #game-info-container p { font-size:clamp(20px,3vw,30px); margin:0; font-weight:700; letter-spacing:-.8px; } #game-info-container h2:nth-of-type(1){grid-area:1/1} #game-info-container h2:nth-of-type(2){grid-area:1/2} #game-info-container h2:nth-of-type(3){grid-area:1/3} #score{grid-area:2/1} #placed{grid-area:2/2} #lines-count{grid-area:2/3;white-space:nowrap}
+      #game-layout-container>div:last-child { width:100%; max-width:330px; margin-inline:auto; } .btn-primary { background:#793bd9; border-radius:20px; box-shadow:0 5px 18px rgba(107,47,176,.15); transition:transform .2s,background .2s; } .btn-primary:hover { transform:translateY(-2px); } .btn-primary:active { transform:scale(.96); }
+      button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible { outline:3px solid #ac7bea; outline-offset:3px; } #on-screen-controls button { padding:12px; border-radius:18px; touch-action:manipulation; }
+      .tab-content:not(.hidden) { animation:enter .35s ease both; } @keyframes enter { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} } @keyframes pulse { 50%{transform:scale(1.025)} } .celebrate { animation:pulse .3s ease; }
+      #editor-grid { gap:6px; } #editor-grid button { width:46px;height:46px;border:1px solid rgba(150,99,211,.3);border-radius:12px;background:rgba(137,90,189,.10);transition:background .15s,transform .15s; } #editor-grid button:hover { transform:scale(.94); } #block-selection-list { gap:14px; } .piece-choice { width:54px;height:54px;border-radius:16px;display:grid;place-items:center;border:2px solid transparent; } .piece-choice[aria-pressed="true"] { border-color:#9b60e5; } .piece-delete { position:absolute;right:-6px;top:-7px;width:22px;height:22px;border-radius:50%;background:#6f36ae;color:white; } .piece-mini { display:grid;gap:2px; } .piece-mini span { width:8px;height:8px;border-radius:3px; }
+      #editor-color-picker { border:0;background:transparent;width:100px;height:56px; } .mode-select { width:100%;padding:10px 14px;border-radius:16px;background:rgba(133,79,192,.15);border:1px solid rgba(137,90,189,.25);margin-bottom:14px; } option { color:#302044;background:#f2edf9; } #ai-board-container { padding:16px;margin-inline:auto; } .board-heading { display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:12px;font-weight:650; } .board-heading span:last-child { font-size:13px;opacity:.7; } #match-status { margin-top:12px;text-align:center;min-height:24px; } .custom-modal-content { background:#eee5fa; } .dark .custom-modal-content { background:#291a3d; } .custom-modal-overlay.hidden { display:none; } #custom-toast { max-width:calc(100vw - 32px); }
+      @media(min-width:1024px){ #game-layout-container { flex-direction:row; } #game-canvas-container{margin:0} #game-layout-container>div:last-child{margin:0} }
+      @media(max-width:470px){ #logo-and-title { display:flex; } #logo-and-title span { font-size:14px; } #logo-icon { display:none; } nav { padding-inline:12px!important; } }
+      @media(prefers-reduced-motion:reduce){ *,*::before,*::after { animation:none!important;transition:none!important; } }
+    </style>
+  </head>
+  <body class="antialiased">
+    <!-- Offline Banner -->
+    <div
+      id="offline-banner" data-lang-key="offline"
+      class="hidden bg-yellow-500 text-white text-center p-2 fixed top-0 w-full z-50"
+    >
+      You're offline. You can still play Tetris!
+    </div>
+
+    <!-- Main Container -->
+    <div id="app" class="min-h-screen flex flex-col">
+      <!-- Top Bar -->
+      <header class="sticky top-0 z-40">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex items-center justify-between h-16">
+            <div
+              id="logo-and-title"
+              class="liquid-glass topbar-glass p-2 flex items-center space-x-3"
+            >
+              <div id="logo-icon">
+                <svg
+                  class="h-8 w-8 text-purple-600"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M9 3H15V9H21V15H15V21H9V15H3V9H9V3Z" />
+                </svg>
+              </div>
+              <span class="text-xl font-bold" data-lang-key="title"
+                >Munetios Tetris</span
+              >
+            </div>
+            <div class="hidden lg:flex liquid-glass topbar-glass p-3 items-center space-x-8">
+              <a
+                href="#"
+                class="nav-link active"
+                data-tab="game"
+                data-lang-key="nav_game"
+                >Game</a
+              >
+              <a
+                href="#"
+                class="nav-link"
+                data-tab="editor"
+                data-lang-key="nav_editor"
+                >Editor</a
+              >
+              <a
+                href="#"
+                class="nav-link"
+                data-tab="settings"
+                data-lang-key="nav_settings"
+                >Settings</a
+              >
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                id="dark-mode-toggle" data-lang-label="toggle_theme"
+                class="p-2 liquid-glass topbar-glass rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+              >
+                <svg
+                  id="sun-icon"
+                  class="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                  />
+                </svg>
+                <svg
+                  id="moon-icon"
+                  class="h-6 w-6 hidden"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                  />
+                </svg>
+              </button>
+              <div class="relative hidden lg:block">
+                <div class="custom-dropdown"><button type="button" id="language-selector" class="dropdown-trigger liquid-glass topbar-glass" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-selector-list"><span class="dropdown-value"></span></button><div id="language-selector-list" class="dropdown-list liquid-glass" role="listbox" hidden></div></div>
+              </div>
+              <div class="lg:hidden">
+                <button
+                  id="mobile-menu-button" data-lang-label="open_menu"
+                  class="liquid-glass topbar-glass p-2 rounded-3xl focus:outline-none focus:ring-2 focus:ring-inset focus:ring-purple-500"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    stroke="currentColor"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    ></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div id="mobile-menu" class="hidden lg:hidden pb-4">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+              <a
+                href="#"
+                class="nav-link active block px-3 py-2 rounded-md text-base font-medium"
+                data-tab="game"
+                data-lang-key="nav_game"
+                >Game</a
+              >
+              <a
+                href="#"
+                class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                data-tab="editor"
+                data-lang-key="nav_editor"
+                >Editor</a
+              >
+              <a
+                href="#"
+                class="nav-link block px-3 py-2 rounded-md text-base font-medium"
+                data-tab="settings"
+                data-lang-key="nav_settings"
+                >Settings</a
+              >
+            </div>
+            <div class="pt-4 pb-3 border-t border-gray-700">
+              <div class="flex items-center px-5">
+                <div class="custom-dropdown w-full"><button type="button" id="language-selector-mobile" class="dropdown-trigger liquid-glass topbar-glass" aria-haspopup="listbox" aria-expanded="false" aria-controls="language-selector-mobile-list"><span class="dropdown-value"></span></button><div id="language-selector-mobile-list" class="dropdown-list liquid-glass" role="listbox" hidden></div></div>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </header>
+
+      <!-- Main Content -->
+      <main class="flex-grow container mx-auto p-4 sm:p-6 lg:p-8">
+        <div class="hero"><h1 data-lang-key="hero_title">Make room for play.</h1><p data-lang-key="hero_desc">Your blocks. Your colors. Your next challenge.</p></div>
+        <!-- Game Tab -->
+        <div id="game-tab" class="tab-content">
+          <div
+            id="game-layout-container"
+            class="flex flex-col lg:flex-row gap-8 items-start justify-center"
+          >
+            <div id="game-canvas-container" class="flex flex-col items-center">
+              <div class="board-heading w-full"><span data-lang-key="you">You</span><span data-lang-key="target">Clear 5 lines</span></div><canvas aria-label="Tetris" id="tetris-canvas" width="300" height="600"></canvas>
+              <div
+                id="on-screen-controls"
+                class="mt-4 grid grid-cols-4 gap-2 w-full max-w-sm"
+              >
+                <button
+                  id="move-left-btn" data-lang-label="move_left"
+                  class="btn-primary p-4 flex justify-center items-center"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  id="move-right-btn" data-lang-label="move_right"
+                  class="btn-primary p-4 flex justify-center items-center"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                </button>
+                <button
+                  id="rotate-btn" data-lang-label="shortcut_rotate"
+                  class="btn-primary p-4 flex justify-center items-center"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 4v5h5M20 20v-5h-5M4 20h5v-5M20 4h-5v5"
+                    />
+                  </svg>
+                </button>
+                <button
+                  id="fast-down-btn" data-lang-label="shortcut_soft_drop"
+                  class="btn-primary p-4 flex justify-center items-center"
+                >
+                  <svg
+                    class="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 13l-7 7-7-7m14-8l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <section id="ai-board-container" class="liquid-glass hidden"><div class="board-heading"><span data-lang-key="opponent">AI opponent</span><span id="ai-progress">0 / 5</span></div><canvas id="ai-canvas" width="300" height="600" aria-label="AI Tetris"></canvas><p id="match-status" role="status"></p></section>
+            <div class="flex flex-col space-y-4 w-full lg:w-64">
+              <div
+                id="game-info-container"
+                class="surface p-6 rounded-lg shadow-lg"
+              >
+                <h2 class="text-2xl font-bold mb-4" data-lang-key="score">
+                  Score
+                </h2>
+                <p id="score" class="text-4xl font-semibold mb-6">0</p>
+                <h2 class="text-2xl font-bold mb-4" data-lang-key="placed">
+                  Placed
+                </h2>
+                <p id="placed" class="text-4xl font-semibold">0</p>
+                <h2 class="text-2xl font-bold mb-4" data-lang-key="lines">
+                  Lines
+                </h2>
+                <p id="lines-count" class="text-4xl font-semibold">0 / 5</p>
+              </div>
+              <div
+                id="next-piece-container"
+                class="surface p-6 rounded-lg shadow-lg"
+              >
+                <h2 class="text-2xl font-bold mb-4" data-lang-key="next">
+                  Next
+                </h2>
+                <div class="flex justify-center items-center">
+                  <canvas
+                    id="next-piece-canvas"
+                    width="120"
+                    height="120"
+                  ></canvas>
+                </div>
+              </div>
+              <div class="liquid-glass p-5 rounded-2xl shadow-lg">
+                <div class="flex justify-between items-center gap-4">
+                  <div>
+                    <label for="game-mode" data-lang-key="game_mode" class="block mb-2 font-semibold">Game mode</label><div class="custom-dropdown w-full mb-3"><button type="button" id="game-mode" class="dropdown-trigger mode-select" aria-haspopup="listbox" aria-expanded="false" aria-controls="game-mode-list"><span class="dropdown-value"></span></button><div id="game-mode-list" class="dropdown-list liquid-glass" role="listbox" hidden></div></div><h2 class="text-lg font-bold" data-lang-key="autoplay">Autoplay</h2>
+                    <p
+                      id="ai-status"
+                      class="text-sm opacity-70"
+                      aria-live="polite"
+                    >
+                      Off · You are playing
+                    </p>
+                  </div>
+                  <label
+                    class="toggle-switch-label"
+                    title="Let the local bot play"
+                  >
+                    <input
+                      type="checkbox"
+                      id="ai-toggle" data-lang-label="autoplay"
+                      aria-label="Toggle AI player"
+                    />
+                    <span class="toggle-switch-slider"></span>
+                  </label>
+                </div>
+                <p class="text-xs opacity-60 mt-3">
+                  <span data-lang-key="local_bot">Local bot · no data sharing</span>
+                </p>
+              </div>
+              <div
+                id="wins-overs-container"
+                class="surface p-6 rounded-lg shadow-lg"
+              >
+                <div class="flex justify-between items-center">
+                  <div>
+                    <h3 class="font-bold" data-lang-key="wins">Wins</h3>
+                    <p id="wins-count" class="text-2xl font-semibold">0</p>
+                  </div>
+                  <div>
+                    <h3 class="font-bold" data-lang-key="overs">Overs</h3>
+                    <p id="overs-count" class="text-2xl font-semibold">0</p>
+                  </div>
+                </div>
+              </div>
+              <button id="pause-btn" class="btn-primary w-full py-3" data-lang-key="pause">Pause</button>
+              <button
+                id="try-again-btn"
+                class="btn-primary w-full py-3 font-semibold"
+                data-lang-key="try_again"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editor Tab -->
+        <div id="editor-tab" class="tab-content hidden">
+          <div class="text-center">
+            <h2 class="text-3xl font-bold mb-2" data-lang-key="editor_title">
+              Block Editor
+            </h2>
+            <p class="mb-6" data-lang-key="editor_desc_full">
+              Edit default blocks, or create, save, and delete your own custom
+              blocks!
+            </p>
+            <div
+              class="flex flex-col xl:flex-row items-start justify-center gap-8"
+            >
+              <div class="surface p-6 rounded-lg shadow-lg w-full xl:w-auto">
+                <h3
+                  class="text-xl font-semibold mb-4"
+                  data-lang-key="editor_select"
+                >
+                  Select or Create Block
+                </h3>
+                <div
+                  id="block-selection-list"
+                  class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-7 gap-2"
+                ></div>
+                <button
+                  id="add-new-block-btn"
+                  class="mt-4 w-full btn-primary py-2 font-semibold flex items-center justify-center gap-2"
+                >
+                  <svg
+                    class="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                    ></path>
+                  </svg>
+                  <span data-lang-key="editor_add_new">Add New</span>
+                </button>
+              </div>
+              <div
+                class="flex flex-col md:flex-row items-center justify-center gap-8"
+              >
+                <div class="surface p-6 rounded-lg shadow-lg">
+                  <h3
+                    class="text-xl font-semibold mb-4"
+                    data-lang-key="editor_color"
+                  >
+                    Block Color
+                  </h3>
+                  <input
+                    type="color"
+                    id="editor-color-picker"
+                    value="#4f46e5"
+                    class="w-24 h-12 rounded-lg cursor-pointer"
+                  />
+                </div>
+                <div class="surface p-4 rounded-lg shadow-lg">
+                  <div id="editor-grid" class="grid grid-cols-4 gap-1"></div>
+                </div>
+              </div>
+            </div>
+            <button id="restore-blocks-btn" class="btn-primary mt-8 px-6 py-3" data-lang-key="restore">Restore original blocks</button>
+            <button
+              id="save-block-btn"
+              class="mt-8 btn-primary px-8 py-3 font-semibold"
+              data-lang-key="editor_save"
+            >
+              Save Block
+            </button>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content hidden">
+          <div class="max-w-2xl mx-auto space-y-8">
+            <div class="surface p-6 rounded-lg shadow-lg">
+              <h3
+                class="text-2xl font-bold border-b pb-2 mb-4"
+                data-lang-key="settings_gameplay"
+              >
+                Gameplay
+              </h3>
+              <div class="flex justify-between items-center mb-4">
+                <span data-lang-key="settings_speed">Game Speed</span>
+                <div class="custom-dropdown"><button type="button" id="game-speed" class="dropdown-trigger mode-select" aria-haspopup="listbox" aria-expanded="false" aria-controls="game-speed-list"><span class="dropdown-value"></span></button><div id="game-speed-list" class="dropdown-list liquid-glass" role="listbox" hidden></div></div>
+              </div>
+              <div class="flex justify-between items-center">
+                <span data-lang-key="settings_sfx">Sound Effects</span>
+                <label
+                  for="sfx-toggle"
+                  class="flex items-center cursor-pointer"
+                >
+                  <div class="relative">
+                    <input type="checkbox" id="sfx-toggle" class="sr-only" />
+                    <div class="block bg-gray-600 w-14 h-8 rounded-full"></div>
+                    <div
+                      class="dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition"
+                    ></div>
+                  </div>
+                  <div
+                    class="ml-3 font-medium"
+                    id="sfx-status"
+                    data-lang-key="sfx_off"
+                  >
+                    Off
+                  </div>
+                </label>
+              </div>
+            </div>
+            <div class="surface p-6 rounded-lg shadow-lg">
+              <h3
+                class="text-2xl font-bold border-b pb-2 mb-4"
+                data-lang-key="settings_layout"
+              >
+                Layout & UI
+              </h3>
+              <p class="text-sm mb-4" data-lang-key="settings_layout_desc">
+                Toggle visibility of game screen elements.
+              </p>
+              <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                  <span data-lang-key="score">Score/Placed Panel</span
+                  ><label class="toggle-switch-label"
+                    ><input type="checkbox" id="toggle-score" /><span
+                      class="toggle-switch-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span data-lang-key="wins">Wins/Overs Panel</span
+                  ><label class="toggle-switch-label"
+                    ><input type="checkbox" id="toggle-wins-overs" /><span
+                      class="toggle-switch-slider"
+                    ></span
+                  ></label>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span data-lang-key="controls">On-Screen Controls</span
+                  ><label class="toggle-switch-label"
+                    ><input type="checkbox" id="toggle-controls" /><span
+                      class="toggle-switch-slider"
+                    ></span
+                  ></label>
+                </div>
+              </div>
+            </div>
+            <div class="surface p-6 rounded-lg shadow-lg">
+              <h3
+                class="text-2xl font-bold border-b pb-2 mb-4"
+                data-lang-key="settings_shortcuts"
+              >
+                Keyboard Shortcuts
+              </h3>
+              <ul class="space-y-2">
+                <li>
+                  <kbd
+                    class="font-semibold p-1 rounded bg-gray-200 dark:bg-gray-700"
+                    >←</kbd
+                  >
+                  /
+                  <kbd
+                    class="font-semibold p-1 rounded bg-gray-200 dark:bg-gray-700"
+                    >→</kbd
+                  >
+                  - <span data-lang-key="shortcut_move">Move piece</span>
+                </li>
+                <li>
+                  <kbd
+                    class="font-semibold p-1 rounded bg-gray-200 dark:bg-gray-700"
+                    >↑</kbd
+                  >
+                  - <span data-lang-key="shortcut_rotate">Rotate piece</span>
+                </li>
+                <li>
+                  <kbd
+                    class="font-semibold p-1 rounded bg-gray-200 dark:bg-gray-700"
+                    >↓</kbd
+                  >
+                  - <span data-lang-key="shortcut_soft_drop">Soft drop</span>
+                </li>
+                <li>
+                  <kbd
+                    class="font-semibold p-1 rounded bg-gray-200 dark:bg-gray-700"
+                    >Space</kbd
+                  >
+                  - <span data-lang-key="shortcut_hard_drop">Hard drop</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div id="custom-toast"></div>
+
+    <div id="confirm-modal" class="custom-modal-overlay hidden">
+      <div class="custom-modal-content surface shadow-xl">
+        <h3 id="confirm-title" class="text-xl font-bold mb-4">
+          Confirm Action
+        </h3>
+        <p id="confirm-message" class="mb-6">Are you sure?</p>
+        <div class="flex justify-end space-x-4">
+          <button
+            id="confirm-cancel-btn"
+            class="py-2 px-4 rounded-2xl bg-gray-300 dark:bg-gray-600"
+            data-lang-key="cancel"
+          >
+            Cancel</button
+          ><button id="confirm-ok-btn" class="btn-primary py-2 px-4">OK</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        // --- Translations ---
+        const translations = {
+          en: {
+            title: "Munetios Tetris",
+            nav_game: "Game",
+            nav_editor: "Editor",
+            nav_settings: "Settings",
+            score: "Score",
+            placed: "Placed",
+            lines: "Lines",
+            try_again: "Try Again",
+            next: "Next",
+            wins: "Wins",
+            overs: "Overs",
+            controls: "Controls",
+            editor_title: "Block Editor",
+            editor_desc_full:
+              "Edit default blocks, or create, save, and delete your own custom blocks!",
+            editor_select: "Select or Create Block",
+            editor_color: "Block Color",
+            editor_save: "Save Block",
+            editor_add_new: "Add New",
+            settings_gameplay: "Gameplay",
+            settings_layout: "Layout & UI",
+            settings_layout_desc: "Toggle visibility of game screen elements.",
+            settings_speed: "Game Speed",
+            speed_default: "Default",
+            settings_sfx: "Sound Effects",
+            sfx_off: "Off",
+            sfx_on: "On",
+            settings_shortcuts: "Keyboard Shortcuts",
+            shortcut_move: "Move piece",
+            shortcut_rotate: "Rotate piece",
+            shortcut_soft_drop: "Soft drop",
+            shortcut_hard_drop: "Hard drop",
+            credits: "Made by Munetios",
+            close: "Close",
+            cancel: "Cancel",
+            game_over: "Game Over!",
+            line_cleared: "Line Cleared!",
+            you_win: "You Win!",
+            block_saved: "Block saved!",
+            block_created: "New block created!",
+            block_deleted: "Block deleted!",
+            confirm_delete_block:
+              "Are you sure you want to delete this custom block?",
+          },
+          es: {
+            title: "Munetios Tetris",
+            nav_game: "Juego",
+            nav_editor: "Editor",
+            nav_settings: "Configuración",
+            score: "Puntuación",
+            placed: "Colocadas",
+            lines: "Líneas",
+            try_again: "Intentar de Nuevo",
+            next: "Siguiente",
+            wins: "Victorias",
+            overs: "Derrotas",
+            controls: "Controles",
+            editor_title: "Editor de Bloques",
+            editor_desc_full:
+              "¡Edita bloques predeterminados o crea, guarda y elimina tus propios bloques personalizados!",
+            editor_select: "Seleccionar o Crear Bloque",
+            editor_color: "Color del Bloque",
+            editor_save: "Guardar Bloque",
+            editor_add_new: "Añadir Nuevo",
+            settings_gameplay: "Jugabilidad",
+            settings_layout: "Diseño e Interfaz",
+            settings_layout_desc:
+              "Alternar la visibilidad de los elementos de la pantalla de juego.",
+            settings_speed: "Velocidad del Juego",
+            speed_default: "Predeterminada",
+            settings_sfx: "Efectos de Sonido",
+            sfx_off: "Apagado",
+            sfx_on: "Encendido",
+            settings_shortcuts: "Atajos de teclado",
+            shortcut_move: "Mover pieza",
+            shortcut_rotate: "Girar pieza",
+            shortcut_soft_drop: "Descenso suave",
+            shortcut_hard_drop: "Descenso instantáneo",
+            credits: "Hecho por Munetios",
+            close: "Cerrar",
+            cancel: "Cancelar",
+            game_over: "¡Juego Terminado!",
+            line_cleared: "¡Línea Eliminada!",
+            you_win: "¡Ganaste!",
+            block_saved: "¡Bloque guardado!",
+            block_created: "¡Nuevo bloque creado!",
+            block_deleted: "¡Bloque eliminado!",
+            confirm_delete_block:
+              "¿Estás seguro de que quieres eliminar este bloque personalizado?",
+          },
+          fr: {
+            title: "Munetios Tetris",
+            nav_game: "Jeu",
+            nav_editor: "Éditeur",
+            nav_settings: "Paramètres",
+            score: "Score",
+            placed: "Placées",
+            lines: "Lignes",
+            try_again: "Réessayer",
+            next: "Suivant",
+            wins: "Victoires",
+            overs: "Défaites",
+            controls: "Contrôles",
+            editor_title: "Éditeur de Blocs",
+            editor_desc_full:
+              "Modifiez les blocs par défaut, ou créez, sauvegardez et supprimez vos propres blocs personnalisés!",
+            editor_select: "Sélectionner ou Créer",
+            editor_color: "Couleur du Bloc",
+            editor_save: "Sauvegarder",
+            editor_add_new: "Ajouter Nouveau",
+            settings_gameplay: "Jeu",
+            settings_layout: "Disposition et IU",
+            settings_layout_desc:
+              "Activez ou désactivez la visibilité des éléments de l'écran de jeu.",
+            settings_speed: "Vitesse du jeu",
+            speed_default: "Défaut",
+            settings_sfx: "Effets sonores",
+            sfx_off: "Désactivé",
+            sfx_on: "Activé",
+            settings_shortcuts: "Raccourcis clavier",
+            shortcut_move: "Déplacer la pièce",
+            shortcut_rotate: "Faire pivoter la pièce",
+            shortcut_soft_drop: "Chute douce",
+            shortcut_hard_drop: "Chute brutale",
+            close: "Fermer",
+            cancel: "Annuler",
+            game_over: "Jeu terminé!",
+            line_cleared: "Ligne effacée!",
+            you_win: "Vous avez gagné!",
+            block_saved: "Bloc sauvegardé!",
+            block_created: "Nouveau bloc créé!",
+            block_deleted: "Bloc supprimé!",
+            confirm_delete_block:
+              "Êtes-vous sûr de vouloir supprimer ce bloc personnalisé?",
+          },
+          de: {
+            title: "Munetios Tetris",
+            nav_game: "Spiel",
+            nav_editor: "Editor",
+            nav_settings: "Einstellungen",
+            score: "Punktzahl",
+            placed: "Platziert",
+            lines: "Linien",
+            try_again: "Erneut versuchen",
+            next: "Nächster",
+            wins: "Siege",
+            overs: "Niederlagen",
+            controls: "Steuerung",
+            editor_title: "Block-Editor",
+            editor_desc_full:
+              "Bearbeiten Sie Standardblöcke oder erstellen, speichern und löschen Sie Ihre eigenen benutzerdefinierten Blöcke!",
+            editor_select: "Block auswählen oder erstellen",
+            editor_color: "Blockfarbe",
+            editor_save: "Block speichern",
+            editor_add_new: "Neu hinzufügen",
+            settings_gameplay: "Spielablauf",
+            settings_layout: "Layout & UI",
+            settings_layout_desc:
+              "Sichtbarkeit von Spielbildelementen umschalten.",
+            settings_speed: "Spielgeschwindigkeit",
+            speed_default: "Standard",
+            settings_sfx: "Soundeffekte",
+            sfx_off: "Aus",
+            sfx_on: "An",
+            settings_shortcuts: "Tastatürkürzel",
+            shortcut_move: "Stein bewegen",
+            shortcut_rotate: "Stein drehen",
+            shortcut_soft_drop: "Weicher Fall",
+            shortcut_hard_drop: "Harter Fall",
+            close: "Schließen",
+            cancel: "Abbrechen",
+            game_over: "Spiel vorbei!",
+            line_cleared: "Reihe geschafft!",
+            you_win: "Du hast gewonnen!",
+            block_saved: "Block gespeichert!",
+            block_created: "Neuer Block erstellt!",
+            block_deleted: "Block gelöscht!",
+            confirm_delete_block:
+              "Sind Sie sicher, dass Sie diesen benutzerdefinierten Block löschen möchten?",
+          },
+          ru: {
+            title: "Munetios Тетрис",
+            nav_game: "Игра",
+            nav_editor: "Редактор",
+            nav_settings: "Настройки",
+            score: "Счет",
+            placed: "Размещено",
+            lines: "Линии",
+            try_again: "Попробовать снова",
+            next: "Следующий",
+            wins: "Победы",
+            overs: "Поражения",
+            controls: "Управление",
+            editor_title: "Редактор блоков",
+            editor_desc_full:
+              "Редактируйте стандартные блоки или создавайте, сохраняйте и удаляйте свои собственные блоки!",
+            editor_select: "Выбрать или создать блок",
+            editor_color: "Цвет блока",
+            editor_save: "Сохранить блок",
+            editor_add_new: "Добавить новый",
+            settings_gameplay: "Игровой процесс",
+            settings_layout: "Макет и интерфейс",
+            settings_layout_desc:
+              "Переключить видимость элементов игрового экрана.",
+            settings_speed: "Скорость игры",
+            speed_default: "По умолчанию",
+            settings_sfx: "Звуковые эффекты",
+            sfx_off: "Выкл",
+            sfx_on: "Вкл",
+            settings_shortcuts: "Горячие клавиши",
+            shortcut_move: "Переместить фигуру",
+            shortcut_rotate: "Повернуть фигуру",
+            shortcut_soft_drop: "Мягкое падение",
+            shortcut_hard_drop: "Жесткое падение",
+            close: "Закрыть",
+            cancel: "Отмена",
+            game_over: "Игра окончена!",
+            line_cleared: "Линия очищена!",
+            you_win: "Вы победили!",
+            block_saved: "Блок сохранен!",
+            block_created: "Новый блок создан!",
+            block_deleted: "Блок удален!",
+            confirm_delete_block:
+              "Вы уверены, что хотите удалить этот пользовательский блок?",
+          },
+          pt: {
+            title: "Munetios Tetris",
+            nav_game: "Jogo",
+            nav_editor: "Editor",
+            nav_settings: "Configurações",
+            score: "Pontuação",
+            placed: "Colocadas",
+            lines: "Linhas",
+            try_again: "Tentar Novamente",
+            next: "Próximo",
+            wins: "Vitórias",
+            overs: "Derrotas",
+            controls: "Controles",
+            editor_title: "Editor de Blocos",
+            editor_desc_full:
+              "Edite blocos padrão ou crie, salve e exclua seus próprios blocos personalizados!",
+            editor_select: "Selecionar ou Criar Bloco",
+            editor_color: "Cor do Bloco",
+            editor_save: "Salvar Bloco",
+            editor_add_new: "Adicionar Novo",
+            settings_gameplay: "Jogabilidade",
+            settings_layout: "Layout e IU",
+            settings_layout_desc:
+              "Alternar a visibilidade dos elementos da tela do jogo.",
+            settings_speed: "Velocidade do Jogo",
+            speed_default: "Padrão",
+            settings_sfx: "Efeitos Sonoros",
+            sfx_off: "Desligado",
+            sfx_on: "Ligado",
+            settings_shortcuts: "Atalhos de Teclado",
+            shortcut_move: "Mover peça",
+            shortcut_rotate: "Girar peça",
+            shortcut_soft_drop: "Queda suave",
+            shortcut_hard_drop: "Queda rápida",
+            close: "Fechar",
+            cancel: "Cancelar",
+            game_over: "Fim de Jogo!",
+            line_cleared: "Linha Eliminada!",
+            you_win: "Você venceu!",
+            block_saved: "Bloco salvo!",
+            block_created: "Novo bloco criado!",
+            block_deleted: "Bloco excluído!",
+            confirm_delete_block:
+              "Tem certeza de que deseja excluir este bloco personalizado?",
+          },
+          zh: {
+            title: "Munetios 俄罗斯方块",
+            nav_game: "游戏",
+            nav_editor: "编辑器",
+            nav_settings: "设置",
+            score: "分数",
+            placed: "已放置",
+            lines: "行数",
+            try_again: "再试一次",
+            next: "下一个",
+            wins: "胜利",
+            overs: "失败",
+            controls: "控件",
+            editor_title: "块编辑器",
+            editor_desc_full:
+              "编辑默认块，或创建、保存和删除您自己的自定义块！",
+            editor_select: "选择或创建块",
+            editor_color: "块颜色",
+            editor_save: "保存块",
+            editor_add_new: "添加新的",
+            settings_gameplay: "游戏玩法",
+            settings_layout: "布局和界面",
+            settings_layout_desc: "切换游戏屏幕元素的可见性。",
+            settings_speed: "游戏速度",
+            speed_default: "默认",
+            settings_sfx: "音效",
+            sfx_off: "关",
+            sfx_on: "开",
+            settings_shortcuts: "键盘快捷键",
+            shortcut_move: "移动方块",
+            shortcut_rotate: "旋转方块",
+            shortcut_soft_drop: "软降",
+            shortcut_hard_drop: "硬降",
+            close: "关闭",
+            cancel: "取消",
+            game_over: "游戏结束！",
+            line_cleared: "消除了一行！",
+            you_win: "你赢了！",
+            block_saved: "块已保存！",
+            block_created: "新块已创建！",
+            block_deleted: "块已删除！",
+            confirm_delete_block: "您确定要删除此自定义块吗？",
+          },
+          ja: {
+            title: "Munetios テトリス",
+            nav_game: "ゲーム",
+            nav_editor: "エディタ",
+            nav_settings: "設定",
+            score: "スコア",
+            placed: "配置済み",
+            lines: "ライン",
+            try_again: "もう一度",
+            next: "次",
+            wins: "勝利",
+            overs: "敗北",
+            controls: "操作",
+            editor_title: "ブロックエディタ",
+            editor_desc_full:
+              "デフォルトのブロックを編集するか、独自のカスタムブロックを作成、保存、削除します！",
+            editor_select: "ブロックを選択または作成",
+            editor_color: "ブロックの色",
+            editor_save: "ブロックを保存",
+            editor_add_new: "新規追加",
+            settings_gameplay: "ゲームプレイ",
+            settings_layout: "レイアウトとUI",
+            settings_layout_desc: "ゲーム画面要素の表示/非表示を切り替えます。",
+            settings_speed: "ゲーム速度",
+            speed_default: "デフォルト",
+            settings_sfx: "効果音",
+            sfx_off: "オフ",
+            sfx_on: "オン",
+            settings_shortcuts: "キーボードショートカット",
+            shortcut_move: "ピースを移動",
+            shortcut_rotate: "ピースを回転",
+            shortcut_soft_drop: "ソフトドロップ",
+            shortcut_hard_drop: "ハードドロップ",
+            close: "閉じる",
+            cancel: "キャンセル",
+            game_over: "ゲームオーバー！",
+            line_cleared: "ラインを消去しました！",
+            you_win: "あなたの勝ちです！",
+            block_saved: "ブロックが保存されました！",
+            block_created: "新しいブロックが作成されました！",
+            block_deleted: "ブロックが削除されました！",
+            confirm_delete_block: "このカスタムブロックを本当に削除しますか？",
+          },
+          ko: {
+            title: "Munetios 테트리스",
+            nav_game: "게임",
+            nav_editor: "에디터",
+            nav_settings: "설정",
+            score: "점수",
+            placed: "놓음",
+            lines: "줄",
+            try_again: "다시 시도",
+            next: "다음",
+            wins: "승리",
+            overs: "패배",
+            controls: "컨트롤",
+            editor_title: "블록 에디터",
+            editor_desc_full:
+              "기본 블록을 편집하거나 자신만의 맞춤 블록을 만들고, 저장하고, 삭제하세요!",
+            editor_select: "블록 선택 또는 생성",
+            editor_color: "블록 색상",
+            editor_save: "블록 저장",
+            editor_add_new: "새로 추가",
+            settings_gameplay: "게임 플레이",
+            settings_layout: "레이아웃 및 UI",
+            settings_layout_desc: "게임 화면 요소의 가시성을 전환합니다.",
+            settings_speed: "게임 속도",
+            speed_default: "기본값",
+            settings_sfx: "음향 효과",
+            sfx_off: "끄기",
+            sfx_on: "켜기",
+            settings_shortcuts: "키보드 단축키",
+            shortcut_move: "조각 이동",
+            shortcut_rotate: "조각 회전",
+            shortcut_soft_drop: "소프트 드롭",
+            shortcut_hard_drop: "하드 드롭",
+            close: "닫기",
+            cancel: "취소",
+            game_over: "게임 종료!",
+            line_cleared: "줄이 지워졌습니다!",
+            you_win: "승리했습니다!",
+            block_saved: "블록이 저장되었습니다!",
+            block_created: "새 블록이 생성되었습니다!",
+            block_deleted: "블록이 삭제되었습니다!",
+            confirm_delete_block: "이 맞춤 블록을 정말로 삭제하시겠습니까?",
+          },
+        };
+
+        // --- App State & Config ---
+        let isSfxOn = false;
+        let isAiOn = false;
+        let aiMoveTimer = null;
+        let dropInterval = 1000;
+        let gameSettings = {};
+        const defaultPieces = Object.freeze([
+          [
+            [1, 1],
+            [1, 1],
+          ],
+          [
+            [0, 2, 0],
+            [2, 2, 2],
+          ],
+          [
+            [0, 3, 3],
+            [3, 3, 0],
+          ],
+          [
+            [4, 4, 0],
+            [0, 4, 4],
+          ],
+          [[5, 5, 5, 5]],
+          [
+            [0, 0, 6],
+            [6, 6, 6],
+          ],
+          [
+            [7, 0, 0],
+            [7, 7, 7],
+          ],
+        ]);
+        let customPieces = [];
+        let allPieces = [];
+        let removedDefaults = [], defaultOverrides = {};
+        let wins = 0,
+          overs = 0;
+
+        // --- Sound Effects ---
+        let audioContext;
+        const synth = { triggerAttackRelease(note) {
+          audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+          audioContext.resume();
+          const osc=audioContext.createOscillator(), gain=audioContext.createGain();
+          osc.frequency.value=({C2:65,E2:82,G2:98,C3:131,C4:262,G4:392,C5:523})[note] || 262;
+          gain.gain.setValueAtTime(.08,audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(.001,audioContext.currentTime+.16);
+          osc.connect(gain);gain.connect(audioContext.destination);osc.start();osc.stop(audioContext.currentTime+.17);
+        } };
+        const sounds = {
+          move: () => synth.triggerAttackRelease("C2", "8n"),
+          rotate: () => synth.triggerAttackRelease("E2", "8n"),
+          drop: () => synth.triggerAttackRelease("G2", "8n"),
+          clear: () => synth.triggerAttackRelease("C4", "8n"),
+          gameOver: () => synth.triggerAttackRelease("C3", "2n"),
+          win: () => synth.triggerAttackRelease("G4", "2n"),
+          click: () => synth.triggerAttackRelease("C5", "16n"),
+        };
+        function playSound(sound) {
+          if (isSfxOn) {
+            sounds[sound]?.();
+          }
+        }
+
+        // --- Settings & Local Storage ---
+        const settingsMap = {
+          darkMode: {
+            el: document.documentElement,
+            class: "dark",
+            type: "class",
+          },
+          showScore: {
+            el: document.getElementById("game-info-container"),
+            class: "hidden",
+            type: "visibility",
+            invert: true,
+          },
+          showWinsOvers: {
+            el: document.getElementById("wins-overs-container"),
+            class: "hidden",
+            type: "visibility",
+            invert: true,
+          },
+          showControls: {
+            el: document.getElementById("on-screen-controls"),
+            class: "hidden",
+            type: "visibility",
+            invert: true,
+          },
+          sfx: { el: document.getElementById("sfx-toggle"), type: "sfx" },
+          speed: { el: document.getElementById("game-speed"), type: "speed" },
+          ai: { el: document.getElementById("ai-toggle"), type: "ai" },
+        };
+        function saveSettings() {
+          localStorage.setItem(
+            "gamerytTetrisSettings",
+            JSON.stringify(gameSettings),
+          );
+        }
+        function applySetting(key, value) {
+          const config = settingsMap[key];
+          if (!config) return;
+          gameSettings[key] = value;
+          switch (config.type) {
+            case "class":
+              config.el.classList.toggle(config.class, value);
+              if (key === "darkMode") {
+                document
+                  .getElementById("sun-icon")
+                  .classList.toggle("hidden", value);
+                document
+                  .getElementById("moon-icon")
+                  .classList.toggle("hidden", !value);
+              }
+              break;
+            case "visibility":
+              const isVisible = config.invert ? value : !value;
+              config.el.classList.toggle(config.class, !isVisible);
+              const toggleEl = document.getElementById(
+                ({showScore:"toggle-score",showWinsOvers:"toggle-wins-overs",showControls:"toggle-controls"})[key],
+              );
+              if (toggleEl) toggleEl.checked = value;
+              break;
+            case "sfx":
+              isSfxOn = value;
+              config.el.checked = value;
+              const lang = document.getElementById("language-selector").value;
+              const sfxStatus = document.getElementById("sfx-status");
+              sfxStatus.textContent = isSfxOn
+                ? translations[lang].sfx_on
+                : translations[lang].sfx_off;
+              sfxStatus.setAttribute(
+                "data-lang-key",
+                isSfxOn ? "sfx_on" : "sfx_off",
+              );
+              break;
+            case "speed":
+              dropInterval = parseFloat(value) * 1000;
+              config.el.value = value;
+              if (gameRunning) {
+                clearInterval(gameLoop);
+                gameLoop = setInterval(playerDrop, dropInterval);
+              }
+              break;
+            case "ai":
+              isAiOn = value;
+              config.el.checked = value;
+              document.getElementById("ai-status").textContent = t(value ? "bot_on" : "bot_off");
+              if (value) queueAiMove();
+              else clearTimeout(aiMoveTimer);
+              break;
+          }
+        }
+        function loadSettings() {
+          const saved =
+            readStorage("gamerytTetrisSettings", {});
+          const defaults = {
+            darkMode: true,
+            showScore: true,
+            showWinsOvers: true,
+            showControls: true,
+            sfx: false,
+            speed: "1",
+            ai: false,
+          };
+          gameSettings = { ...defaults, ...saved };
+          Object.keys(gameSettings).forEach((key) =>
+            applySetting(key, gameSettings[key]),
+          );
+        }
+
+        function saveGameStats() {
+          localStorage.setItem(
+            "gamerytGameStats",
+            JSON.stringify({ wins, overs }),
+          );
+        }
+        function loadGameStats() {
+          const stats = readStorage("gamerytGameStats", { wins: 0, overs: 0 });
+          wins = stats.wins;
+          overs = stats.overs;
+          document.getElementById("wins-count").innerText = wins;
+          document.getElementById("overs-count").innerText = overs;
+        }
+
+        // --- Custom Pieces Storage ---
+        function loadCustomPieces() {
+          customPieces =
+            readStorage("gamerytCustomPieces", []);
+          removedDefaults = readStorage("munetiosRemovedBlocks", []);
+          defaultOverrides = readStorage("munetiosBlockOverrides", {});
+          updateAllPieces();
+        }
+        function saveCustomPieces() {
+          localStorage.setItem(
+            "gamerytCustomPieces",
+            JSON.stringify(customPieces),
+          );
+          updateAllPieces();
+        }
+        function updateAllPieces() {
+          allPieces = defaultPieces.flatMap((piece,i)=>removedDefaults.includes(i)?[]:[defaultOverrides[i] || piece]).concat(customPieces);
+        }
+
+        // --- UI Functions ---
+        function updateLanguage(lang) {
+          lang = translations[lang] ? lang : "en";
+          const langPack = translations[lang];
+          document.querySelectorAll("[data-lang-key]").forEach((el) => {
+            const key = el.getAttribute("data-lang-key");
+            if (langPack[key]) el.textContent = langPack[key];
+          });
+          document.getElementById("language-selector").value = lang;
+          document.getElementById("language-selector-mobile").value = lang;
+          document.documentElement.lang=lang;
+          localStorage.setItem("munetiosTetrisLanguage",JSON.stringify(lang));
+          document.getElementById("ai-status").textContent=t(isAiOn?"bot_on":"bot_off");
+          dropdowns.forEach(dropdown=>dropdown.refresh());
+          document.querySelectorAll("[data-lang-label]").forEach(el=>el.setAttribute("aria-label",t(el.dataset.langLabel)));
+          renderBlockSelection();
+        }
+        function switchTab(tabId) {
+          if (tabId !== "game" && gameRunning && !paused) togglePause();
+          document
+            .querySelectorAll(".tab-content")
+            .forEach((tab) => tab.classList.add("hidden"));
+          document.getElementById(`${tabId}-tab`).classList.remove("hidden");
+          document
+            .querySelectorAll(".nav-link")
+            .forEach((link) =>
+              link.classList.toggle("active", link.dataset.tab === tabId),
+            );
+          document.getElementById("mobile-menu").classList.add("hidden");
+        }
+        const toastEl = document.getElementById("custom-toast");
+        function showToast(messageKey, type = "info") {
+          const lang = document.getElementById("language-selector").value;
+          const translatedMessage =
+            translations[lang][messageKey] || messageKey;
+          toastEl.textContent = translatedMessage;
+          toastEl.className =
+            "fixed bottom-[-100px] left-1/2 -translate-x-1/2 p-4 rounded-2xl text-white font-medium z-[100] transition-all duration-500";
+          if (type === "success") toastEl.classList.add("bg-green-600");
+          else if (type === "error") toastEl.classList.add("bg-red-600");
+          else toastEl.classList.add("bg-gray-800");
+          toastEl.style.bottom = "20px";
+          setTimeout(() => {
+            toastEl.style.bottom = "-100px";
+          }, 3000);
+        }
+        const confirmModal = document.getElementById("confirm-modal");
+        function showConfirm(title, messageKey, onOk) {
+          const lang = document.getElementById("language-selector").value;
+          document.getElementById("confirm-title").textContent = translations[lang][title] || title;
+          document.getElementById("confirm-message").textContent =
+            translations[lang][messageKey] || messageKey;
+          confirmModal.classList.remove("hidden");
+          const okBtn = document.getElementById("confirm-ok-btn");
+          const cancelBtn = document.getElementById("confirm-cancel-btn");
+          const okHandler = () => {
+            onOk();
+            hide();
+          };
+          const cancelHandler = () => hide();
+          function hide() {
+            confirmModal.classList.add("hidden");
+            okBtn.removeEventListener("click", okHandler);
+            cancelBtn.removeEventListener("click", cancelHandler);
+          }
+          okBtn.addEventListener("click", okHandler);
+          cancelBtn.addEventListener("click", cancelHandler);
+        }
+
+        // --- Tetris Game Logic ---
+        const canvas = document.getElementById("tetris-canvas"),
+          context = canvas.getContext("2d");
+        const nextCanvas = document.getElementById("next-piece-canvas"),
+          nextContext = nextCanvas.getContext("2d");
+        const COLS = 10,
+          ROWS = 20,
+          BLOCK_SIZE = 30,
+          WIN_CONDITION_LINES = 5;
+        context.canvas.width = COLS * BLOCK_SIZE;
+        context.canvas.height = ROWS * BLOCK_SIZE;
+        let board,
+          player,
+          nextPlayer,
+          score,
+          placedCount,
+          totalLinesCleared,
+          gameLoop,
+          gameRunning;
+        const colors = [
+          null,
+          "#FF0D72",
+          "#0DC2FF",
+          "#0DFF72",
+          "#F538FF",
+          "#FF8E0D",
+          "#FFE138",
+          "#3877FF",
+          "#38D9FF",
+          "#9E38FF",
+          "#FF3838",
+          "#38FFB8",
+        ];
+
+        function createPiece() {
+          const typeIndex = (matchCatalog.length * Math.random()) | 0;
+          const source = versus ? matchPieces[pieceCursor++] || appendMatchPiece() : matchCatalog[typeIndex];
+          const matrix = source.map(row=>row.slice());
+          return {
+            pos: { x: ((COLS / 2) | 0) - ((matrix[0].length / 2) | 0), y: 0 },
+            matrix: matrix,
+          };
+        }
+        function playerReset() {
+          player = nextPlayer || createPiece();
+          nextPlayer = createPiece();
+          if (collide(board, player)) {
+            gameRunning = false;
+            clearInterval(gameLoop);
+            playSound("gameOver");
+            showToast(versus ? "ai_wins" : "game_over", "error");
+            finishMatch("ai_wins");
+            overs++;
+            document.getElementById("overs-count").innerText = overs;
+            saveGameStats();
+          }
+        }
+        function collide(board, player) {
+          const [m, o] = [player.matrix, player.pos];
+          for (let y = 0; y < m.length; ++y)
+            for (let x = 0; x < m[y].length; ++x) {
+              if (
+                m[y][x] !== 0 &&
+                (board[y + o.y] && board[y + o.y][x + o.x]) !== 0
+              )
+                return true;
+            }
+          return false;
+        }
+        function merge(board, player) {
+          player.matrix.forEach((row, y) =>
+            row.forEach((value, x) => {
+              if (value !== 0)
+                board[y + player.pos.y][x + player.pos.x] = value;
+            }),
+          );
+        }
+
+        function rotate(matrix) {
+          const transposed = matrix[0].map((_, colIndex) =>
+            matrix.map((row) => row[colIndex]),
+          );
+          return transposed.map((row) => row.reverse());
+        }
+
+        function playerRotate() {
+          const originalPos = player.pos.x;
+          const originalMatrix = player.matrix;
+          player.matrix = rotate(player.matrix);
+          let offset = 1;
+          while (collide(board, player)) {
+            player.pos.x += offset;
+            offset = -(offset + (offset > 0 ? 1 : -1));
+            if (Math.abs(offset) > player.matrix[0].length) {
+              player.matrix = originalMatrix;
+              player.pos.x = originalPos;
+              return;
+            }
+          }
+          playSound("rotate");
+        }
+        function playerMove(dir) {
+          player.pos.x += dir;
+          if (collide(board, player)) player.pos.x -= dir;
+          else playSound("move");
+        }
+        function playerDrop() {
+          if (!gameRunning || paused) return;
+          player.pos.y++;
+          if (collide(board, player)) {
+            player.pos.y--;
+            lockPiece();
+          }
+        }
+        function hardDrop() {
+          if (!gameRunning || paused) return;
+          while (!collide(board, player)) player.pos.y++;
+          player.pos.y--;
+          lockPiece();
+        }
+        function lockPiece() {
+          merge(board, player);
+          visualPlayer = null;
+          canvas.classList.remove("celebrate"); void canvas.offsetWidth; canvas.classList.add("celebrate");
+          placedCount++;
+          updateScore(0);
+          playSound("drop");
+          sweep();
+          if (gameRunning) {
+            playerReset();
+            queueAiMove();
+          }
+        }
+        function sweep() {
+          let clearedLines = 0;
+          outer: for (let y = board.length - 1; y >= 0; --y) {
+            for (let x = 0; x < board[y].length; ++x)
+              if (board[y][x] === 0) continue outer;
+            board.splice(y, 1);
+            board.unshift(Array(COLS).fill(0));
+            clearedLines++;
+            ++y;
+          }
+          if (clearedLines > 0) {
+            updateScore(clearedLines);
+            totalLinesCleared += clearedLines;
+            document.getElementById("lines-count").textContent =
+              `${totalLinesCleared} / ${WIN_CONDITION_LINES}`;
+            playSound("clear");
+            showToast("line_cleared", "success");
+
+            if (totalLinesCleared >= WIN_CONDITION_LINES) {
+              gameRunning = false;
+              clearInterval(gameLoop);
+              wins++;
+              document.getElementById("wins-count").innerText = wins;
+              saveGameStats();
+              playSound("win");
+              showToast("you_win", "success");
+              finishMatch("you_win");
+            }
+          }
+        }
+        function updateScore(lines) {
+          const points = [0, 100, 300, 500, 800];
+          score += points[lines] || 0;
+          document.getElementById("score").innerText = score;
+          document.getElementById("placed").innerText = placedCount;
+        }
+
+        let visualPlayer = null;
+        function drawMatrix(ctx, matrix, offset, scale, alpha=1) {
+          ctx.save();ctx.globalAlpha=alpha;
+          matrix.forEach((row,y)=>row.forEach((value,x)=>{
+            if(!value)return;
+            const px=(x+offset.x)*scale+1.5,py=(y+offset.y)*scale+1.5,size=scale-3;
+            ctx.fillStyle=typeof value === "string" ? value : colors[value % colors.length] || "#a666e8";
+            ctx.beginPath();ctx.roundRect(px,py,size,size,scale*.24);ctx.fill();
+            ctx.fillStyle="rgba(255,255,255,.22)";ctx.beginPath();ctx.roundRect(px+3,py+3,size-6,3,2);ctx.fill();
+          }));ctx.restore();
+        }
+        function drawBoard(ctx, cells) {
+          ctx.clearRect(0,0,300,600);ctx.fillStyle=document.documentElement.classList.contains("dark")?"#211431":"#e9dff3";ctx.fillRect(0,0,300,600);
+          ctx.strokeStyle="rgba(143,94,188,.12)";ctx.lineWidth=.5;
+          for(let x=30;x<300;x+=30){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,600);ctx.stroke();}
+          for(let y=30;y<600;y+=30){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(300,y);ctx.stroke();}
+          drawMatrix(ctx,cells,{x:0,y:0},30);
+        }
+        function draw() {
+          drawBoard(context,board);
+          if(gameRunning && player){
+            const ghost={matrix:player.matrix,pos:{...player.pos}};while(!collide(board,ghost))ghost.pos.y++;ghost.pos.y--;
+            drawMatrix(context,ghost.matrix,ghost.pos,30,.18);
+            if(!visualPlayer || visualPlayer.matrix!==player.matrix)visualPlayer={matrix:player.matrix,x:player.pos.x,y:player.pos.y};
+            if(!paused){const factor=matchMedia("(prefers-reduced-motion: reduce)").matches?1:.35;visualPlayer.x+=(player.pos.x-visualPlayer.x)*factor;visualPlayer.y+=(player.pos.y-visualPlayer.y)*factor;}
+            drawMatrix(context,player.matrix,{x:visualPlayer.x,y:visualPlayer.y},30);
+          }
+          nextContext.clearRect(0,0,120,120);
+          if(nextPlayer){const m=nextPlayer.matrix;drawMatrix(nextContext,m,{x:(5-m[0].length)/2,y:(5-m.length)/2},24);}
+          if(versus && opponent){drawBoard(aiContext,opponent.board);if(opponent.player)drawMatrix(aiContext,opponent.player.matrix,opponent.player.pos,30);}
+        }
+        function startGame() {
+          clearTimeout(aiMoveTimer); clearInterval(opponentTimer);
+          if(!allPieces.length){showToast("need_block","error");return;}
+          paused=false; visualPlayer=null; pieceCursor=0;matchPieces=[]; matchCatalog=allPieces.map(p=>p.map(r=>r.slice()));
+          if(versus)for(let i=0;i<8;i++)appendMatchPiece();
+          document.getElementById("pause-btn").dataset.langKey="pause";
+          document.getElementById("pause-btn").textContent=t("pause");
+          document.getElementById("match-status").textContent=t("race");
+          if(versus)startOpponent();
+          board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+          score = 0;
+          placedCount = 0;
+          totalLinesCleared = 0;
+          updateScore(0);
+          document.getElementById("lines-count").textContent =
+            `0 / ${WIN_CONDITION_LINES}`;
+          nextPlayer = null;
+          gameRunning = true;
+          playerReset();
+          if (gameLoop) clearInterval(gameLoop);
+          gameLoop = setInterval(playerDrop, dropInterval);
+          queueAiMove();
+        }
+
+        // --- Local heuristic bot (no model or network access) ---
+        function cloneBoard(source) {
+          return source.map((row) => row.slice());
+        }
+        function scoreBoard(candidate) {
+          let lines = 0,
+            holes = 0,
+            aggregateHeight = 0,
+            bumpiness = 0;
+          const heights = Array(COLS).fill(0);
+          candidate.forEach((row) => {
+            if (row.every(Boolean)) lines++;
+          });
+          for (let x = 0; x < COLS; x++) {
+            let blockSeen = false;
+            for (let y = 0; y < ROWS; y++) {
+              if (candidate[y][x]) {
+                if (!blockSeen) heights[x] = ROWS - y;
+                blockSeen = true;
+              } else if (blockSeen) holes++;
+            }
+            aggregateHeight += heights[x];
+            if (x) bumpiness += Math.abs(heights[x] - heights[x - 1]);
+          }
+          return (
+            lines * 0.76 -
+            aggregateHeight * 0.51 -
+            holes * 0.86 -
+            bumpiness * 0.18
+          );
+        }
+        function findBestMove(active=player, source=board) {
+          let matrix = active.matrix.map((row) => row.slice());
+          let best = null;
+          for (let turns = 0; turns < 4; turns++) {
+            for (let x = -matrix[0].length; x < COLS; x++) {
+              const test = { matrix, pos: { x, y: 0 } };
+              if (collide(source, test)) continue;
+              while (!collide(source, test)) test.pos.y++;
+              test.pos.y--;
+              const candidate = cloneBoard(source);
+              merge(candidate, test);
+              const rating = scoreBoard(candidate) + test.pos.y * 0.01;
+              if (!best || rating > best.rating)
+                best = { matrix: matrix.map((row) => row.slice()), x, rating };
+            }
+            matrix = rotate(matrix);
+          }
+          return best;
+        }
+        function queueAiMove() {
+          clearTimeout(aiMoveTimer);
+          if (!isAiOn || !gameRunning || paused || !player) return;
+          aiMoveTimer = setTimeout(() => {
+            if (!isAiOn || !gameRunning || paused) return;
+            const move = findBestMove();
+            if (move) {
+              player.matrix = move.matrix;
+              player.pos.x = move.x;
+              hardDrop();
+            }
+          }, 140);
+        }
+
+        const editorGrid=document.getElementById("editor-grid"), editorColorPicker=document.getElementById("editor-color-picker"),blockSelectionList=document.getElementById("block-selection-list");
+        let editorCells=[], currentEditingIndex="new", selectionEntries=[];
+        function pieceColor(piece){const value=piece.flat().find(Boolean);return typeof value==="string"?value:colors[value % colors.length] || "#a666e8";}
+        function renderBlockSelection(){
+          blockSelectionList.replaceChildren();
+          selectionEntries=defaultPieces.flatMap((p,i)=>removedDefaults.includes(i)?[]:[{piece:defaultOverrides[i] || p,kind:"default",index:i}]).concat(customPieces.map((p,i)=>({piece:p,kind:"custom",index:i})));
+          selectionEntries.forEach((entry,index)=>{
+            const wrapper=document.createElement("div");wrapper.className="relative";
+            const btn=document.createElement("button");btn.className="piece-choice";btn.style.backgroundColor=pieceColor(entry.piece)+"22";btn.setAttribute("aria-label",t("select_block")+" "+(index+1));btn.setAttribute("aria-pressed",String(currentEditingIndex===index));
+            const grid=document.createElement("div");grid.className="piece-mini";grid.style.gridTemplateColumns=`repeat(${entry.piece[0].length},1fr)`;
+            entry.piece.forEach(row=>row.forEach(value=>{const cell=document.createElement("span");if(value)cell.style.backgroundColor=typeof value==="string"?value:colors[value % colors.length] || "#a666e8";grid.append(cell);}));
+            btn.append(grid);btn.addEventListener("click",()=>loadPieceIntoEditor(index));wrapper.append(btn);
+            const del=document.createElement("button");del.className="piece-delete";del.textContent="×";del.setAttribute("aria-label",t("delete_block")+" "+(index+1));
+            del.addEventListener("click",()=>showConfirm("delete_block","delete_confirm",()=>{
+              if(selectionEntries.length===1){showToast("need_block","error");return;}
+              if(entry.kind==="default")removedDefaults.push(entry.index);else customPieces.splice(entry.index,1);
+              persistLibrary();currentEditingIndex="new";renderBlockSelection();loadPieceIntoEditor("new");showToast("block_deleted","success");
+            }));wrapper.append(del);blockSelectionList.append(wrapper);
+          });
+        }
+        function persistLibrary(){
+          localStorage.setItem("munetiosRemovedBlocks",JSON.stringify(removedDefaults));localStorage.setItem("munetiosBlockOverrides",JSON.stringify(defaultOverrides));saveCustomPieces();
+        }
+        function loadPieceIntoEditor(index){
+          currentEditingIndex=index;editorCells.forEach(cell=>{cell.dataset.filled="false";cell.style.backgroundColor="";cell.setAttribute("aria-pressed","false");});
+          const entry=selectionEntries[index];editorColorPicker.value=entry?pieceColor(entry.piece):"#a666e8";
+          if(entry){const matrix=entry.piece,startY=Math.floor((4-matrix.length)/2),startX=Math.floor((4-matrix[0].length)/2);matrix.forEach((row,y)=>row.forEach((v,x)=>{if(v){const cell=editorCells[(y+startY)*4+x+startX];if(cell){cell.dataset.filled="true";cell.style.backgroundColor=editorColorPicker.value;cell.setAttribute("aria-pressed","true");}}}));}
+          renderBlockSelection();
+        }
+        editorColorPicker.addEventListener("input",()=>editorCells.forEach(cell=>{if(cell.dataset.filled==="true")cell.style.backgroundColor=editorColorPicker.value;}));
+        document.getElementById("add-new-block-btn").addEventListener("click",()=>loadPieceIntoEditor("new"));
+        document.getElementById("restore-blocks-btn").addEventListener("click",()=>showConfirm("restore","restore_confirm",()=>{removedDefaults=[];defaultOverrides={};persistLibrary();loadPieceIntoEditor("new");showToast("restored","success");}));
+        document.getElementById("save-block-btn").addEventListener("click",()=>{
+          const occupied=editorCells.flatMap((cell,i)=>cell.dataset.filled==="true"?[{x:i%4,y:Math.floor(i/4)}]:[]);
+          if(!occupied.length){showToast("empty_block","error");return;}
+          const minX=Math.min(...occupied.map(c=>c.x)),maxX=Math.max(...occupied.map(c=>c.x)),minY=Math.min(...occupied.map(c=>c.y)),maxY=Math.max(...occupied.map(c=>c.y));
+          const matrix=Array.from({length:maxY-minY+1},(_,y)=>Array.from({length:maxX-minX+1},(_,x)=>editorCells[(y+minY)*4+x+minX].dataset.filled==="true"?editorColorPicker.value:0));
+          const entry=selectionEntries[currentEditingIndex];
+          if(!entry){customPieces.push(matrix);currentEditingIndex=selectionEntries.length;}else if(entry.kind==="default")defaultOverrides[entry.index]=matrix;else customPieces[entry.index]=matrix;
+          persistLibrary();renderBlockSelection();showToast(entry?"block_saved":"block_created","success");playSound("clear");
+        });
+        for(let i=0;i<16;i++){
+          const cell=document.createElement("button");cell.type="button";cell.dataset.filled="false";cell.setAttribute("aria-label",`${Math.floor(i/4)+1}, ${i%4+1}`);cell.setAttribute("aria-pressed","false");
+          cell.addEventListener("click",()=>{const filled=cell.dataset.filled!=="true";cell.dataset.filled=String(filled);cell.style.backgroundColor=filled?editorColorPicker.value:"";cell.setAttribute("aria-pressed",String(filled));});editorGrid.append(cell);editorCells.push(cell);
+        }
+
+        // --- Event Listeners ---
+        document
+          .getElementById("dark-mode-toggle")
+          .addEventListener("click", () => {
+            applySetting(
+              "darkMode",
+              !document.documentElement.classList.contains("dark"),
+            );
+            saveSettings();
+          });
+        document
+          .getElementById("language-selector")
+          .addEventListener("change", (e) => updateLanguage(e.target.value));
+        document
+          .getElementById("language-selector-mobile")
+          .addEventListener("change", (e) => updateLanguage(e.target.value));
+        document
+          .getElementById("mobile-menu-button")
+          .addEventListener("click", () =>
+            document.getElementById("mobile-menu").classList.toggle("hidden"),
+          );
+        document.querySelectorAll(".nav-link").forEach((link) =>
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+            switchTab(e.currentTarget.dataset.tab);
+          }),
+        );
+        document
+          .getElementById("try-again-btn")
+          .addEventListener("click", startGame);
+        document
+          .getElementById("sfx-toggle")
+          .addEventListener("change", (e) => {
+            applySetting("sfx", e.target.checked);
+            saveSettings();
+          });
+        document
+          .getElementById("game-speed")
+          .addEventListener("change", (e) => {
+            applySetting("speed", e.target.value);
+            saveSettings();
+          });
+        document.getElementById("ai-toggle").addEventListener("change", (e) => {
+          applySetting("ai", e.target.checked);
+          saveSettings();
+        });
+        document
+          .getElementById("toggle-score")
+          .addEventListener("change", (e) => {
+            applySetting("showScore", e.target.checked);
+            saveSettings();
+          });
+        document
+          .getElementById("toggle-wins-overs")
+          .addEventListener("change", (e) => {
+            applySetting("showWinsOvers", e.target.checked);
+            saveSettings();
+          });
+        document
+          .getElementById("toggle-controls")
+          .addEventListener("change", (e) => {
+            applySetting("showControls", e.target.checked);
+            saveSettings();
+          });
+        document.addEventListener("keydown", (e) => {
+          if(e.target.closest("input,textarea,.custom-dropdown") || (e.key === " " && e.target.closest("button")) || document.getElementById("game-tab").classList.contains("hidden") || !confirmModal.classList.contains("hidden"))return;
+          if(e.key.toLowerCase()==="p"){togglePause();return;}
+          if (!gameRunning || isAiOn || paused) return;
+          if(["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"," "].includes(e.key))e.preventDefault();
+          if (e.key === "ArrowLeft") playerMove(-1);
+          else if (e.key === "ArrowRight") playerMove(1);
+          else if (e.key === "ArrowDown") playerDrop();
+          else if (e.key === "ArrowUp") playerRotate();
+          else if (e.key === " ") {
+            e.preventDefault();
+            hardDrop();
+          }
+          draw();
+        });
+        document
+          .getElementById("move-left-btn")
+          .addEventListener("click", () => {
+            if (gameRunning && !isAiOn && !paused) {
+              playerMove(-1);
+              draw();
+            }
+          });
+        document
+          .getElementById("move-right-btn")
+          .addEventListener("click", () => {
+            if (gameRunning && !isAiOn && !paused) {
+              playerMove(1);
+              draw();
+            }
+          });
+        document.getElementById("rotate-btn").addEventListener("click", () => {
+          if (gameRunning && !isAiOn && !paused) {
+            playerRotate();
+            draw();
+          }
+        });
+        document
+          .getElementById("fast-down-btn")
+          .addEventListener("click", () => {
+            if (gameRunning && !isAiOn && !paused) {
+              playerDrop();
+              draw();
+            }
+          });
+
+        // --- PWA & Offline Functionality ---
+        function setupPWA() {
+          // 1. Create and inject manifest link
+          const manifest = {
+            name: "Munetios Tetris",
+            short_name: "Tetris",
+            start_url: ".",
+            display: "standalone",
+            background_color: "#111827",
+            theme_color: "#4f46e5",
+            description: "A customizable Tetris game by Munetios.",
+            icons: [
+              {
+                src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzRmNDZlNSI+PHBhdGggZD0iTTkgM0gxNVY5SDIxVjE1SDE1VjIxSDlWMTVIM1Y5SDlWM1oiLz48L3N2Zz4=",
+                sizes: "192x192",
+                type: "image/svg+xml",
+              },
+              {
+                src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzRmNDZlNSI+PHBhdGggZD0iTTkgM0gxNVY5SDIxVjE1SDE1VjIxSDlWMTVIM1Y5SDlWM1oiLz48L3N2Zz4=",
+                sizes: "512x512",
+                type: "image/svg+xml",
+              },
+            ],
+          };
+          const manifestURL = `data:application/json;base64,${btoa(JSON.stringify(manifest))}`;
+          document
+            .querySelector("head")
+            .insertAdjacentHTML(
+              "beforeend",
+              `<link rel="manifest" href="${manifestURL}">`,
+            );
+
+          if("serviceWorker" in navigator && location.protocol!=="file:")navigator.serviceWorker.register("./sw.js").catch(()=>{});
+
+          // 3. Offline detection
+          const offlineBanner = document.getElementById("offline-banner");
+          const appContainer = document.getElementById("app");
+          function updateOnlineStatus() {
+            if (navigator.onLine) {
+              offlineBanner.classList.add("hidden");
+              appContainer.style.paddingTop = "0";
+            } else {
+              offlineBanner.classList.remove("hidden");
+              appContainer.style.paddingTop = offlineBanner.offsetHeight + "px";
+            }
+          }
+          window.addEventListener("online", updateOnlineStatus);
+          window.addEventListener("offline", updateOnlineStatus);
+          updateOnlineStatus();
+        }
+
+        // --- Initial Setup ---
+        function readStorage(key,fallback){try{return JSON.parse(localStorage.getItem(key)) ?? fallback;}catch{return fallback;}}
+        function t(key){return (translations[document.getElementById("language-selector").value] || translations.en)[key] || key;}
+        const newKeys=["hero_title","hero_desc","you","target","opponent","game_mode","solo","versus","autoplay","local_bot","pause","resume","restore","restore_confirm","restored","delete_block","delete_confirm","select_block","need_block","empty_block","ai_wins","race","bot_on","bot_off"];
+        const newTranslations={
+          en:["Make room for play.","Your blocks. Your colors. Your next challenge.","You","Clear 5 lines","AI opponent","Game mode","Solo","Player vs AI","Autoplay","Local bot · no data sharing","Pause","Resume","Restore original blocks","Restore original shapes and colors? Your custom blocks will be kept.","Original blocks restored!","Delete block","Delete this block from your library? Changes apply to the next game.","Select block","Keep at least one block in your library.","Cannot save an empty block.","AI wins!","First to clear 5 lines wins","On · Bot is playing","Off · You are playing"],
+          es:["Es hora de jugar.","Tus bloques. Tus colores. Tu próximo reto.","Tú","Completa 5 líneas","Rival de IA","Modo de juego","Individual","Jugador contra IA","Juego automático","Bot local · sin compartir datos","Pausar","Continuar","Restaurar bloques originales","¿Restaurar las formas y colores originales? Se conservarán tus bloques personalizados.","¡Bloques originales restaurados!","Eliminar bloque","¿Eliminar este bloque de tu biblioteca? Los cambios se aplican en la siguiente partida.","Seleccionar bloque","Conserva al menos un bloque en tu biblioteca.","No se puede guardar un bloque vacío.","¡La IA gana!","Gana quien complete primero 5 líneas","Activado · El bot juega","Desactivado · Tú juegas"],
+          fr:["Place au jeu.","Vos blocs. Vos couleurs. Votre prochain défi.","Vous","Complétez 5 lignes","Adversaire IA","Mode de jeu","Solo","Joueur contre IA","Jeu automatique","Bot local · aucun partage de données","Pause","Reprendre","Restaurer les blocs d’origine","Restaurer les formes et couleurs d’origine ? Vos blocs personnalisés seront conservés.","Blocs d’origine restaurés !","Supprimer le bloc","Supprimer ce bloc de votre bibliothèque ? Les changements prennent effet à la prochaine partie.","Choisir un bloc","Gardez au moins un bloc dans votre bibliothèque.","Impossible d’enregistrer un bloc vide.","L’IA gagne !","Le premier à compléter 5 lignes gagne","Activé · Le bot joue","Désactivé · Vous jouez"],
+          de:["Zeit zum Spielen.","Deine Blöcke. Deine Farben. Deine nächste Herausforderung.","Du","5 Reihen füllen","KI-Gegner","Spielmodus","Einzelspieler","Spieler gegen KI","Automatisches Spiel","Lokaler Bot · keine Datenweitergabe","Pause","Fortsetzen","Originalblöcke wiederherstellen","Originalformen und -farben wiederherstellen? Deine eigenen Blöcke bleiben erhalten.","Originalblöcke wiederhergestellt!","Block löschen","Diesen Block aus deiner Sammlung löschen? Änderungen gelten ab dem nächsten Spiel.","Block auswählen","Behalte mindestens einen Block in deiner Sammlung.","Ein leerer Block kann nicht gespeichert werden.","Die KI gewinnt!","Wer zuerst 5 Reihen füllt, gewinnt","An · Der Bot spielt","Aus · Du spielst"],
+          ru:["Время играть.","Твои блоки. Твои цвета. Твой следующий вызов.","Вы","Соберите 5 линий","Соперник ИИ","Режим игры","Одиночный","Игрок против ИИ","Автоигра","Локальный бот · без передачи данных","Пауза","Продолжить","Восстановить исходные блоки","Восстановить исходные формы и цвета? Ваши блоки сохранятся.","Исходные блоки восстановлены!","Удалить блок","Удалить блок из коллекции? Изменения вступят в силу в следующей игре.","Выбрать блок","Оставьте хотя бы один блок в коллекции.","Нельзя сохранить пустой блок.","ИИ победил!","Побеждает первый, кто соберёт 5 линий","Вкл. · Играет бот","Выкл. · Играете вы"],
+          pt:["Hora de jogar.","Seus blocos. Suas cores. Seu próximo desafio.","Você","Complete 5 linhas","Adversário de IA","Modo de jogo","Individual","Jogador contra IA","Jogo automático","Bot local · sem compartilhar dados","Pausar","Continuar","Restaurar blocos originais","Restaurar as formas e cores originais? Seus blocos personalizados serão mantidos.","Blocos originais restaurados!","Excluir bloco","Excluir este bloco da sua coleção? As mudanças serão aplicadas na próxima partida.","Selecionar bloco","Mantenha pelo menos um bloco na sua coleção.","Não é possível salvar um bloco vazio.","A IA venceu!","Quem completar 5 linhas primeiro vence","Ativado · O bot está jogando","Desativado · Você está jogando"],
+          zh:["开始游戏吧。","你的方块，你的颜色，你的下一个挑战。","你","消除5行","AI对手","游戏模式","单人","玩家对战AI","自动游戏","本地机器人 · 不共享数据","暂停","继续","恢复原始方块","恢复原始形状和颜色？你的自定义方块将被保留。","原始方块已恢复！","删除方块","从方块库中删除此方块？更改将在下一局生效。","选择方块","方块库中至少保留一个方块。","无法保存空方块。","AI获胜！","先消除5行的一方获胜","开启 · 机器人正在游戏","关闭 · 你正在游戏"],
+          ja:["さあ、遊ぼう。","自分のブロック。自分の色。新しい挑戦。","あなた","5ライン消そう","AI対戦相手","ゲームモード","ソロ","プレイヤー対AI","自動プレイ","ローカルボット · データ共有なし","一時停止","再開","元のブロックを復元","元の形と色を復元しますか？カスタムブロックは残ります。","元のブロックを復元しました！","ブロックを削除","このブロックをライブラリから削除しますか？次のゲームから適用されます。","ブロックを選択","ライブラリに最低1つのブロックを残してください。","空のブロックは保存できません。","AIの勝利！","先に5ライン消した方が勝利","オン · ボットがプレイ中","オフ · あなたがプレイ中"],
+          ko:["이제 즐겨 보세요.","나만의 블록. 나만의 색상. 새로운 도전.","플레이어","5줄 없애기","AI 상대","게임 모드","혼자 하기","플레이어 대 AI","자동 플레이","로컬 봇 · 데이터 공유 없음","일시 정지","계속","기본 블록 복원","기본 모양과 색상을 복원할까요? 사용자 지정 블록은 유지됩니다.","기본 블록이 복원되었습니다!","블록 삭제","이 블록을 목록에서 삭제할까요? 다음 게임부터 적용됩니다.","블록 선택","목록에 블록을 하나 이상 남겨 주세요.","빈 블록은 저장할 수 없습니다.","AI가 이겼습니다!","먼저 5줄을 없애면 승리","켜짐 · 봇이 플레이 중","꺼짐 · 플레이어가 플레이 중"]
+        };
+        Object.entries(newTranslations).forEach(([lang,values])=>newKeys.forEach((key,i)=>translations[lang][key]=values[i]));
+        let versus=false,paused=false,opponent=null,opponentTimer=null,matchPieces=[],matchCatalog=[],pieceCursor=0;
+        const aiContext=document.getElementById("ai-canvas").getContext("2d");
+        function appendMatchPiece(){const piece=matchCatalog[Math.floor(Math.random()*matchCatalog.length)].map(r=>r.slice());matchPieces.push(piece);return piece;}
+        function opponentSpawn(){
+          const matrix=(matchPieces[opponent.cursor++] || appendMatchPiece()).map(r=>r.slice());opponent.player={matrix,pos:{x:5-Math.floor(matrix[0].length/2),y:0}};
+          if(collide(opponent.board,opponent.player)){opponent.player=null;if(gameRunning){wins++;document.getElementById("wins-count").textContent=wins;saveGameStats();finishMatch("you_win");showToast("you_win","success");}}
+        }
+        function startOpponent(){
+          opponent={board:Array.from({length:20},()=>Array(10).fill(0)),cursor:0,lines:0,phase:0,move:null,player:null};opponentSpawn();document.getElementById("ai-progress").textContent="0 / 5";
+          opponentTimer=setInterval(()=>{
+            if(!gameRunning || paused || !opponent.player)return;
+            if(opponent.phase===0){opponent.move=findBestMove(opponent.player,opponent.board);opponent.phase=1;return;}
+            const move=opponent.move;
+            if(!move){finishMatch("you_win");return;}
+            opponent.player.matrix=move.matrix;opponent.player.pos.x=move.x;
+            for(let step=0;step<3;step++){opponent.player.pos.y++;if(collide(opponent.board,opponent.player)){
+              opponent.player.pos.y--;merge(opponent.board,opponent.player);
+              const remaining=opponent.board.filter(row=>!row.every(Boolean));const cleared=20-remaining.length;opponent.lines+=cleared;opponent.board=Array.from({length:cleared},()=>Array(10).fill(0)).concat(remaining);
+              document.getElementById("ai-progress").textContent=opponent.lines+" / 5";
+              if(opponent.lines>=5){overs++;document.getElementById("overs-count").textContent=overs;saveGameStats();finishMatch("ai_wins");showToast("ai_wins","error");return;}
+              opponent.phase=0;opponentSpawn();return;
+            }}
+          },180);
+        }
+        function finishMatch(key){if(!versus)return;gameRunning=false;clearInterval(gameLoop);clearInterval(opponentTimer);clearTimeout(aiMoveTimer);document.getElementById("match-status").textContent=t(key);}
+        function togglePause(){
+          if(!gameRunning)return;paused=!paused;
+          const button=document.getElementById("pause-btn");button.dataset.langKey=paused?"resume":"pause";button.textContent=t(button.dataset.langKey);
+          if(paused)clearTimeout(aiMoveTimer);else queueAiMove();
+        }
+        document.getElementById("pause-btn").addEventListener("click",togglePause);
+        document.getElementById("game-mode").addEventListener("change",e=>{
+          versus=e.target.value==="versus";document.getElementById("ai-board-container").classList.toggle("hidden",!versus);document.getElementById("ai-toggle").disabled=versus;
+          if(versus){applySetting("ai",false);saveSettings();}startGame();
+        });
+        document.addEventListener("visibilitychange",()=>{if(document.hidden && gameRunning && !paused)togglePause();});
+
+
+        const extraKeys=["language","speed_faster","speed_very_fast","speed_expert","speed_insane","toggle_theme","open_menu","offline","move_left","move_right"];
+        const extraTranslations={
+          en:["Language","1 · Faster","2 · Very fast","3 · Expert","4 · Extreme","Change theme","Open menu","You're offline. You can still play Tetris!","Move left","Move right"],
+          es:["Idioma","1 · Más rápido","2 · Muy rápido","3 · Experto","4 · Extremo","Cambiar tema","Abrir menú","No tienes conexión. ¡Puedes seguir jugando al Tetris!","Mover a la izquierda","Mover a la derecha"],
+          fr:["Langue","1 · Rapide","2 · Très rapide","3 · Expert","4 · Extrême","Changer de thème","Ouvrir le menu","Vous êtes hors ligne. Vous pouvez toujours jouer à Tetris !","Déplacer à gauche","Déplacer à droite"],
+          de:["Sprache","1 · Schneller","2 · Sehr schnell","3 · Experte","4 · Extrem","Design ändern","Menü öffnen","Du bist offline. Du kannst weiterhin Tetris spielen!","Nach links bewegen","Nach rechts bewegen"],
+          ru:["Язык","1 · Быстрее","2 · Очень быстро","3 · Эксперт","4 · Экстрим","Сменить тему","Открыть меню","Вы не в сети. Вы всё ещё можете играть в тетрис!","Сдвинуть влево","Сдвинуть вправо"],
+          pt:["Idioma","1 · Mais rápido","2 · Muito rápido","3 · Especialista","4 · Extremo","Alterar tema","Abrir menu","Você está sem conexão. Ainda pode jogar Tetris!","Mover para a esquerda","Mover para a direita"],
+          zh:["语言","1 · 更快","2 · 非常快","3 · 专家","4 · 极限","切换主题","打开菜单","你已离线，仍然可以玩俄罗斯方块！","向左移动","向右移动"],
+          ja:["言語","1 · 速い","2 · とても速い","3 · 上級","4 · 超高速","テーマを変更","メニューを開く","オフラインです。テトリスは引き続きプレイできます！","左に移動","右に移動"],
+          ko:["언어","1 · 빠르게","2 · 매우 빠르게","3 · 전문가","4 · 극한","테마 변경","메뉴 열기","오프라인 상태입니다. 테트리스는 계속 플레이할 수 있습니다!","왼쪽으로 이동","오른쪽으로 이동"]
+        };
+        Object.entries(extraTranslations).forEach(([lang,values])=>extraKeys.forEach((key,i)=>translations[lang][key]=values[i]));
+        translations.it={
+          title:"Munetios Tetris",nav_game:"Gioco",nav_editor:"Editor",nav_settings:"Impostazioni",score:"Punteggio",placed:"Posizionati",lines:"Linee",try_again:"Riprova",next:"Prossimo",wins:"Vittorie",overs:"Sconfitte",controls:"Comandi",editor_title:"Editor di blocchi",editor_desc_full:"Modifica, crea, salva ed elimina i blocchi della tua raccolta!",editor_select:"Seleziona o crea un blocco",editor_color:"Colore del blocco",editor_save:"Salva blocco",editor_add_new:"Aggiungi",settings_gameplay:"Gioco",settings_layout:"Layout e interfaccia",settings_layout_desc:"Scegli quali elementi mostrare nella schermata di gioco.",settings_speed:"Velocità di gioco",speed_default:"Predefinita",settings_sfx:"Effetti sonori",sfx_off:"Disattivati",sfx_on:"Attivati",settings_shortcuts:"Scorciatoie da tastiera",shortcut_move:"Sposta il pezzo",shortcut_rotate:"Ruota il pezzo",shortcut_soft_drop:"Discesa lenta",shortcut_hard_drop:"Discesa istantanea",credits:"Creato da Munetios",close:"Chiudi",cancel:"Annulla",game_over:"Partita finita!",line_cleared:"Linea eliminata!",you_win:"Hai vinto!",block_saved:"Blocco salvato!",block_created:"Nuovo blocco creato!",block_deleted:"Blocco eliminato!",confirm_delete_block:"Vuoi eliminare questo blocco personalizzato?",
+          hero_title:"È ora di giocare.",hero_desc:"I tuoi blocchi. I tuoi colori. La tua prossima sfida.",you:"Tu",target:"Elimina 5 linee",opponent:"Avversario IA",game_mode:"Modalità di gioco",solo:"Giocatore singolo",versus:"Giocatore contro IA",autoplay:"Gioco automatico",local_bot:"Bot locale · nessuna condivisione di dati",pause:"Pausa",resume:"Riprendi",restore:"Ripristina i blocchi originali",restore_confirm:"Ripristinare forme e colori originali? I blocchi personalizzati saranno conservati.",restored:"Blocchi originali ripristinati!",delete_block:"Elimina blocco",delete_confirm:"Eliminare questo blocco dalla raccolta? Le modifiche si applicano alla prossima partita.",select_block:"Seleziona blocco",need_block:"Mantieni almeno un blocco nella raccolta.",empty_block:"Non puoi salvare un blocco vuoto.",ai_wins:"L’IA ha vinto!",race:"Vince chi elimina per primo 5 linee",bot_on:"Attivo · Il bot sta giocando",bot_off:"Disattivo · Stai giocando tu",
+          language:"Lingua",speed_faster:"1 · Più veloce",speed_very_fast:"2 · Molto veloce",speed_expert:"3 · Esperto",speed_insane:"4 · Estremo",toggle_theme:"Cambia tema",open_menu:"Apri menu",offline:"Sei offline. Puoi continuare a giocare a Tetris!",move_left:"Sposta a sinistra",move_right:"Sposta a destra"
+        };
+        const regionalLanguages={"en-US":"en","en-GB":"en","es-ES":"es","es-US":"es","es-MX":"es","es-419":"es","pt-BR":"pt","pt-PT":"pt","fr-FR":"fr","fr-CA":"fr","de-DE":"de","it-IT":"it","ru-RU":"ru","zh-CN":"zh","ja-JP":"ja","ko-KR":"ko"};
+        Object.entries(regionalLanguages).forEach(([region,base])=>translations[region]={...translations[base]});
+        translations["en-GB"].hero_desc="Your blocks. Your colours. Your next challenge.";
+        translations["en-GB"].editor_color="Block Colour";
+        translations["en-GB"].restore_confirm="Restore original shapes and colours? Your custom blocks will be kept.";
+        ["es","es-US","es-MX","es-419"].forEach(lang=>translations[lang].editor_add_new="Agregar nuevo");
+        translations["es-ES"].nav_settings="Ajustes";
+        translations["es-ES"].editor_add_new="Añadir nuevo";
+        translations["es-ES"].editor_desc_full="Edita, crea, guarda y elimina los bloques de tu colección.";
+        Object.assign(translations["pt-PT"],{
+          nav_settings:"Ajustes",controls:"Controlos",try_again:"Tentar novamente",editor_desc_full:"Edita, cria, guarda e elimina os blocos da tua coleção!",editor_select:"Selecionar ou criar bloco",editor_save:"Guardar bloco",editor_add_new:"Adicionar novo",settings_layout:"Disposição e interface",settings_layout_desc:"Escolhe os elementos que aparecem no ecrã do jogo.",settings_shortcuts:"Atalhos do teclado",shortcut_move:"Mover peça",shortcut_rotate:"Rodar peça",sfx_off:"Desativados",sfx_on:"Ativados",you_win:"Ganhaste!",block_saved:"Bloco guardado!",block_deleted:"Bloco eliminado!",confirm_delete_block:"Queres eliminar este bloco personalizado?",
+          hero_title:"Está na hora de jogar.",hero_desc:"Os teus blocos. As tuas cores. O teu próximo desafio.",you:"Tu",opponent:"Adversário de IA",solo:"Individual",versus:"Jogador contra IA",autoplay:"Jogo automático",local_bot:"Bot local · sem partilha de dados",restore_confirm:"Restaurar as formas e cores originais? Os teus blocos personalizados serão mantidos.",delete_block:"Eliminar bloco",delete_confirm:"Eliminar este bloco da tua coleção? As alterações aplicam-se à próxima partida.",need_block:"Mantém pelo menos um bloco na tua coleção.",empty_block:"Não é possível guardar um bloco vazio.",ai_wins:"A IA ganhou!",race:"Ganha quem completar primeiro 5 linhas",bot_on:"Ativado · O bot está a jogar",bot_off:"Desativado · Estás a jogar",offline:"Estás sem ligação. Podes continuar a jogar Tetris!"
+        });
+        const languageChoices=[
+          {value:"en",label:"English"},{value:"en-US",label:"English (United States)"},{value:"en-GB",label:"English (United Kingdom)"},
+          {value:"es",label:"Español (Latinoamérica)"},{value:"es-ES",label:"Español (España)"},{value:"es-US",label:"Español (Estados Unidos)"},{value:"es-MX",label:"Español (México)"},{value:"es-419",label:"Español (América Latina)"},
+          {value:"fr",label:"Français"},{value:"fr-FR",label:"Français (France)"},{value:"fr-CA",label:"Français (Canada)"},{value:"de",label:"Deutsch"},{value:"de-DE",label:"Deutsch (Deutschland)"},
+          {value:"it",label:"Italiano"},{value:"it-IT",label:"Italiano (Italia)"},{value:"ru",label:"Русский"},{value:"ru-RU",label:"Русский (Россия)"},
+          {value:"pt",label:"Português"},{value:"pt-BR",label:"Português (Brasil)"},{value:"pt-PT",label:"Português (Portugal)"},
+          {value:"zh",label:"中文"},{value:"zh-CN",label:"中文（简体）"},{value:"ja",label:"日本語"},{value:"ja-JP",label:"日本語（日本）"},{value:"ko",label:"한국어"},{value:"ko-KR",label:"한국어 (대한민국)"}
+        ];
+        const dropdowns=[
+          new MunetiosDropdown("language-selector",languageChoices,t,"language"),
+          new MunetiosDropdown("language-selector-mobile",languageChoices,t,"language"),
+          new MunetiosDropdown("game-mode",[{value:"solo",key:"solo"},{value:"versus",key:"versus"}],t,"game_mode"),
+          new MunetiosDropdown("game-speed",[{value:"1",key:"speed_default"},{value:"0.8",key:"speed_faster"},{value:"0.6",key:"speed_very_fast"},{value:"0.4",key:"speed_expert"},{value:"0.2",key:"speed_insane"}],t,"settings_speed")
+        ];
+
+
+        loadSettings();
+        loadGameStats();
+        loadCustomPieces();
+        updateLanguage(readStorage("munetiosTetrisLanguage", "en"));
+        loadPieceIntoEditor("new");
+        renderBlockSelection();
+        startGame();
+        setupPWA();
+
+        function animate() {
+          draw();
+          requestAnimationFrame(animate);
+        }
+        animate();
+      });
+    </script>
+  </body>
+</html>
