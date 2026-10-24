@@ -2169,6 +2169,27 @@
               </div>
             </div>
 
+            <div class="settings-group" style="margin-top: 12px">
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name">Daily daylight change</span>
+                  <span class="setting-description">Reduce: sunrise later (+), sunset earlier (−). Increase: sunrise earlier (−), sunset later (+).</span>
+                </div>
+                <select id="dailyDaylightMode" class="dropdown-button" aria-label="Daily daylight change" style="color: white; background: rgba(30,7,43,.1); backdrop-filter: blur(2px) saturate(180%);">
+                  <option value="reduce">Reduce daylight</option>
+                  <option value="increase">Increase daylight</option>
+                  <option value="none">No daily change</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div class="setting-info">
+                  <span class="setting-name">Minutes per day</span>
+                  <span class="setting-description">Applied separately to sunrise and sunset after each completed day. Range: 0–60 minutes.</span>
+                </div>
+                <input id="dailyDaylightMinutes" class="minute-input" type="number" min="0" max="60" step="1" value="2" aria-label="Minutes per day" />
+              </div>
+            </div>
+
             <div class="daylight-preview">
               <div class="preview-time">
                 <icon>light_mode</icon>
@@ -2218,7 +2239,7 @@
               id="daylightWarning"
               data-i18n="invalidDaylight"
             >
-              Sunset must be at least one hour after sunrise.
+              Daylight can range from 0 to 24 hours, including polar night and midnight sun.
             </p>
 
             <div style="margin-top: 11px">
@@ -2602,7 +2623,7 @@
 
             hoursMinutes: "{hours}h {minutes}m",
 
-            invalidDaylight: "Sunset must be at least one hour after sunrise.",
+            invalidDaylight: "Daylight can range from 0 to 24 hours, including polar night and midnight sun.",
 
             resetDaylight: "Reset daylight",
 
@@ -3854,6 +3875,10 @@
 
           sunsetDst: 0,
 
+          dailyDaylightMode: "reduce",
+
+          dailyDaylightMinutes: 2,
+
           cheatsEnabled: false,
 
           unlimitedCandy: false,
@@ -4478,7 +4503,7 @@
           return (
             Number(settings.sunriseMinutes) +
             Number(settings.sunriseDst) +
-            completedNights * 2
+            completedNights * (settings.dailyDaylightMode === "none" ? 0 : (settings.dailyDaylightMode === "increase" ? -1 : 1) * Math.max(0, Math.min(60, Number(settings.dailyDaylightMinutes) || 0)))
           );
         }
 
@@ -4486,66 +4511,62 @@
           return (
             Number(settings.sunsetMinutes) +
             Number(settings.sunsetDst) -
-            completedNights * 2
+            completedNights * (settings.dailyDaylightMode === "none" ? 0 : (settings.dailyDaylightMode === "increase" ? -1 : 1) * Math.max(0, Math.min(60, Number(settings.dailyDaylightMinutes) || 0)))
           );
+        }
+
+        // Clamp the daily cycle to polar night (0h) or midnight sun (24h).
+        // Crossing sunrise and sunset is a valid polar transition, not an error.
+        function getDaylightSchedule() {
+          const rawSunrise = getEffectiveSunrise();
+          const rawSunset = getEffectiveSunset();
+          if (!Number.isFinite(rawSunrise) || !Number.isFinite(rawSunset)) {
+            return { sunrise: DEFAULT_SUNRISE, sunset: DEFAULT_SUNSET, duration: DEFAULT_SUNSET - DEFAULT_SUNRISE };
+          }
+          // Equal clock times are intentional polar modes, not an invalid interval.
+          // 12:00 NM / 12:00 NM = midnight sun (24h).
+          // 12:00 AN / 12:00 AN = polar night (0h).
+          // Other equal times remain zero-length daylight intervals.
+          const sameClockTime = normalizeMinutes(rawSunrise) === normalizeMinutes(rawSunset);
+          const bothMidnight = sameClockTime && normalizeMinutes(rawSunrise) === 0;
+          const bothNoon = sameClockTime && normalizeMinutes(rawSunrise) === 720;
+          let duration;
+          if (bothMidnight) {
+            duration = 1440;
+          } else if (bothNoon) {
+            duration = 0;
+          } else {
+            duration = clamp(rawSunset - rawSunrise, 0, 1440);
+          }
+          return { sunrise: rawSunrise, sunset: rawSunrise + duration, duration };
         }
 
         function validateDaylight() {
-          const sunrise = getEffectiveSunrise();
-
-          const sunset = getEffectiveSunset();
-
-          const valid =
-            Number.isFinite(sunrise) &&
-            Number.isFinite(sunset) &&
-            sunset >= sunrise + 60;
-
-          daylightWarning.classList.toggle("visible", !valid);
-
-          return valid;
+          daylightWarning.classList.remove("visible");
+          return true;
         }
 
-        function getSafeSunrise() {
-          if (validateDaylight()) {
-            return getEffectiveSunrise();
-          }
-
-          return DEFAULT_SUNRISE;
-        }
-
-        function getSafeSunset() {
-          if (validateDaylight()) {
-            return getEffectiveSunset();
-          }
-
-          return DEFAULT_SUNSET;
-        }
+        function getSafeSunrise() { return getDaylightSchedule().sunrise; }
+        function getSafeSunset() { return getDaylightSchedule().sunset; }
 
         function getDaylightFactor() {
+          const schedule = getDaylightSchedule();
+          if (schedule.duration <= 0) return 0;
+          if (schedule.duration >= 1440) return 1;
           const minute = normalizeMinutes(worldMinutes);
-
-          const sunrise = getSafeSunrise();
-
-          const sunset = getSafeSunset();
-
-          const transition = 30;
-
-          const morning = smoothstep(
-            sunrise - transition,
-            sunrise + transition,
-            minute,
-          );
-
-          const evening =
-            1 - smoothstep(sunset - transition, sunset + transition, minute);
-
+          const elapsed = normalizeMinutes(minute - normalizeMinutes(schedule.sunrise));
+          const transition = Math.min(30, schedule.duration / 2, (1440 - schedule.duration) / 2);
+          if (transition <= 0) return elapsed < schedule.duration ? 1 : 0;
+          const morning = smoothstep(0, transition * 2, elapsed);
+          const evening = 1 - smoothstep(schedule.duration - transition, schedule.duration + transition, elapsed);
           return clamp(morning * evening, 0, 1);
         }
 
         function isDaytime() {
-          const minute = normalizeMinutes(worldMinutes);
-
-          return minute >= getSafeSunrise() && minute < getSafeSunset();
+          const schedule = getDaylightSchedule();
+          if (schedule.duration >= 1440) return true;
+          if (schedule.duration <= 0) return false;
+          return normalizeMinutes(normalizeMinutes(worldMinutes) - normalizeMinutes(schedule.sunrise)) < schedule.duration;
         }
 
         /*
@@ -4555,53 +4576,20 @@
           */
 
         function getSunPosition() {
-          const sunrise = getSafeSunrise();
-
-          const sunset = getSafeSunset();
-
-          const current = clamp(
-            normalizeMinutes(worldMinutes),
-            sunrise,
-            sunset,
-          );
-
-          const progress = clamp(
-            (current - sunrise) / (sunset - sunrise),
-            0,
-            1,
-          );
-
-          return {
-            x: 120 + progress * (WORLD_WIDTH - 240),
-
-            y: 275 - Math.sin(progress * Math.PI) * 200,
-          };
+          const schedule = getDaylightSchedule();
+          const elapsed = normalizeMinutes(normalizeMinutes(worldMinutes) - normalizeMinutes(schedule.sunrise));
+          const progress = schedule.duration >= 1440
+            ? elapsed / 1440
+            : clamp(elapsed / Math.max(1, schedule.duration), 0, 1);
+          return { x: 120 + progress * (WORLD_WIDTH - 240), y: 275 - Math.sin(progress * Math.PI) * 200 };
         }
 
         function getMoonPosition() {
-          const sunrise = getSafeSunrise();
-
-          const sunset = getSafeSunset();
-
-          const current = normalizeMinutes(worldMinutes);
-
-          const nightLength = 1440 - (sunset - sunrise);
-
-          let elapsed;
-
-          if (current >= sunset) {
-            elapsed = current - sunset;
-          } else {
-            elapsed = 1440 - sunset + current;
-          }
-
-          const progress = clamp(elapsed / nightLength, 0, 1);
-
-          return {
-            x: 120 + progress * (WORLD_WIDTH - 240),
-
-            y: 260 - Math.sin(progress * Math.PI) * 185,
-          };
+          const schedule = getDaylightSchedule();
+          const nightLength = 1440 - schedule.duration;
+          const elapsed = normalizeMinutes(normalizeMinutes(worldMinutes) - normalizeMinutes(schedule.sunset));
+          const progress = nightLength >= 1440 ? elapsed / 1440 : clamp(elapsed / Math.max(1, nightLength), 0, 1);
+          return { x: 120 + progress * (WORLD_WIDTH - 240), y: 260 - Math.sin(progress * Math.PI) * 185 };
         }
 
         /*
@@ -4916,7 +4904,7 @@
           particles.length = 0;
           popups.length = 0;
 
-          for (let i = 0; i < 30; i++) {
+          for (let i = 0; i < 12; i++) {
             spawnCandy();
           }
 
@@ -5168,9 +5156,9 @@
 
           const daytime = isDaytime();
 
-          if (wasDaytime && !daytime) {
-            completedNights += 1;
-
+          const fullDays = Math.floor(cycleProgress);
+          if (fullDays > completedNights) {
+            completedNights = fullDays;
             updateTimeInputs();
           }
 
@@ -5649,10 +5637,10 @@
 
           spiderSpawnTimer -= dt;
 
-          if (candySpawnTimer <= 0 && candies.length < 10000) {
+          if (candySpawnTimer <= 0 && candies.length < (settings.cheatsEnabled && settings.unlimitedCandy ? 10000 : 45)) {
             spawnCandy();
 
-            candySpawnTimer = 0.01;
+            candySpawnTimer = settings.cheatsEnabled && settings.unlimitedCandy ? 0.01 : random(1.8, 3.2);
           }
 
           if (pumpkinSpawnTimer <= 0 && pumpkins.length < 30) {
@@ -6555,12 +6543,15 @@
 
           sunsetDstInput.value = String(settings.sunsetDst);
 
+          document.getElementById("dailyDaylightMode").value = settings.dailyDaylightMode;
+          document.getElementById("dailyDaylightMinutes").value = String(settings.dailyDaylightMinutes);
+
           sunrisePreview.textContent = formatEffectiveTime(getSafeSunrise());
 
           sunsetPreview.textContent = formatEffectiveTime(getSafeSunset());
 
           daylightDurationPreview.textContent = formatDaylightDuration(
-            getSafeSunset() - getSafeSunrise(),
+            getDaylightSchedule().duration,
           );
 
           validateDaylight();
@@ -6968,6 +6959,18 @@
           adjustTime("sunsetMinutes", 1);
         });
 
+        document.getElementById("dailyDaylightMode").addEventListener("change", (event) => {
+          settings.dailyDaylightMode = event.target.value;
+          saveSettings();
+          updateTimeInputs();
+        });
+
+        document.getElementById("dailyDaylightMinutes").addEventListener("change", (event) => {
+          settings.dailyDaylightMinutes = Math.max(0, Math.min(60, Math.round(Number(event.target.value) || 0)));
+          saveSettings();
+          updateTimeInputs();
+        });
+
         resetDaylightButton.addEventListener("click", () => {
           settings.sunriseMinutes = DEFAULT_SUNRISE;
 
@@ -6976,6 +6979,10 @@
           settings.sunriseDst = 0;
 
           settings.sunsetDst = 0;
+
+          settings.dailyDaylightMode = "reduce";
+
+          settings.dailyDaylightMinutes = 2;
 
           saveSettings();
 
